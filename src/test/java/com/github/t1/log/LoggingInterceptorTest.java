@@ -1,0 +1,489 @@
+package com.github.t1.log;
+
+import static com.github.t1.log.LogLevel.*;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+
+import java.lang.reflect.Method;
+import java.util.Collections;
+
+import javax.enterprise.inject.Instance;
+import javax.interceptor.InvocationContext;
+
+import lombok.experimental.Value;
+
+import org.junit.*;
+import org.junit.runner.RunWith;
+import org.mockito.*;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
+import org.slf4j.*;
+
+@RunWith(MockitoJUnitRunner.class)
+@Logged
+public class LoggingInterceptorTest {
+    private final class StoreMdcAnswer implements Answer<Void> {
+        private final String key;
+        private final String[] userId;
+
+        private StoreMdcAnswer(String key, String[] userId) {
+            this.key = key;
+            this.userId = userId;
+        }
+
+        @Override
+        public Void answer(InvocationOnMock invocation) throws Throwable {
+            userId[0] = MDC.get(key);
+            return null;
+        }
+    }
+
+    private class Nested {
+        @Logged
+        public void implicit() {}
+
+        @Logged(logger = Nested.class)
+        public void explicit() {}
+    }
+
+    private class Inner {
+        @Logged
+        public void implicit() {}
+
+        @Logged(logger = Inner.class)
+        public void explicit() {}
+    }
+
+    @InjectMocks
+    LoggingInterceptor interceptor = new LoggingInterceptor() {
+        @Override
+        protected Logger getLogger(Class<?> loggerType) {
+            LoggingInterceptorTest.this.loggerType = loggerType;
+            return logger;
+        };
+    };
+    @Mock
+    InvocationContext context;
+    @Mock
+    Logger logger;
+    @Mock
+    Instance<LogContextVariable> variables;
+
+    Class<?> loggerType;
+
+    @Before
+    public void setup() {
+        when(logger.isDebugEnabled()).thenReturn(true);
+        when(variables.iterator()).thenReturn(Collections.<LogContextVariable> emptyList().iterator());
+    }
+
+    private void whenMethod(Object target, String methodName, Object... args) throws ReflectiveOperationException {
+        Method method = target.getClass().getMethod(methodName, types(args));
+        whenMethod(method, target, args);
+    }
+
+    private void whenMethod(Method method, Object target, Object... args) {
+        when(context.getMethod()).thenReturn(method);
+        when(context.getTarget()).thenReturn(target);
+        when(context.getParameters()).thenReturn(args);
+    }
+
+    private Class<?>[] types(Object[] objects) {
+        Class<?>[] result = new Class[objects.length];
+        for (int i = 0; i < objects.length; i++) {
+            result[i] = objects[i].getClass();
+        }
+        return result;
+    }
+
+    @Test
+    public void shouldLogALongMethodNameWithSpaces() throws Exception {
+        class Container {
+            @Logged
+            public void methodWithALongName() {}
+        }
+        whenMethod(new Container(), "methodWithALongName");
+
+        interceptor.aroundInvoke(context);
+
+        verify(logger).debug("method with a long name", new Object[0]);
+    }
+
+    @Test
+    public void shouldLogAnAnnotatedMethod() throws Exception {
+        class Container {
+            @Logged("bar")
+            public void foo() {}
+        }
+        whenMethod(new Container(), "foo");
+
+        interceptor.aroundInvoke(context);
+
+        verify(logger).debug("bar", new Object[0]);
+    }
+
+    @Test
+    public void shouldLogReturnValue() throws Exception {
+        class Container {
+            @Logged
+            public boolean methodWithReturnType() {
+                return true;
+            }
+        }
+        whenMethod(new Container(), "methodWithReturnType");
+        when(context.proceed()).thenReturn(true);
+
+        interceptor.aroundInvoke(context);
+
+        verify(logger).debug("return {}", new Object[] { true });
+    }
+
+    @Test
+    public void shouldLogException() throws Exception {
+        class Container {
+            @Logged
+            public boolean methodThatMightFail() {
+                return true;
+            }
+        }
+        whenMethod(new Container(), "methodThatMightFail");
+        RuntimeException exception = new RuntimeException("foo");
+        when(context.proceed()).thenThrow(exception);
+
+        try {
+            interceptor.aroundInvoke(context);
+            fail("RuntimeException expected");
+        } catch (RuntimeException e) {
+            // that's okay
+        }
+        verify(logger).debug("failed", exception);
+    }
+
+    @Test
+    public void shouldNotLogVoidReturnValue() throws Exception {
+        class Container {
+            @Logged
+            public void voidReturnType() {}
+        }
+        whenMethod(new Container(), "voidReturnType");
+
+        interceptor.aroundInvoke(context);
+
+        verify(logger).debug("void return type", new Object[0]);
+        verify(logger, atLeast(0)).isDebugEnabled();
+        verifyNoMoreInteractions(logger);
+    }
+
+    @Test
+    public void shouldLogIntParameter() throws Exception {
+        class Container {
+            @Logged
+            public void methodWithIntArgument(int i) {}
+        }
+        Method method = Container.class.getMethod("methodWithIntArgument", int.class);
+        whenMethod(method, new Container(), 3);
+
+        interceptor.aroundInvoke(context);
+
+        verify(logger).debug("method with int argument {}", new Object[] { 3 });
+    }
+
+    @Test
+    public void shouldLogIntegerParameter() throws Exception {
+        class Container {
+            @Logged
+            public void methodWithIntegerArgument(Integer i) {}
+        }
+        whenMethod(new Container(), "methodWithIntegerArgument", 3);
+
+        interceptor.aroundInvoke(context);
+
+        verify(logger).debug("method with integer argument {}", new Object[] { 3 });
+    }
+
+    @Test
+    public void shouldLogTwoParameters() throws Exception {
+        class Container {
+            @Logged
+            public void methodWithTwoParameters(String one, String two) {}
+        }
+        whenMethod(new Container(), "methodWithTwoParameters", "foo", "bar");
+
+        interceptor.aroundInvoke(context);
+
+        verify(logger).debug("method with two parameters {} {}", new Object[] { "foo", "bar" });
+    }
+
+    @Test
+    public void shouldNotLogWhenOff() throws Exception {
+        class Container {
+            @Logged(level = OFF)
+            public void atOff() {}
+        }
+        whenMethod(new Container(), "atOff");
+
+        interceptor.aroundInvoke(context);
+
+        verifyNoMoreInteractions(logger);
+    }
+
+    @Test
+    public void shouldNotLogWhenDebugIsNotEnabled() throws Exception {
+        class Container {
+            @Logged(level = DEBUG)
+            public void atDebug() {}
+        }
+        when(logger.isDebugEnabled()).thenReturn(false);
+        whenMethod(new Container(), "atDebug");
+
+        interceptor.aroundInvoke(context);
+
+        verify(logger, atLeast(0)).isDebugEnabled();
+        verifyNoMoreInteractions(logger);
+    }
+
+    @Test
+    public void shouldLogInfoWhenInfoIsEnabled() throws Exception {
+        class Container {
+            @Logged(level = INFO)
+            public void atInfo() {}
+        }
+        when(logger.isInfoEnabled()).thenReturn(true);
+        whenMethod(new Container(), "atInfo");
+
+        interceptor.aroundInvoke(context);
+
+        verify(logger).info("at info", new Object[0]);
+    }
+
+    @Test
+    public void shouldUseExplicitLoggerClass() throws Exception {
+        class Container {
+            @Logged(logger = Integer.class)
+            public void foo() {}
+        }
+        whenMethod(new Container(), "foo");
+
+        interceptor.aroundInvoke(context);
+
+        assertEquals(Integer.class, loggerType);
+    }
+
+    @Test
+    public void shouldNotUnwrapUseExplicitLocalLoggerClass() throws Exception {
+        class Container {
+            @Logged(logger = Container.class)
+            public void foo() {}
+        }
+        whenMethod(new Container(), "foo");
+
+        interceptor.aroundInvoke(context);
+
+        assertEquals(Container.class, loggerType);
+    }
+
+    @Test
+    public void shouldNotUnwrapUseExplicitNestedLoggerClass() throws Exception {
+        whenMethod(new Nested(), "explicit");
+
+        interceptor.aroundInvoke(context);
+
+        assertEquals(Nested.class, loggerType);
+    }
+
+    @Test
+    public void shouldNotUnwrapUseExplicitInnerLoggerClass() throws Exception {
+        whenMethod(new Inner(), "explicit");
+
+        interceptor.aroundInvoke(context);
+
+        assertEquals(Inner.class, loggerType);
+    }
+
+    @Test
+    public void shouldNotUnwrapUseExplicitDollarLoggerClass() throws Exception {
+        class Container {
+            @Logged(logger = Dollar$Type.class)
+            public void foo() {}
+        }
+        whenMethod(new Container(), "foo");
+
+        interceptor.aroundInvoke(context);
+
+        assertEquals(Dollar$Type.class, loggerType);
+    }
+
+    @Test
+    public void shouldDefaultToLoggerClass() throws Exception {
+        whenMethod(new LoggingInterceptorTest(), "shouldDefaultToLoggerClass");
+
+        interceptor.aroundInvoke(context);
+
+        assertEquals(LoggingInterceptorTest.class, loggerType);
+    }
+
+    @Test
+    public void shouldDefaultToContainerOfLocalLoggerClass() throws Exception {
+        class Container {
+            @Logged
+            public void foo() {}
+        }
+        whenMethod(new Container(), "foo");
+
+        interceptor.aroundInvoke(context);
+
+        assertEquals(LoggingInterceptorTest.class, loggerType);
+    }
+
+    @Test
+    public void shouldDefaultToContainerOfNestedLoggerClass() throws Exception {
+        whenMethod(new Nested(), "implicit");
+
+        interceptor.aroundInvoke(context);
+
+        assertEquals(LoggingInterceptorTest.class, loggerType);
+    }
+
+    @Test
+    public void shouldDefaultToContainerOfInnerLoggerClass() throws Exception {
+        whenMethod(new Inner(), "implicit");
+
+        interceptor.aroundInvoke(context);
+
+        assertEquals(LoggingInterceptorTest.class, loggerType);
+    }
+
+    @Test
+    public void shouldDefaultToDoubleContainerLoggerClass() throws Exception {
+        class Outer {
+            class Inner {
+                @Logged
+                public void foo() {}
+            }
+        }
+        whenMethod(new Outer().new Inner(), "foo");
+
+        interceptor.aroundInvoke(context);
+
+        assertEquals(LoggingInterceptorTest.class, loggerType);
+    }
+
+    @Test
+    public void shouldDefaultToAnonymousLoggerClass() throws Exception {
+        whenMethod(new Runnable() {
+            @Override
+            @Logged
+            public void run() {}
+        }, "run");
+
+        interceptor.aroundInvoke(context);
+
+        assertEquals(LoggingInterceptorTest.class, loggerType);
+    }
+
+    @Test
+    public void shouldDefaultToDollarLoggerClass() throws Exception {
+        whenMethod(new Dollar$Type(), "foo");
+
+        interceptor.aroundInvoke(context);
+
+        assertEquals(Dollar$Type.class, loggerType);
+    }
+
+    @Test
+    public void shouldLogContextParameter() throws Exception {
+        final String KEY = "user-id";
+        class Container {
+            @Logged
+            public void methodWithLogContextParameter(@LogContext(KEY) String one, String two) {}
+        }
+        whenMethod(new Container(), "methodWithLogContextParameter", "foo", "bar");
+        final String[] result = new String[1];
+        when(context.proceed()).thenAnswer(new StoreMdcAnswer(KEY, result));
+
+        MDC.put(KEY, "bar");
+        interceptor.aroundInvoke(context);
+        assertEquals("bar", MDC.get(KEY));
+
+        verify(logger).debug("method with log context parameter {} {}", new Object[] { "foo", "bar" });
+        assertEquals("foo", result[0]);
+    }
+
+    @Value
+    static class Pojo {
+        String one, two;
+    }
+
+    static class PojoConverter implements LogContextConverter<Pojo> {
+        @Override
+        public String convert(Pojo object) {
+            return object.one;
+        }
+    }
+
+    @Test
+    public void shouldConvertLogContextParameter() throws Exception {
+        final String KEY = "foobar";
+        class Container {
+            @Logged
+            public void foo(@LogContext(value = KEY, converter = PojoConverter.class) Pojo pojo) {}
+        }
+        whenMethod(new Container(), "foo", new Pojo("a", "b"));
+        final String[] result = new String[1];
+        when(context.proceed()).thenAnswer(new StoreMdcAnswer(KEY, result));
+
+        MDC.put(KEY, "bar");
+        interceptor.aroundInvoke(context);
+        assertEquals("bar", MDC.get(KEY));
+
+        verify(logger).debug("foo {}", new Object[] { new Pojo("a", "b") });
+        assertEquals("a", result[0]);
+    }
+
+    @Test
+    public void shouldFindAddALogContextVariable() throws Exception {
+        class Container {
+            @Logged
+            public void foo() {}
+        }
+        whenMethod(new Container(), "foo");
+        final String[] result = new String[1];
+        when(context.proceed()).thenAnswer(new StoreMdcAnswer("foo", result));
+
+        LogContextVariable variable = new LogContextVariable("foo", "baz");
+        when(variables.iterator()).thenReturn(Collections.<LogContextVariable> singletonList(variable).iterator());
+
+        MDC.put("foo", "bar");
+        interceptor.aroundInvoke(context);
+        assertEquals("bar", MDC.get("foo"));
+
+        verify(logger).debug("foo", new Object[0]);
+        assertEquals("baz", result[0]);
+    }
+
+    @Test
+    public void shouldSkipNullLogContextVariable() throws Exception {
+        class Container {
+            @Logged
+            public void foo() {}
+        }
+        whenMethod(new Container(), "foo");
+        final String[] result = new String[1];
+        when(context.proceed()).thenAnswer(new StoreMdcAnswer("foo", result));
+
+        when(variables.iterator()).thenReturn(Collections.<LogContextVariable> singletonList(null).iterator());
+
+        MDC.put("foo", "bar");
+        interceptor.aroundInvoke(context);
+        assertEquals("bar", MDC.get("foo"));
+
+        verify(logger).debug("foo", new Object[0]);
+        assertEquals("bar", result[0]);
+    }
+}
+
+class Dollar$Type {
+    @Logged
+    public void foo() {}
+}
