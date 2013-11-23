@@ -14,7 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class VersionLogContextVariableProducer {
-    private static final Pattern WAR_MANIFEST = Pattern.compile("vfs:/content/(.*).war/META-INF/MANIFEST.MF");
+    private static final Pattern MAIN_MANIFEST = Pattern
+            .compile("vfs:/content/(.*).(war|jar|ear)/META-INF/MANIFEST.MF");
 
     private static String version;
     private static String app;
@@ -35,7 +36,7 @@ public class VersionLogContextVariableProducer {
         while (resources.hasMoreElements()) {
             URL manifestUrl = resources.nextElement();
             log.trace("matching {}", manifestUrl);
-            Matcher matcher = WAR_MANIFEST.matcher(manifestUrl.toString());
+            Matcher matcher = MAIN_MANIFEST.matcher(manifestUrl.toString());
             if (matcher.matches()) {
                 log.trace("found manifest at {}", manifestUrl);
                 app = matcher.group(1);
