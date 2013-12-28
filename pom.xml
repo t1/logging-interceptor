@@ -10,12 +10,11 @@
 	<description>CDI interceptor for logging to slf4j</description>
 
 	<scm>
-		<developerConnection>scm:git:git://github.com/t1/logging-interceptor</developerConnection>
+		<developerConnection>scm:git:https://github.com/t1/logging-interceptor</developerConnection>
 	</scm>
-
 	<distributionManagement>
 		<repository>
-			<id>bintray-t1-javaee-helpers-logging-interceptor</id>
+			<id>bintray-t1-javaee-helpers</id>
 			<name>t1-javaee-helpers-logging-interceptor</name>
 			<url>https://api.bintray.com/maven/t1/javaee-helpers/logging-interceptor</url>
 		</repository>
@@ -79,7 +78,7 @@
 		<dependency>
 			<groupId>com.github.t1</groupId>
 			<artifactId>stereotype-helper</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<version>1.0</version>
 		</dependency>
 
 		<!-- test scope -->
