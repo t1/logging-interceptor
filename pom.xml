@@ -9,6 +9,10 @@
 	<name>Logging-Interceptor</name>
 	<description>CDI interceptor for logging to slf4j</description>
 
+	<scm>
+		<developerConnection>scm:git:git://github.com/t1/logging-interceptor</developerConnection>
+	</scm>
+
 	<distributionManagement>
 		<repository>
 			<id>bintray-t1-javaee-helpers-logging-interceptor</id>
