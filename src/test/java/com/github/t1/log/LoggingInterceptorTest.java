@@ -1,11 +1,12 @@
 package com.github.t1.log;
 
 import static com.github.t1.log.LogLevel.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
+import java.util.*;
 
 import javax.enterprise.inject.Instance;
 import javax.interceptor.InvocationContext;
@@ -13,6 +14,7 @@ import javax.interceptor.InvocationContext;
 import lombok.experimental.Value;
 
 import org.junit.*;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.*;
 import org.mockito.invocation.InvocationOnMock;
@@ -76,7 +78,23 @@ public class LoggingInterceptorTest {
     public void setup() {
         when(logger.isDebugEnabled()).thenReturn(true);
         when(variables.iterator()).thenReturn(Collections.<LogContextVariable> emptyList().iterator());
+        givenConverters(new PojoConverter());
     }
+
+    // sometimes I hate java generics
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private void givenConverters(LogConverter... converters) {
+        List<LogConverter<Object>> list = new ArrayList<>();
+        for (LogConverter converter : converters) {
+            list.add(converter);
+        }
+        Instance<LogConverter<Object>> converterInstances = mock(Instance.class);
+        when(converterInstances.iterator()).thenReturn(list.iterator());
+        interceptor.loadConverters(converterInstances);
+    }
+
+    @Rule
+    public final ExpectedException expectedException = ExpectedException.none();
 
     private void whenMethod(Object target, String methodName, Object... args) throws ReflectiveOperationException {
         Method method = target.getClass().getMethod(methodName, types(args));
@@ -469,7 +487,60 @@ public class LoggingInterceptorTest {
         String one, two;
     }
 
-    static class PojoConverter implements LogContextConverter<Pojo> {
+    static class UnannotatedPojoConverter implements LogConverter<Pojo> {
+        @Override
+        public String convert(Pojo object) {
+            return object.one;
+        }
+    }
+
+    @Test
+    public void shouldFailToLoadUnannotatedConverter() throws Exception {
+        expectedException.expect(RuntimeException.class);
+        expectedException.expectMessage("must be annotated as @" + LogConverterType.class.getName());
+
+        givenConverters(new UnannotatedPojoConverter());
+    }
+
+    @Value
+    static class DupPojo {
+        String value;
+    }
+
+    @LogConverterType(DupPojo.class)
+    static class DuplicatePojoConverter1 implements LogConverter<DupPojo> {
+        @Override
+        public String convert(DupPojo object) {
+            return object.value + "!1";
+        }
+    }
+
+    @LogConverterType(DupPojo.class)
+    static class DuplicatePojoConverter2 implements LogConverter<DupPojo> {
+        @Override
+        public String convert(DupPojo object) {
+            return object.value + "!2";
+        }
+    }
+
+    @Test
+    public void shouldPickOneDuplicateConverter() throws Exception {
+        class Container {
+            @Logged
+            public void foo(@LogContext(value = "foobar") DupPojo pojo) {}
+        }
+        givenConverters(new DuplicatePojoConverter1(), new DuplicatePojoConverter2());
+        whenMethod(new Container(), "foo", new DupPojo("a"));
+        final String[] result = new String[1];
+        when(context.proceed()).then(new StoreMdcAnswer("foobar", result));
+
+        interceptor.aroundInvoke(context);
+
+        assertThat(result[0], either(is("a!1")).or(is("a!2")));
+    }
+
+    @LogConverterType(Pojo.class)
+    static class PojoConverter implements LogConverter<Pojo> {
         @Override
         public String convert(Pojo object) {
             return object.one;
@@ -480,7 +551,7 @@ public class LoggingInterceptorTest {
     public void shouldConvertLogContextParameter() throws Exception {
         class Container {
             @Logged
-            public void foo(@LogContext(value = "foobar", converter = PojoConverter.class) Pojo pojo) {}
+            public void foo(@LogContext(value = "foobar") Pojo pojo) {}
         }
         whenMethod(new Container(), "foo", new Pojo("a", "b"));
         final String[] result = new String[1];

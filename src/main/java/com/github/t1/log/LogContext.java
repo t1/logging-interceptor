@@ -11,6 +11,8 @@ import java.lang.annotation.*;
  * every line logged, so you can easily find all interactions concerning this order. When the logged method returns, the
  * previous value is restored.
  * <p>
+ * If <code>toString</code> is not good enough, you can write a {@link LogConverter}.
+ * <p>
  * Note that the MDC is set even if the log level is not enabled!
  */
 @Target(PARAMETER)
@@ -18,7 +20,4 @@ import java.lang.annotation.*;
 public @interface LogContext {
     /** The name of the MDC variable to put. */
     String value();
-
-    /** converts the value. useful e.g. to extract some property from a complex type */
-    Class<? extends LogContextConverter<?>> converter() default ToStringLogContextConverter.class;
 }
