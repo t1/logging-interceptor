@@ -9,7 +9,6 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 import javax.enterprise.inject.Instance;
-import javax.interceptor.InvocationContext;
 
 import lombok.experimental.Value;
 
@@ -20,11 +19,11 @@ import org.mockito.*;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-import org.slf4j.*;
+import org.slf4j.MDC;
 
 @RunWith(MockitoJUnitRunner.class)
 @Logged
-public class LoggingInterceptorTest {
+public class LogConverterCollectorTest {
     private final class StoreMdcAnswer implements Answer<Void> {
         private final String key;
         private final String[] result;
@@ -58,35 +57,21 @@ public class LoggingInterceptorTest {
     }
 
     @InjectMocks
-    LoggingInterceptor interceptor = new LoggingInterceptor() {
-        @Override
-        protected Logger getLogger(Class<?> loggerType) {
-            LoggingInterceptorTest.this.loggerType = loggerType;
-            return logger;
-        };
-    };
+    LogConverterCollector collector;
     @Mock
-    InvocationContext context;
-    @Mock
-    Logger logger;
-    @Mock
-    Instance<LogContextVariable> variables;
-    @Mock
-    Map<Class<?>, LogConverter<Object>> converters;
+    Instance<LogConverter<Object>> converterInstances;
 
     Class<?> loggerType;
 
     @Before
     public void setup() {
-        when(logger.isDebugEnabled()).thenReturn(true);
-        when(variables.iterator()).thenReturn(Collections.<LogContextVariable> emptyList().iterator());
         givenConverters(new PojoConverter());
     }
 
     // sometimes I hate java generics
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private void givenConverters(LogConverter... converters) {
-        Map<LogConverter<Object>> list = new ArrayList<>();
+        List<LogConverter<Object>> list = new ArrayList<>();
         for (LogConverter converter : converters) {
             list.add(converter);
         }
@@ -335,11 +320,11 @@ public class LoggingInterceptorTest {
 
     @Test
     public void shouldDefaultToLoggerClass() throws Exception {
-        whenMethod(new LoggingInterceptorTest(), "shouldDefaultToLoggerClass");
+        whenMethod(new LogConverterCollectorTest(), "shouldDefaultToLoggerClass");
 
         interceptor.aroundInvoke(context);
 
-        assertEquals(LoggingInterceptorTest.class, loggerType);
+        assertEquals(LogConverterCollectorTest.class, loggerType);
     }
 
     @Test
@@ -352,7 +337,7 @@ public class LoggingInterceptorTest {
 
         interceptor.aroundInvoke(context);
 
-        assertEquals(LoggingInterceptorTest.class, loggerType);
+        assertEquals(LogConverterCollectorTest.class, loggerType);
     }
 
     @Test
@@ -361,7 +346,7 @@ public class LoggingInterceptorTest {
 
         interceptor.aroundInvoke(context);
 
-        assertEquals(LoggingInterceptorTest.class, loggerType);
+        assertEquals(LogConverterCollectorTest.class, loggerType);
     }
 
     @Test
@@ -370,7 +355,7 @@ public class LoggingInterceptorTest {
 
         interceptor.aroundInvoke(context);
 
-        assertEquals(LoggingInterceptorTest.class, loggerType);
+        assertEquals(LogConverterCollectorTest.class, loggerType);
     }
 
     @Test
@@ -385,7 +370,7 @@ public class LoggingInterceptorTest {
 
         interceptor.aroundInvoke(context);
 
-        assertEquals(LoggingInterceptorTest.class, loggerType);
+        assertEquals(LogConverterCollectorTest.class, loggerType);
     }
 
     @Test
@@ -398,7 +383,7 @@ public class LoggingInterceptorTest {
 
         interceptor.aroundInvoke(context);
 
-        assertEquals(LoggingInterceptorTest.class, loggerType);
+        assertEquals(LogConverterCollectorTest.class, loggerType);
     }
 
     @Test
@@ -606,9 +591,4 @@ public class LoggingInterceptorTest {
         verify(logger).debug("foo", new Object[0]);
         assertEquals("bar", result[0]);
     }
-}
-
-class Dollar$Type {
-    @Logged
-    public void foo() {}
 }

@@ -6,12 +6,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.interceptor.*;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.slf4j.*;
 
@@ -19,17 +16,19 @@ import com.github.t1.stereotypes.Annotations;
 
 @Logged
 @Interceptor
-@Slf4j
 public class LoggingInterceptor {
-    private static final LogConverter<Object> DEFAULT_CONVERTER = new LogConverter<Object>() {
+    private static final LogConverter<Object> DEFAULT_CONVERTER = new ToStringLogConverter();
+
+    /** The default converter; we still need the annotation, and Void is a good value for that. */
+    @LogConverterType(Void.class)
+    private static final class ToStringLogConverter implements LogConverter<Object> {
         @Override
         public String convert(Object object) {
             return Objects.toString(object);
         }
-    };
+    }
 
     private class Logging {
-
         private final InvocationContext context;
 
         private final LogLevel logLevel;
@@ -147,28 +146,9 @@ public class LoggingInterceptor {
     }
 
     @Inject
-    Instance<LogContextVariable> variables;
-
-    private final Map<Class<?>, LogConverter<Object>> converters = new HashMap<>();
-
+    private Instance<LogContextVariable> variables;
     @Inject
-    @PostConstruct
-    void loadConverters(Instance<LogConverter<Object>> converterInstances) {
-        for (LogConverter<Object> converter : converterInstances) {
-            String converterType = converter.getClass().getName();
-            log.debug("register converter {}", converterType);
-            LogConverterType annotation = Annotations.on(converter.getClass()).getAnnotation(LogConverterType.class);
-            if (annotation == null)
-                throw new RuntimeException("converter " + converterType + " must be annotated as @"
-                        + LogConverterType.class.getName());
-            for (Class<?> type : annotation.value()) {
-                LogConverter<Object> old = converters.put(type, converter);
-                if (old != null) {
-                    log.error("duplicate converters for {}: {} and {}", type, converterType, old.getClass().getName());
-                }
-            }
-        }
-    }
+    private Map<Class<?>, LogConverter<Object>> converters;
 
     @AroundInvoke
     Object aroundInvoke(InvocationContext context) throws Exception {

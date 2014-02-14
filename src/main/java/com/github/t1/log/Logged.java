@@ -18,7 +18,7 @@ import javax.interceptor.InterceptorBinding;
  * TODO find out and document how to call through the interceptor stack on self
  */
 @InterceptorBinding
-@Target({ METHOD, TYPE })
+@Target({ METHOD, TYPE, ANNOTATION_TYPE, PACKAGE })
 @Retention(RUNTIME)
 public @interface Logged {
     /**
