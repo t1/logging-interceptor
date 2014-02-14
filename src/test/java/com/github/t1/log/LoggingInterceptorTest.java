@@ -1,7 +1,6 @@
 package com.github.t1.log;
 
 import static com.github.t1.log.LogLevel.*;
-import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -85,13 +84,13 @@ public class LoggingInterceptorTest {
 
     // sometimes I hate java generics
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    private void givenConverters(LogConverter... converters) {
-        Map<LogConverter<Object>> list = new ArrayList<>();
-        for (LogConverter converter : converters) {
-            list.add(converter);
+    private void givenConverters(LogConverter... defined) {
+        for (LogConverter converter : defined) {
+            Class<?>[] types = converter.getClass().getAnnotation(LogConverterType.class).value();
+            for (Class<?> type : types) {
+                when(converters.get(type)).thenReturn(converter);
+            }
         }
-        when(converterInstances.iterator()).thenReturn(list.iterator());
-        interceptor.loadConverters();
     }
 
     @Rule
@@ -486,58 +485,6 @@ public class LoggingInterceptorTest {
     @Value
     static class Pojo {
         String one, two;
-    }
-
-    static class UnannotatedPojoConverter implements LogConverter<Pojo> {
-        @Override
-        public String convert(Pojo object) {
-            return object.one;
-        }
-    }
-
-    @Test
-    public void shouldFailToLoadUnannotatedConverter() throws Exception {
-        expectedException.expect(RuntimeException.class);
-        expectedException.expectMessage("must be annotated as @" + LogConverterType.class.getName());
-
-        givenConverters(new UnannotatedPojoConverter());
-    }
-
-    @Value
-    static class DupPojo {
-        String value;
-    }
-
-    @LogConverterType(DupPojo.class)
-    static class DuplicatePojoConverter1 implements LogConverter<DupPojo> {
-        @Override
-        public String convert(DupPojo object) {
-            return object.value + "!1";
-        }
-    }
-
-    @LogConverterType(DupPojo.class)
-    static class DuplicatePojoConverter2 implements LogConverter<DupPojo> {
-        @Override
-        public String convert(DupPojo object) {
-            return object.value + "!2";
-        }
-    }
-
-    @Test
-    public void shouldPickOneDuplicateConverter() throws Exception {
-        class Container {
-            @Logged
-            public void foo(@LogContext(value = "foobar") DupPojo pojo) {}
-        }
-        givenConverters(new DuplicatePojoConverter1(), new DuplicatePojoConverter2());
-        whenMethod(new Container(), "foo", new DupPojo("a"));
-        final String[] result = new String[1];
-        when(context.proceed()).then(new StoreMdcAnswer("foobar", result));
-
-        interceptor.aroundInvoke(context);
-
-        assertThat(result[0], either(is("a!1")).or(is("a!2")));
     }
 
     @LogConverterType(Pojo.class)

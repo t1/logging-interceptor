@@ -17,7 +17,7 @@ public class LogConverterCollector {
 
     @Produces
     Map<Class<?>, LogConverter<Object>> loadConverters() {
-        Map<Class<?>, LogConverter<Object>> converters = new HashMap<>();
+        Map<Class<?>, LogConverter<Object>> converters = new LinkedHashMap<>();
         for (LogConverter<Object> converter : converterInstances) {
             String converterType = converter.getClass().getName();
             log.debug("register converter {}", converterType);
