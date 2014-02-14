@@ -17,9 +17,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 @Logged
-public class LogConverterCollectorTest {
+public class LogConvertersTest {
     @InjectMocks
-    LogConverterCollector collector;
+    LogConverters collector;
     @Mock
     Instance<LogConverter<Object>> converterInstances;
 
@@ -83,10 +83,13 @@ public class LogConverterCollectorTest {
 
     @Test
     public void shouldPickOneDuplicateConverter() throws Exception {
+        Map<Class<?>, LogConverter<Object>> converters = new LinkedHashMap<>(); // defined iteration order!
+        collector.converters = converters;
+
         givenConverters(new DuplicatePojoConverter1(), new DuplicatePojoConverter2());
 
-        Map<Class<?>, LogConverter<Object>> map = collector.loadConverters();
+        collector.loadConverters();
 
-        assertEquals(DuplicatePojoConverter2.class, map.get(DupPojo.class).getClass());
+        assertEquals(DuplicatePojoConverter2.class, converters.get(DupPojo.class).getClass());
     }
 }

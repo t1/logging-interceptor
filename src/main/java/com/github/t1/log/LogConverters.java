@@ -2,7 +2,8 @@ package com.github.t1.log;
 
 import java.util.*;
 
-import javax.enterprise.inject.*;
+import javax.annotation.PostConstruct;
+import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import lombok.extern.slf4j.Slf4j;
@@ -11,13 +12,25 @@ import com.github.t1.stereotypes.Annotations;
 
 /** Collects all implementations of {@link LogConverter}s and provides them as a {@link Map}. */
 @Slf4j
-public class LogConverterCollector {
+public class LogConverters {
+    private static final LogConverter<Object> DEFAULT_CONVERTER = new ToStringLogConverter();
+
+    /** The default converter; we still need the annotation, and Void is a good value for that. */
+    @LogConverterType(Void.class)
+    private static final class ToStringLogConverter implements LogConverter<Object> {
+        @Override
+        public String convert(Object object) {
+            return Objects.toString(object);
+        }
+    }
+
     @Inject
     private Instance<LogConverter<Object>> converterInstances;
 
-    @Produces
-    Map<Class<?>, LogConverter<Object>> loadConverters() {
-        Map<Class<?>, LogConverter<Object>> converters = new LinkedHashMap<>();
+    Map<Class<?>, LogConverter<Object>> converters = new HashMap<>();
+
+    @PostConstruct
+    void loadConverters() {
         for (LogConverter<Object> converter : converterInstances) {
             String converterType = converter.getClass().getName();
             log.debug("register converter {}", converterType);
@@ -32,6 +45,10 @@ public class LogConverterCollector {
                 }
             }
         }
-        return converters;
+    }
+
+    public LogConverter<Object> of(Class<?> type) {
+        LogConverter<Object> converter = converters.get(type);
+        return (converter != null) ? converter : DEFAULT_CONVERTER;
     }
 }

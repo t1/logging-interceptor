@@ -5,7 +5,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collections;
 
 import javax.enterprise.inject.Instance;
 import javax.interceptor.InvocationContext;
@@ -56,6 +56,14 @@ public class LoggingInterceptorTest {
         public void explicit() {}
     }
 
+    @Mock
+    InvocationContext context;
+    @Mock
+    Logger logger;
+    @Mock
+    Instance<LogContextVariable> variables;
+    @Mock
+    LogConverters converters;
     @InjectMocks
     LoggingInterceptor interceptor = new LoggingInterceptor() {
         @Override
@@ -64,22 +72,14 @@ public class LoggingInterceptorTest {
             return logger;
         };
     };
-    @Mock
-    InvocationContext context;
-    @Mock
-    Logger logger;
-    @Mock
-    Instance<LogContextVariable> variables;
-    @Mock
-    Map<Class<?>, LogConverter<Object>> converters;
 
-    Class<?> loggerType;
+    private Class<?> loggerType;
 
     @Before
     public void setup() {
         when(logger.isDebugEnabled()).thenReturn(true);
         when(variables.iterator()).thenReturn(Collections.<LogContextVariable> emptyList().iterator());
-        givenConverters(new PojoConverter());
+        givenConverters(new PojoConverter(), new StringConverter());
     }
 
     // sometimes I hate java generics
@@ -88,7 +88,7 @@ public class LoggingInterceptorTest {
         for (LogConverter converter : defined) {
             Class<?>[] types = converter.getClass().getAnnotation(LogConverterType.class).value();
             for (Class<?> type : types) {
-                when(converters.get(type)).thenReturn(converter);
+                when(converters.of(type)).thenReturn(converter);
             }
         }
     }
@@ -413,9 +413,10 @@ public class LoggingInterceptorTest {
     public void shouldLogContextParameter() throws Exception {
         class Container {
             @Logged
-            public void methodWithLogContextParameter(@LogContext("var") String one, @Deprecated String two) {}
+            public void methodWithLogContextParameter(@LogContext("var") Pojo one, @Deprecated String two) {}
         }
-        whenMethod(new Container(), "methodWithLogContextParameter", "foo", "bar");
+        Pojo pojo = new Pojo("one", "two");
+        whenMethod(new Container(), "methodWithLogContextParameter", pojo, "bar");
         final String[] result = new String[1];
         when(context.proceed()).then(new StoreMdcAnswer("var", result));
 
@@ -423,8 +424,8 @@ public class LoggingInterceptorTest {
         interceptor.aroundInvoke(context);
         assertEquals("bar", MDC.get("var"));
 
-        verify(logger).debug("method with log context parameter {} {}", new Object[] { "foo", "bar" });
-        assertEquals("foo", result[0]);
+        verify(logger).debug("method with log context parameter {} {}", new Object[] { pojo, "bar" });
+        assertEquals("one", result[0]);
     }
 
     @Test
@@ -492,6 +493,14 @@ public class LoggingInterceptorTest {
         @Override
         public String convert(Pojo object) {
             return object.one;
+        }
+    }
+
+    @LogConverterType(String.class)
+    static class StringConverter implements LogConverter<String> {
+        @Override
+        public String convert(String object) {
+            return object;
         }
     }
 

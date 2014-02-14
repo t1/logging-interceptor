@@ -4,7 +4,6 @@ import static java.lang.Character.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.*;
 
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
@@ -17,17 +16,6 @@ import com.github.t1.stereotypes.Annotations;
 @Logged
 @Interceptor
 public class LoggingInterceptor {
-    private static final LogConverter<Object> DEFAULT_CONVERTER = new ToStringLogConverter();
-
-    /** The default converter; we still need the annotation, and Void is a good value for that. */
-    @LogConverterType(Void.class)
-    private static final class ToStringLogConverter implements LogConverter<Object> {
-        @Override
-        public String convert(Object object) {
-            return Objects.toString(object);
-        }
-    }
-
     private class Logging {
         private final InvocationContext context;
 
@@ -75,7 +63,8 @@ public class LoggingInterceptor {
                         LogContext logContext = (LogContext) annotation;
                         String key = logContext.value();
                         Object object = context.getParameters()[i];
-                        String valueString = converter(object.getClass()).convert(object);
+                        LogConverter<Object> converter = converters.of(object.getClass());
+                        String valueString = converter.convert(object);
                         mdc.put(key, valueString);
                     }
                 }
@@ -84,11 +73,6 @@ public class LoggingInterceptor {
 
         private Method method() {
             return context.getMethod();
-        }
-
-        private LogConverter<Object> converter(Class<?> type) {
-            LogConverter<Object> converter = converters.get(type);
-            return (converter != null) ? converter : DEFAULT_CONVERTER;
         }
 
         private void addLogContextVariables() {
@@ -148,7 +132,7 @@ public class LoggingInterceptor {
     @Inject
     private Instance<LogContextVariable> variables;
     @Inject
-    private Map<Class<?>, LogConverter<Object>> converters;
+    private LogConverters converters;
 
     @AroundInvoke
     Object aroundInvoke(InvocationContext context) throws Exception {
