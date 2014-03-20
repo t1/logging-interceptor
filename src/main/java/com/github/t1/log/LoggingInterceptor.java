@@ -46,12 +46,17 @@ public class LoggingInterceptor {
         }
 
         public void logCall() {
+            // System.out.println("--------------- log call do");
             addParamaterLogContexts();
             addLogContextVariables();
 
+            // System.out.println("logger " + logger.getName());
+            // System.out.println("level " + logLevel + ": " + logLevel.isEnabled(logger));
             if (logLevel.isEnabled(logger)) {
+                // System.out.println("message " + logMessage + ": " + message());
                 logLevel.log(logger, message(), context.getParameters());
             }
+            // System.out.println("--------------- log call done");
         }
 
         private void addParamaterLogContexts() {

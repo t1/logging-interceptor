@@ -4,7 +4,7 @@ import java.util.*;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
+import javax.inject.*;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,6 +12,7 @@ import com.github.t1.stereotypes.Annotations;
 
 /** Collects all implementations of {@link LogConverter}s and provides them as a {@link Map}. */
 @Slf4j
+@Singleton
 public class LogConverters {
     private static final LogConverter<Object> DEFAULT_CONVERTER = new ToStringLogConverter();
 

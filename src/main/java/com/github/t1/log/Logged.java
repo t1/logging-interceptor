@@ -6,6 +6,7 @@ import static java.lang.annotation.RetentionPolicy.*;
 
 import java.lang.annotation.*;
 
+import javax.enterprise.util.Nonbinding;
 import javax.interceptor.InterceptorBinding;
 
 /**
@@ -26,6 +27,7 @@ public @interface Logged {
      * 
      * @see org.slf4j.Logger the logging methods for those levels
      */
+    @Nonbinding
     public LogLevel level() default DEBUG;
 
     /**
@@ -34,6 +36,7 @@ public @interface Logged {
      * 
      * @see Class#getEnclosingClass() the comment <i>in</i> <code>Class#getEnclosingClass</code>
      */
+    @Nonbinding
     public Class<?> logger() default void.class;
 
     /**
@@ -41,5 +44,6 @@ public @interface Logged {
      * space separated arguments appended. If you do provide a format, make sure to include enough placeholders ("{}")
      * for the arguments.
      */
+    @Nonbinding
     public String value() default "";
 }

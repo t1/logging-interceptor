@@ -12,6 +12,7 @@
 		<developerConnection>scm:git:https://github.com/t1/logging-interceptor</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
+
 	<distributionManagement>
 		<repository>
 			<id>bintray-t1-javaee-helpers</id>
@@ -62,15 +63,15 @@
 
 		<!-- provided scope -->
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.7.5</version>
+			<groupId>javax</groupId>
+			<artifactId>javaee-api</artifactId>
+			<version>7.0</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>javax.enterprise</groupId>
-			<artifactId>cdi-api</artifactId>
-			<version>1.1</version>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.5</version>
 			<scope>provided</scope>
 		</dependency>
 
