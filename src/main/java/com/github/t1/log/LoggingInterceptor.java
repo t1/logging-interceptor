@@ -1,10 +1,14 @@
 package com.github.t1.log;
 
 import static java.lang.Character.*;
+import static javax.interceptor.Interceptor.Priority.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.*;
 
+import javax.annotation.Priority;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.interceptor.*;
@@ -14,7 +18,9 @@ import org.slf4j.*;
 import com.github.t1.stereotypes.Annotations;
 
 @Logged
+@Dependent
 @Interceptor
+@Priority(LIBRARY_BEFORE)
 public class LoggingInterceptor {
     private class Logging {
         private final InvocationContext context;
@@ -54,9 +60,17 @@ public class LoggingInterceptor {
             // System.out.println("level " + logLevel + ": " + logLevel.isEnabled(logger));
             if (logLevel.isEnabled(logger)) {
                 // System.out.println("message " + logMessage + ": " + message());
-                logLevel.log(logger, message(), context.getParameters());
+                logLevel.log(logger, message(), parameters());
             }
             // System.out.println("--------------- log call done");
+        }
+
+        private Object[] parameters() {
+            List<Object> result = new ArrayList<>();
+            for (Object parameter : context.getParameters()) {
+                result.add(converters.convert(parameter));
+            }
+            return result.toArray();
         }
 
         private void addParamaterLogContexts() {
@@ -68,9 +82,10 @@ public class LoggingInterceptor {
                         LogContext logContext = (LogContext) annotation;
                         String key = logContext.value();
                         Object object = context.getParameters()[i];
-                        LogConverter<Object> converter = converters.of(object.getClass());
-                        String valueString = converter.convert(object);
-                        mdc.put(key, valueString);
+                        Object converted = converters.convert(object);
+                        if (converted != null) {
+                            mdc.put(key, converted.toString());
+                        }
                     }
                 }
             }
@@ -121,7 +136,7 @@ public class LoggingInterceptor {
 
         public void logResult(Object result) {
             if (method().getReturnType() != void.class) {
-                logLevel.log(logger, "return {}", result);
+                logLevel.log(logger, "return {}", converters.convert(result));
             }
         }
 
