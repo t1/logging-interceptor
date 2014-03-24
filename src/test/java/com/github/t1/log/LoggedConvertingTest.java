@@ -41,6 +41,22 @@ public class LoggedConvertingTest extends AbstractLoggedTest {
     }
 
     @Test
+    public void shouldConvertReturnValue() throws Exception {
+        class Container {
+            @Logged
+            public Pojo foo() {
+                return null;
+            }
+        }
+        whenMethod(new Container(), "foo");
+        when(context.proceed()).thenReturn(new Pojo("a", "b"));
+
+        interceptor.aroundInvoke(context);
+
+        verify(logger).debug("return {}", new Object[] { "a" });
+    }
+
+    @Test
     public void shouldConvertLogContextParameter() throws Exception {
         class Container {
             @Logged
@@ -57,6 +73,5 @@ public class LoggedConvertingTest extends AbstractLoggedTest {
         assertEquals("a", mdc.value);
     }
 
-    // TODO test return value converter
     // TODO test log context variable converter
 }
