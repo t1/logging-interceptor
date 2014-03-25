@@ -1,8 +1,5 @@
 package com.github.t1.log;
 
-import static java.util.Arrays.*;
-
-import java.io.Serializable;
 import java.util.*;
 
 import javax.annotation.PostConstruct;
@@ -47,20 +44,11 @@ public class LogConverters {
 
         private void add(Class<?> type) {
             LogConverter<Object> old = converters.put(type, converter);
-            if (old != null)
+            if (old != null) {
                 log.error("ambiguous converters for {}: {} and {}", type, converterType, old.getClass().getName());
-            Class<?> superclass = type.getSuperclass();
-            if (superclass != Object.class)
-                add(superclass);
-            for (Class<?> implemented : type.getInterfaces()) {
-                if (WELL_KNOWN_INERFACES.contains(implemented))
-                    continue;
-                add(implemented);
             }
         }
     }
-
-    private static final List<Class<?>> WELL_KNOWN_INERFACES = asList(Serializable.class, Runnable.class);
 
     @PostConstruct
     void loadConverters() {
@@ -73,9 +61,29 @@ public class LogConverters {
         if (value == null)
             return null;
         Class<?> type = value.getClass();
-        LogConverter<Object> converter = converters.get(type);
+        LogConverter<Object> converter = findConverter(type);
         if (converter != null)
             return converter.convert(value);
         return value;
+    }
+
+    private LogConverter<Object> findConverter(Class<?> type) {
+        LogConverter<Object> converter = converters.get(type);
+        if (converter != null)
+            return converter;
+        Class<?> superclass = type.getSuperclass();
+        if (superclass != null) {
+            converter = findConverter(superclass);
+            if (converter != null) {
+                return converter;
+            }
+        }
+        for (Class<?> implemented : type.getInterfaces()) {
+            converter = findConverter(implemented);
+            if (converter != null) {
+                return converter;
+            }
+        }
+        return null;
     }
 }

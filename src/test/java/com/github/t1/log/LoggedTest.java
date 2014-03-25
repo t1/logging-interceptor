@@ -1,11 +1,15 @@
 package com.github.t1.log;
 
 import static com.github.t1.log.LogLevel.*;
+import static java.util.Arrays.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.Collections;
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.regex.Pattern;
 
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -408,7 +412,7 @@ public class LoggedTest extends AbstractLoggedTest {
         when(context.proceed()).then(mdc);
 
         LogContextVariable variable = new LogContextVariable("foo", "baz");
-        when(variables.iterator()).thenReturn(Collections.<LogContextVariable> singletonList(variable).iterator());
+        when(variables.iterator()).thenReturn(asList(variable).iterator());
 
         MDC.put("foo", "bar");
         interceptor.aroundInvoke(context);
@@ -428,7 +432,7 @@ public class LoggedTest extends AbstractLoggedTest {
         StoreMdcAnswer mdc = new StoreMdcAnswer("foo");
         when(context.proceed()).then(mdc);
 
-        when(variables.iterator()).thenReturn(Collections.<LogContextVariable> singletonList(null).iterator());
+        when(variables.iterator()).thenReturn(asList((LogContextVariable) null).iterator());
 
         MDC.put("foo", "bar");
         interceptor.aroundInvoke(context);
@@ -436,6 +440,26 @@ public class LoggedTest extends AbstractLoggedTest {
 
         verify(logger).debug("foo", new Object[0]);
         assertEquals("bar", mdc.value);
+    }
+
+    @Test
+    public void shouldProduceVersionLogContextVariable() throws Exception {
+        VersionLogContextVariableProducer producer = new VersionLogContextVariableProducer() {
+            @Override
+            Enumeration<URL> manifests(ClassLoader classLoader) throws IOException {
+                return new ListEnumeration<>(new URL("file:target/test-classes/TEST-MANIFEST.MF"));
+            }
+
+            @Override
+            Pattern mainManifestPattern() {
+                return Pattern.compile("file:.*/(.*)");
+            }
+        };
+
+        assertNotNull(producer.app());
+        assertEquals("TEST-MANIFEST.MF", producer.app().getValue());
+        assertNotNull(producer.version());
+        assertEquals("1.0", producer.version().getValue());
     }
 }
 

@@ -72,6 +72,4 @@ public class LoggedConvertingTest extends AbstractLoggedTest {
         assertEquals("bar", MDC.get("foobar"));
         assertEquals("a", mdc.value);
     }
-
-    // TODO test log context variable converter
 }
