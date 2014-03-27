@@ -360,7 +360,7 @@ public class LoggedTest extends AbstractLoggedTest {
     }
 
     @Test
-    public void shouldLogTwoContextParameters() throws Exception {
+    public void shouldLogTwoDifferentContextParameters() throws Exception {
         class Container {
             @Logged
             public void methodWithLogContextParameter(@LogContext("var1") String one, @LogContext("var2") String two) {}
@@ -386,6 +386,21 @@ public class LoggedTest extends AbstractLoggedTest {
         verify(logger).debug("method with log context parameter {} {}", new Object[] { "foo", "bar" });
         assertEquals("foo", result1[0]);
         assertEquals("bar", result2[0]);
+    }
+
+    @Test
+    public void shouldConcatenateTwoContextParametersWithTheSameName() throws Exception {
+        class Container {
+            @Logged
+            public void methodWithLogContextParameter(@LogContext("var") String one, @LogContext("var") String two) {}
+        }
+        whenMethod(new Container(), "methodWithLogContextParameter", "foo", "bar");
+        StoreMdcAnswer mdc = new StoreMdcAnswer("var");
+        when(context.proceed()).then(mdc);
+
+        interceptor.aroundInvoke(context);
+
+        assertEquals("foo bar", mdc.value);
     }
 
     @Test

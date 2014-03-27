@@ -71,6 +71,18 @@ public class LoggingInterceptor {
         }
 
         private void addParamaterLogContexts() {
+            Map<String, String> collected = collectParameterLogContexts();
+            storeParameterLogContexts(collected);
+        }
+
+        private void storeParameterLogContexts(Map<String, String> collected) {
+            for (String key : collected.keySet()) {
+                mdc.put(key, collected.get(key));
+            }
+        }
+
+        private Map<String, String> collectParameterLogContexts() {
+            Map<String, String> map = new LinkedHashMap<>();
             for (Parameter parameter : parameters) {
                 if (parameter.isAnnotationPresent(LogContext.class)) {
                     LogContext logContext = parameter.getAnnotation(LogContext.class);
@@ -78,10 +90,14 @@ public class LoggingInterceptor {
                     Object object = context.getParameters()[parameter.getIndex()];
                     Object converted = converters.convert(object);
                     if (converted != null) {
-                        mdc.put(key, converted.toString());
+                        String value = converted.toString();
+                        if (map.containsKey(key))
+                            value = map.get(key) + " " + value;
+                        map.put(key, value);
                     }
                 }
             }
+            return map;
         }
 
         private void addLogContextVariables() {
