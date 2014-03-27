@@ -152,7 +152,7 @@ public class LoggingInterceptor {
     @Inject
     private Instance<LogContextVariable> variables;
     @Inject
-    private LogConverters converters;
+    private Converters converters;
 
     @AroundInvoke
     Object aroundInvoke(InvocationContext context) throws Exception {

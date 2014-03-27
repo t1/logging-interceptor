@@ -8,7 +8,7 @@ import java.util.*;
 
 import javax.enterprise.inject.Instance;
 
-import lombok.experimental.Value;
+import lombok.Value;
 
 import org.junit.*;
 import org.junit.rules.ExpectedException;
@@ -19,18 +19,17 @@ import org.mockito.runners.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class LogConvertersTest {
     @Mock
-    private Instance<LogConverter<Object>> converterInstances;
+    private Instance<Converter> converterInstances;
     @InjectMocks
-    private LogConverters converters;
+    private Converters converters;
 
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
 
-    private void givenConverters(LogConverter<?>... converterList) {
-        List<LogConverter<Object>> list = new ArrayList<>();
-        for (LogConverter<?> converter : converterList) {
-            @SuppressWarnings("unchecked")
-            LogConverter<Object> c = (LogConverter<Object>) converter;
+    private void givenConverters(Converter... converterList) {
+        List<Converter> list = new ArrayList<>();
+        for (Converter converter : converterList) {
+            Converter c = converter;
             list.add(c);
         }
         when(converterInstances.iterator()).thenReturn(list.iterator());
@@ -65,15 +64,15 @@ public class LogConvertersTest {
             String value = "x";
         }
 
-        @LogConverterType(Pojo.class)
-        class Converter implements LogConverter<Pojo> {
+        @ConverterType(Pojo.class)
+        class PojoConverter implements Converter {
             @Override
-            public String convert(Pojo object) {
-                return object.value + "#";
+            public String convert(Object pojo) {
+                return ((Pojo) pojo).value + "#";
             }
         }
 
-        givenConverters(new Converter());
+        givenConverters(new PojoConverter());
 
         Object converted = converters.convert(new Pojo());
 
@@ -87,15 +86,15 @@ public class LogConvertersTest {
             String one, two;
         }
 
-        class UnannotatedPojoConverter implements LogConverter<Pojo> {
+        class UnannotatedPojoConverter implements Converter {
             @Override
-            public String convert(Pojo object) {
-                return object.one;
+            public String convert(Object pojo) {
+                return ((Pojo) pojo).one;
             }
         }
 
         expectedException.expect(RuntimeException.class);
-        expectedException.expectMessage("must be annotated as @" + LogConverterType.class.getName());
+        expectedException.expectMessage("must be annotated as @" + ConverterType.class.getName());
 
         givenConverters(new UnannotatedPojoConverter());
     }
@@ -108,19 +107,19 @@ public class LogConvertersTest {
             String value;
         }
 
-        @LogConverterType(DupPojo.class)
-        class DuplicatePojoConverter1 implements LogConverter<DupPojo> {
+        @ConverterType(DupPojo.class)
+        class DuplicatePojoConverter1 implements Converter {
             @Override
-            public String convert(DupPojo object) {
-                return object.value + "!1";
+            public String convert(Object object) {
+                return ((DupPojo) object).value + "!1";
             }
         }
 
-        @LogConverterType(DupPojo.class)
-        class DuplicatePojoConverter2 implements LogConverter<DupPojo> {
+        @ConverterType(DupPojo.class)
+        class DuplicatePojoConverter2 implements Converter {
             @Override
-            public String convert(DupPojo object) {
-                return object.value + "!2";
+            public String convert(Object object) {
+                return ((DupPojo) object).value + "!2";
             }
         }
         givenConverters(new DuplicatePojoConverter1(), new DuplicatePojoConverter2());
@@ -137,11 +136,11 @@ public class LogConvertersTest {
         }
         class SubPojo extends SuperPojo {}
 
-        @LogConverterType(SuperPojo.class)
-        class SuperConverter implements LogConverter<SuperPojo> {
+        @ConverterType(SuperPojo.class)
+        class SuperConverter implements Converter {
             @Override
-            public String convert(SuperPojo object) {
-                return object.value + "#";
+            public String convert(Object object) {
+                return ((SuperPojo) object).value + "#";
             }
         }
 
@@ -158,15 +157,15 @@ public class LogConvertersTest {
             private static final long serialVersionUID = 1L;
         }
 
-        @LogConverterType(Serializable.class)
-        class Converter implements LogConverter<Serializable> {
+        @ConverterType(Serializable.class)
+        class InterfaceConverter implements Converter {
             @Override
-            public String convert(Serializable object) {
+            public String convert(Object object) {
                 return "#";
             }
         }
 
-        givenConverters(new Converter());
+        givenConverters(new InterfaceConverter());
 
         Object converted = converters.convert(new Pojo());
 

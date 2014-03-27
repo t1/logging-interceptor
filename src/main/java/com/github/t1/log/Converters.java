@@ -10,30 +10,30 @@ import lombok.extern.slf4j.Slf4j;
 
 import com.github.t1.stereotypes.Annotations;
 
-/** Collects all implementations of {@link LogConverter}s and provides them as a {@link Map}. */
+/** Collects all implementations of {@link Converter}s and delegates {@link #convert(Object)}. */
 @Slf4j
 @Singleton
-public class LogConverters {
+public class Converters {
     @Inject
-    private Instance<LogConverter<Object>> converterInstances;
+    private Instance<Converter> converterInstances;
 
-    Map<Class<?>, LogConverter<Object>> converters = new HashMap<>();
+    Map<Class<?>, Converter> converters = new HashMap<>();
 
     private class ConverterLoader {
-        private final LogConverter<Object> converter;
+        private final Converter converter;
         private final String converterType;
-        private final LogConverterType annotation;
+        private final ConverterType annotation;
 
-        public ConverterLoader(LogConverter<Object> converter) {
+        public ConverterLoader(Converter converter) {
             this.converter = converter;
 
             converterType = converter.getClass().getName();
-            log.debug("register converter {}", converterType);
+            log.debug("  register converter {}", converterType);
 
-            annotation = Annotations.on(converter.getClass()).getAnnotation(LogConverterType.class);
+            annotation = Annotations.on(converter.getClass()).getAnnotation(ConverterType.class);
             if (annotation == null)
                 throw new RuntimeException("converter " + converterType + " must be annotated as @"
-                        + LogConverterType.class.getName());
+                        + ConverterType.class.getName());
         }
 
         public void run() {
@@ -43,7 +43,7 @@ public class LogConverters {
         }
 
         private void add(Class<?> type) {
-            LogConverter<Object> old = converters.put(type, converter);
+            Converter old = converters.put(type, converter);
             if (old != null) {
                 log.error("ambiguous converters for {}: {} and {}", type, converterType, old.getClass().getName());
             }
@@ -52,7 +52,8 @@ public class LogConverters {
 
     @PostConstruct
     void loadConverters() {
-        for (LogConverter<Object> converter : converterInstances) {
+        log.debug("loading converters");
+        for (Converter converter : converterInstances) {
             new ConverterLoader(converter).run();
         }
     }
@@ -61,14 +62,14 @@ public class LogConverters {
         if (value == null)
             return null;
         Class<?> type = value.getClass();
-        LogConverter<Object> converter = findConverter(type);
+        Converter converter = findConverter(type);
         if (converter != null)
             return converter.convert(value);
         return value;
     }
 
-    private LogConverter<Object> findConverter(Class<?> type) {
-        LogConverter<Object> converter = converters.get(type);
+    private Converter findConverter(Class<?> type) {
+        Converter converter = converters.get(type);
         if (converter != null)
             return converter;
         Class<?> superclass = type.getSuperclass();

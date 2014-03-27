@@ -3,7 +3,7 @@ package com.github.t1.log;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
-import lombok.experimental.Value;
+import lombok.Value;
 
 import org.junit.*;
 import org.mockito.invocation.InvocationOnMock;

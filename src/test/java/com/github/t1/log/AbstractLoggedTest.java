@@ -43,7 +43,7 @@ public abstract class AbstractLoggedTest {
     @Mock
     protected Instance<LogContextVariable> variables;
     @Mock
-    protected LogConverters converters;
+    protected Converters converters;
     @InjectMocks
     protected LoggingInterceptor interceptor = new LoggingInterceptor() {
         @Override

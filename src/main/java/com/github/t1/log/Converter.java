@@ -7,8 +7,10 @@ package com.github.t1.log;
  * <li>a return value of a method, or
  * <li>a logging context variable (MDC).
  * </ul>
- * Annotate your {@link LogConverter} as {@link LogConverterType}
+ * Annotate your {@link Converter} as {@link ConverterType}
+ * <p/>
+ * Can't be generic, or the injection in {@link Converters} won't find any.
  */
-public interface LogConverter<T> {
-    String convert(T object);
+public interface Converter {
+    String convert(Object object);
 }
