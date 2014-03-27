@@ -153,6 +153,19 @@ public class LoggedTest extends AbstractLoggedTest {
     }
 
     @Test
+    public void shouldNotLogParametersAnnotatedAsDontLog() throws Exception {
+        class Container {
+            @Logged
+            public void methodWithDontLogParameter(@DontLog String one, String two) {}
+        }
+        whenMethod(new Container(), "methodWithDontLogParameter", "foo", "bar");
+
+        interceptor.aroundInvoke(context);
+
+        verify(logger).debug("method with dont log parameter {}", new Object[] { "bar" });
+    }
+
+    @Test
     public void shouldNotLogWhenOff() throws Exception {
         class Container {
             @Logged(level = OFF)

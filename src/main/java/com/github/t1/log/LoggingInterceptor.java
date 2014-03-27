@@ -3,7 +3,6 @@ package com.github.t1.log;
 import static java.lang.Character.*;
 import static javax.interceptor.Interceptor.Priority.*;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -24,6 +23,7 @@ import com.github.t1.stereotypes.Annotations;
 public class LoggingInterceptor {
     private class Logging {
         private final InvocationContext context;
+        private final List<Parameter> parameters;
 
         private final LogLevel logLevel;
         private final Logger logger;
@@ -33,17 +33,22 @@ public class LoggingInterceptor {
 
         public Logging(InvocationContext context) {
             this.context = context;
+            this.parameters = Parameter.allOf(method());
 
-            Logged loggedAnnotation = Annotations.on(context.getMethod()).getAnnotation(Logged.class);
+            Logged loggedAnnotation = Annotations.on(method()).getAnnotation(Logged.class);
             this.logLevel = loggedAnnotation.level();
             this.logMessage = loggedAnnotation.value();
             this.logger = getLogger(resolveLogger(loggedAnnotation.logger()));
         }
 
+        private Method method() {
+            return context.getMethod();
+        }
+
         private Class<?> resolveLogger(Class<?> loggerType) {
             if (loggerType == void.class) {
                 // the method is declared in the target type, while context.getTarget() is the CDI proxy
-                loggerType = context.getMethod().getDeclaringClass();
+                loggerType = method().getDeclaringClass();
                 while (loggerType.getEnclosingClass() != null) {
                     loggerType = loggerType.getEnclosingClass();
                 }
@@ -65,34 +70,18 @@ public class LoggingInterceptor {
             // System.out.println("--------------- log call done");
         }
 
-        private Object[] parameters() {
-            List<Object> result = new ArrayList<>();
-            for (Object parameter : context.getParameters()) {
-                result.add(converters.convert(parameter));
-            }
-            return result.toArray();
-        }
-
         private void addParamaterLogContexts() {
-            Annotation[][] parameterAnnotations = method().getParameterAnnotations();
-            for (int i = 0; i < parameterAnnotations.length; i++) {
-                Annotation[] annotations = parameterAnnotations[i];
-                for (Annotation annotation : annotations) {
-                    if (annotation instanceof LogContext) {
-                        LogContext logContext = (LogContext) annotation;
-                        String key = logContext.value();
-                        Object object = context.getParameters()[i];
-                        Object converted = converters.convert(object);
-                        if (converted != null) {
-                            mdc.put(key, converted.toString());
-                        }
+            for (Parameter parameter : parameters) {
+                if (parameter.isAnnotationPresent(LogContext.class)) {
+                    LogContext logContext = parameter.getAnnotation(LogContext.class);
+                    String key = logContext.value();
+                    Object object = context.getParameters()[parameter.getIndex()];
+                    Object converted = converters.convert(object);
+                    if (converted != null) {
+                        mdc.put(key, converted.toString());
                     }
                 }
             }
-        }
-
-        private Method method() {
-            return context.getMethod();
         }
 
         private void addLogContextVariables() {
@@ -105,10 +94,20 @@ public class LoggingInterceptor {
             }
         }
 
+        private Object[] parameters() {
+            List<Object> result = new ArrayList<>();
+            for (Parameter parameter : parameters) {
+                if (parameter.isAnnotationPresent(DontLog.class))
+                    continue;
+                Object value = context.getParameters()[parameter.getIndex()];
+                result.add(converters.convert(value));
+            }
+            return result.toArray();
+        }
+
         private String message() {
             if ("".equals(logMessage)) {
-                return camelToSpaces(method().getName())
-                        + messageParamPlaceholders(method().getParameterTypes().length);
+                return camelToSpaces(method().getName()) + messageParamPlaceholders();
             } else {
                 return logMessage;
             }
@@ -127,10 +126,13 @@ public class LoggingInterceptor {
             return out.toString();
         }
 
-        private String messageParamPlaceholders(int length) {
+        private String messageParamPlaceholders() {
             StringBuilder out = new StringBuilder();
-            for (int i = 0; i < length; i++)
+            for (Parameter parameter : parameters) {
+                if (parameter.isAnnotationPresent(DontLog.class))
+                    continue;
                 out.append(" {}");
+            }
             return out.toString();
         }
 
