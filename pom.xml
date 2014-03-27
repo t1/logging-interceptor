@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.github.t1</groupId>
@@ -7,6 +8,11 @@
 
 	<name>Logging-Interceptor</name>
 	<description>CDI interceptor for logging to slf4j</description>
+
+	<properties>
+		<!-- Java 8 javadoc is way to strict; see http://blog.joda.org/2014/02/turning-off-doclint-in-jdk-8-javadoc.html -->
+		<additionalparam>-Xdoclint:none</additionalparam>
+	</properties>
 
 	<scm>
 		<developerConnection>scm:git:https://github.com/t1/logging-interceptor</developerConnection>
