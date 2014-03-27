@@ -32,17 +32,17 @@ public class VersionLogContextVariableProducer {
     }
 
     private void scanManifests(ClassLoader classLoader) throws IOException {
-        log.debug("scanning for manifest");
+        log.trace("scanning for manifest");
         Enumeration<URL> resources = manifests(classLoader);
         while (resources.hasMoreElements()) {
             URL manifestUrl = resources.nextElement();
-            log.debug("matching {}", manifestUrl);
+            log.trace("matching {}", manifestUrl);
             Matcher matcher = mainManifestPattern().matcher(manifestUrl.toString());
             if (!matcher.matches()) {
-                log.debug("manifest url not matching {}", mainManifestPattern());
+                log.trace("manifest url not matching {}", mainManifestPattern());
                 continue;
             }
-            log.debug("found manifest at {}", manifestUrl);
+            log.trace("found manifest at {}", manifestUrl);
             app = matcher.group(1);
             version = readManifest(manifestUrl);
             log.debug("app={} version={}", app, version);
