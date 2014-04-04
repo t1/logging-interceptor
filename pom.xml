@@ -84,7 +84,7 @@
 		<dependency>
 			<groupId>com.github.t1</groupId>
 			<artifactId>stereotype-helper</artifactId>
-			<version>1.0</version>
+			<version>1.0.1-SNAPSHOT</version>
 		</dependency>
 
 		<!-- test scope -->
