@@ -116,7 +116,7 @@ public class LoggedTest extends AbstractLoggedTest {
     public void shouldLogIntParameter() throws Exception {
         class Container {
             @Logged
-            public void methodWithIntArgument(int i) {}
+            public void methodWithIntArgument(@SuppressWarnings("unused") int i) {}
         }
         Method method = Container.class.getMethod("methodWithIntArgument", int.class);
         whenMethod(method, new Container(), 3);
@@ -130,7 +130,7 @@ public class LoggedTest extends AbstractLoggedTest {
     public void shouldLogIntegerParameter() throws Exception {
         class Container {
             @Logged
-            public void methodWithIntegerArgument(Integer i) {}
+            public void methodWithIntegerArgument(@SuppressWarnings("unused") Integer i) {}
         }
         whenMethod(new Container(), "methodWithIntegerArgument", 3);
 
@@ -143,6 +143,7 @@ public class LoggedTest extends AbstractLoggedTest {
     public void shouldLogTwoParameters() throws Exception {
         class Container {
             @Logged
+            @SuppressWarnings("unused")
             public void methodWithTwoParameters(String one, String two) {}
         }
         whenMethod(new Container(), "methodWithTwoParameters", "foo", "bar");
@@ -156,6 +157,7 @@ public class LoggedTest extends AbstractLoggedTest {
     public void shouldNotLogParametersAnnotatedAsDontLog() throws Exception {
         class Container {
             @Logged
+            @SuppressWarnings("unused")
             public void methodWithDontLogParameter(@DontLog String one, String two) {}
         }
         whenMethod(new Container(), "methodWithDontLogParameter", "foo", "bar");
@@ -345,6 +347,7 @@ public class LoggedTest extends AbstractLoggedTest {
     public void shouldLogContextParameter() throws Exception {
         class Container {
             @Logged
+            @SuppressWarnings("unused")
             public void methodWithLogContextParameter(@LogContext("var") String one, @Deprecated String two) {}
         }
         whenMethod(new Container(), "methodWithLogContextParameter", "foo", "bar");
@@ -363,6 +366,7 @@ public class LoggedTest extends AbstractLoggedTest {
     public void shouldLogTwoDifferentContextParameters() throws Exception {
         class Container {
             @Logged
+            @SuppressWarnings("unused")
             public void methodWithLogContextParameter(@LogContext("var1") String one, @LogContext("var2") String two) {}
         }
         whenMethod(new Container(), "methodWithLogContextParameter", "foo", "bar");
@@ -392,6 +396,7 @@ public class LoggedTest extends AbstractLoggedTest {
     public void shouldConcatenateTwoContextParametersWithTheSameName() throws Exception {
         class Container {
             @Logged
+            @SuppressWarnings("unused")
             public void methodWithLogContextParameter(@LogContext("var") String one, @LogContext("var") String two) {}
         }
         whenMethod(new Container(), "methodWithLogContextParameter", "foo", "bar");
@@ -407,7 +412,7 @@ public class LoggedTest extends AbstractLoggedTest {
     public void shouldRestoreMdcValue() throws Exception {
         class Container {
             @Logged
-            public void methodWithLogContextParameter(@LogContext("foo") String foo) {}
+            public void methodWithLogContextParameter(@SuppressWarnings("unused") @LogContext("foo") String foo) {}
         }
         whenMethod(new Container(), "methodWithLogContextParameter", "newvalue");
 
@@ -420,6 +425,7 @@ public class LoggedTest extends AbstractLoggedTest {
     public void shouldRestoreNullMdcValue() throws Exception {
         class Container {
             @Logged
+            @SuppressWarnings("unused")
             public void methodWithLogContextParameter(@LogContext("var") String one, String two) {}
         }
         whenMethod(new Container(), "methodWithLogContextParameter", "foo", "bar");
@@ -471,7 +477,7 @@ public class LoggedTest extends AbstractLoggedTest {
     }
 
     @Test
-    public void shouldProduceVersionLogContextVariable() throws Exception {
+    public void shouldProduceVersionLogContextVariable() {
         VersionLogContextVariableProducer producer = new VersionLogContextVariableProducer() {
             @Override
             Enumeration<URL> manifests(ClassLoader classLoader) throws IOException {

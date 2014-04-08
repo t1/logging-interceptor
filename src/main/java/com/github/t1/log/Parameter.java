@@ -11,7 +11,7 @@ import java.util.*;
  */
 public class Parameter {
     public static List<Parameter> allOf(Method method) {
-        final List<Parameter> list = new ArrayList<Parameter>();
+        final List<Parameter> list = new ArrayList<>();
         for (int i = 0; i < method.getParameterTypes().length; i++) {
             list.add(new Parameter(method, i));
         }

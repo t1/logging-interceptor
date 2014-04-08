@@ -38,28 +38,28 @@ public class LogConvertersTest {
     }
 
     @Test
-    public void shouldConvertNull() throws Exception {
+    public void shouldConvertNull() {
         Object converted = converters.convert(null);
 
         assertNull(converted);
     }
 
     @Test
-    public void shouldConvertString() throws Exception {
+    public void shouldConvertString() {
         Object converted = converters.convert("hi");
 
         assertEquals("hi", converted);
     }
 
     @Test
-    public void shouldConvertBoolean() throws Exception {
+    public void shouldConvertBoolean() {
         Object converted = converters.convert(true);
 
         assertEquals(true, converted);
     }
 
     @Test
-    public void shouldConvertPojo() throws Exception {
+    public void shouldConvertPojo() {
         class Pojo {
             String value = "x";
         }
@@ -80,7 +80,7 @@ public class LogConvertersTest {
     }
 
     @Test
-    public void shouldFailToLoadUnannotatedConverter() throws Exception {
+    public void shouldFailToLoadUnannotatedConverter() {
         @Value
         class Pojo {
             String one, two;
@@ -101,7 +101,7 @@ public class LogConvertersTest {
 
 
     @Test
-    public void shouldPickOneDuplicateConverter() throws Exception {
+    public void shouldPickOneDuplicateConverter() {
         @Value
         class DupPojo {
             String value;
@@ -130,7 +130,7 @@ public class LogConvertersTest {
     }
 
     @Test
-    public void shouldConvertSuperClass() throws Exception {
+    public void shouldConvertSuperClass() {
         class SuperPojo {
             String value = "x";
         }
@@ -152,7 +152,7 @@ public class LogConvertersTest {
     }
 
     @Test
-    public void shouldConvertSuperInterface() throws Exception {
+    public void shouldConvertSuperInterface() {
         class Pojo implements Serializable {
             private static final long serialVersionUID = 1L;
         }

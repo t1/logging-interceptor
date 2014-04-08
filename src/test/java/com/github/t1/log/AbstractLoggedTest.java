@@ -50,7 +50,7 @@ public abstract class AbstractLoggedTest {
         protected Logger getLogger(Class<?> loggerType) {
             AbstractLoggedTest.this.loggerType = loggerType;
             return logger;
-        };
+        }
     };
 
     protected Class<?> loggerType;

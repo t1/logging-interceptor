@@ -21,7 +21,7 @@ public class LoggedConvertingTest extends AbstractLoggedTest {
     public void setupConverters() {
         when(converters.convert(isA(Pojo.class))).thenAnswer(new Answer<Object>() {
             @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
+            public Object answer(InvocationOnMock invocation) {
                 return ((Pojo) invocation.getArguments()[0]).one;
             }
         });
@@ -31,7 +31,7 @@ public class LoggedConvertingTest extends AbstractLoggedTest {
     public void shouldConvertParameter() throws Exception {
         class Container {
             @Logged
-            public void foo(Pojo pojo) {}
+            public void foo(@SuppressWarnings("unused") Pojo pojo) {}
         }
         whenMethod(new Container(), "foo", new Pojo("a", "b"));
 
@@ -60,7 +60,7 @@ public class LoggedConvertingTest extends AbstractLoggedTest {
     public void shouldConvertLogContextParameter() throws Exception {
         class Container {
             @Logged
-            public void foo(@LogContext(value = "foobar") Pojo pojo) {}
+            public void foo(@SuppressWarnings("unused") @LogContext(value = "foobar") Pojo pojo) {}
         }
         whenMethod(new Container(), "foo", new Pojo("a", "b"));
         StoreMdcAnswer mdc = new StoreMdcAnswer("foobar");
