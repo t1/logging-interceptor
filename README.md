@@ -11,6 +11,18 @@ There are two main use-cases for logging interceptors:
 
 Note that interceptors are not triggered when you do local calls.
 
+## Download ##
+
+Add [Bintray](https://bintray.com/t1/javaee-helpers/logging-interceptor) to your `settings.xml` (see the `Set me up!` buton) and a Maven dependency:
+
+```
+<dependency>
+  <groupId>com.github.t1</groupId>
+  <artifactId>logging-interceptor</artifactId>
+  <version>${logging-interceptor.version}</version>
+</dependency>
+```
+
 ## Features ##
 
 * Log to [slf4j](http://slf4j.org) (and you can go to any logging framework from there).
