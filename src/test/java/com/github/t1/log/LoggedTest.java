@@ -18,22 +18,6 @@ import org.slf4j.MDC;
 
 @Logged
 public class LoggedTest extends AbstractLoggedTest {
-    private class Nested {
-        @Logged
-        public void implicit() {}
-
-        @Logged(logger = Nested.class)
-        public void explicit() {}
-    }
-
-    private class Inner {
-        @Logged
-        public void implicit() {}
-
-        @Logged(logger = Inner.class)
-        public void explicit() {}
-    }
-
     @Test
     public void shouldLogALongMethodNameWithSpaces() throws Exception {
         class Container {
@@ -235,6 +219,14 @@ public class LoggedTest extends AbstractLoggedTest {
         assertEquals(Container.class, loggerType);
     }
 
+    private class Nested {
+        @Logged
+        public void implicit() {}
+
+        @Logged(logger = Nested.class)
+        public void explicit() {}
+    }
+
     @Test
     public void shouldNotUnwrapUseExplicitNestedLoggerClass() throws Exception {
         whenMethod(new Nested(), "explicit");
@@ -242,6 +234,14 @@ public class LoggedTest extends AbstractLoggedTest {
         interceptor.aroundInvoke(context);
 
         assertEquals(Nested.class, loggerType);
+    }
+
+    private static class Inner {
+        @Logged
+        public void implicit() {}
+
+        @Logged(logger = Inner.class)
+        public void explicit() {}
     }
 
     @Test
@@ -266,9 +266,11 @@ public class LoggedTest extends AbstractLoggedTest {
         assertEquals(Dollar$Type.class, loggerType);
     }
 
+    public void someMethod() {}
+
     @Test
     public void shouldDefaultToLoggerClass() throws Exception {
-        whenMethod(new LoggedTest(), "shouldDefaultToLoggerClass");
+        whenMethod(new LoggedTest(), "someMethod");
 
         interceptor.aroundInvoke(context);
 
@@ -494,6 +496,78 @@ public class LoggedTest extends AbstractLoggedTest {
         assertEquals("TEST-MANIFEST.MF", producer.app().getValue());
         assertNotNull(producer.version());
         assertEquals("1.0", producer.version().getValue());
+    }
+
+    @Test
+    public void shouldIndentFromNull() throws Exception {
+        MDC.put("indent", null);
+        final String[] indent = new String[1];
+        class Container {
+            @Logged
+            public void method() {
+                indent[0] = MDC.get("indent");
+            }
+        }
+        whenMethod(new Container(), "method");
+
+        interceptor.aroundInvoke(context);
+
+        assertEquals("", indent[0]);
+        assertEquals(null, MDC.get("indent"));
+    }
+
+    @Test
+    public void shouldIndentFrom0() throws Exception {
+        MDC.put("indent", "");
+        final String[] indent = new String[1];
+        class Container {
+            @Logged
+            public void method() {
+                indent[0] = MDC.get("indent");
+            }
+        }
+        whenMethod(new Container(), "method");
+
+        interceptor.aroundInvoke(context);
+
+        assertEquals("  ", indent[0]);
+        assertEquals("", MDC.get("indent"));
+    }
+
+    @Test
+    public void shouldIndentFrom1() throws Exception {
+        MDC.put("indent", "  ");
+        final String[] indent = new String[1];
+        class Container {
+            @Logged
+            public void method() {
+                indent[0] = MDC.get("indent");
+            }
+        }
+        whenMethod(new Container(), "method");
+
+        interceptor.aroundInvoke(context);
+
+        assertEquals("    ", indent[0]);
+        assertEquals("  ", MDC.get("indent"));
+    }
+
+    @Test
+    public void shouldNotIndentWhenDisabled() throws Exception {
+        MDC.put("indent", null);
+        final String[] indent = new String[1];
+        class Container {
+            @Logged(level = OFF)
+            public void method() {
+                indent[0] = MDC.get("indent");
+            }
+        }
+        whenMethod(new Container(), "method");
+
+        interceptor.aroundInvoke(context);
+
+        assertEquals(null, indent[0]);
+        assertEquals(null, MDC.get("indent"));
     }
 }
 

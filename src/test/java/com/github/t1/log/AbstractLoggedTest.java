@@ -69,15 +69,9 @@ public abstract class AbstractLoggedTest {
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
 
-    protected void whenMethod(Object target, String methodName, Object... args) throws ReflectiveOperationException {
+    protected void whenMethod(Object target, String methodName, Object... args) throws Exception {
         Method method = target.getClass().getMethod(methodName, types(args));
         whenMethod(method, target, args);
-    }
-
-    protected void whenMethod(Method method, Object target, Object... args) {
-        when(context.getMethod()).thenReturn(method);
-        when(context.getTarget()).thenReturn(target);
-        when(context.getParameters()).thenReturn(args);
     }
 
     private Class<?>[] types(Object[] objects) {
@@ -88,4 +82,15 @@ public abstract class AbstractLoggedTest {
         return result;
     }
 
+    protected void whenMethod(final Method method, final Object target, final Object... args) throws Exception {
+        when(context.getMethod()).thenReturn(method);
+        when(context.getTarget()).thenReturn(target);
+        when(context.getParameters()).thenReturn(args);
+        when(context.proceed()).then(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                return method.invoke(target, args);
+            }
+        });
+    }
 }

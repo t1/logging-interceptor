@@ -5,8 +5,11 @@ import java.util.*;
 import org.slf4j.MDC;
 
 class RestorableMdc {
-
     private Map<String, String> memento;
+
+    public String get(String indent) {
+        return MDC.get(indent);
+    }
 
     public void put(String key, String value) {
         String oldValue = MDC.get(key);

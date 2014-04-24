@@ -21,6 +21,8 @@ import com.github.t1.stereotypes.Annotations;
 @Interceptor
 @Priority(LIBRARY_BEFORE)
 public class LoggingInterceptor {
+    private static final String INDENT = "indent";
+
     private class Logging {
         private final InvocationContext context;
         private final List<Parameter> parameters;
@@ -64,6 +66,7 @@ public class LoggingInterceptor {
             // System.out.println("logger " + logger.getName());
             // System.out.println("level " + logLevel + ": " + logLevel.isEnabled(logger));
             if (logLevel.isEnabled(logger)) {
+                incrementIndentLogContext();
                 // System.out.println("message " + logMessage + ": " + message());
                 logLevel.log(logger, message(), parameters());
             }
@@ -108,6 +111,21 @@ public class LoggingInterceptor {
                 String value = variable.getValue();
                 mdc.put(key, value);
             }
+        }
+
+        private void incrementIndentLogContext() {
+            int indent = getIndentLogContext();
+            ++indent;
+            setIndentLogContext(indent);
+        }
+
+        private int getIndentLogContext() {
+            String indent = mdc.get(INDENT);
+            return (indent == null) ? -1 : indent.length() / 2;
+        }
+
+        private void setIndentLogContext(int indent) {
+            mdc.put(INDENT, Indent.of(indent));
         }
 
         private Object[] parameters() {
