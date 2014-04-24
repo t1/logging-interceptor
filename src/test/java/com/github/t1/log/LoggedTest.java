@@ -554,7 +554,7 @@ public class LoggedTest extends AbstractLoggedTest {
 
     @Test
     public void shouldNotIndentWhenDisabled() throws Exception {
-        MDC.put("indent", null);
+        MDC.put("indent", "  ");
         final String[] indent = new String[1];
         class Container {
             @Logged(level = OFF)
@@ -566,8 +566,8 @@ public class LoggedTest extends AbstractLoggedTest {
 
         interceptor.aroundInvoke(context);
 
-        assertEquals(null, indent[0]);
-        assertEquals(null, MDC.get("indent"));
+        assertEquals("  ", indent[0]);
+        assertEquals("  ", MDC.get("indent"));
     }
 }
 
