@@ -11,6 +11,18 @@ There are two main use-cases for logging interceptors:
 
 Note that interceptors are not triggered when you do local calls.
 
+## Features ##
+
+* Log to [slf4j](http://slf4j.org) (and you can go to any logging framework from there).
+* Annotate methods as @Logged to log the call and eventually return value or exceptions thrown; or a class to have all methods within logged.
+* Default log level is DEBUG; change it in the @Logged annotation.
+* Default logger is the top level class containing the method being logged; change it in the @Logged annotation.
+* Default log message is the name of the method, converted camel case to spaces (e.g. "getNextCustomer" -> "get next customer"); parameters appended; change it in the @Logged annotation.
+* Parameters annotated as @LogContext are added to the [MDC](http://slf4j.org/manual.html#mdc) (and cleaned up thereafter). Very handy for adding the main business reference key to all logs written below.
+* Define producers for LogContextVariables for other MDC variables; a producer for the version of the containing jar/ear/war is provided (requires the implementation or specification version in the manifest).
+* Add a MDC variable `indent` to your pattern to visualize the call hierarchy of logged statements.
+* Define converters, to e.g. extract the customer number from a customer object, by implementing LogConverter.
+
 ## Download ##
 
 Add [Bintray](https://bintray.com/t1/javaee-helpers/logging-interceptor) to your `settings.xml` (see the `Set me up!` buton) and a Maven dependency:
@@ -23,18 +35,10 @@ Add [Bintray](https://bintray.com/t1/javaee-helpers/logging-interceptor) to your
 </dependency>
 ```
 
-## Features ##
+## Enable in Java EE 7 ##
 
-* Log to [slf4j](http://slf4j.org) (and you can go to any logging framework from there).
-* Annotate methods as @Logged to log the call and eventually return value or exceptions thrown; or a class to have all methods within logged.
-* Default log level is DEBUG; change it in the @Logged annotation.
-* Default logger is the top level class containing the method being logged; change it in the @Logged annotation.
-* Default log message is the name of the method, converted camel case to spaces (e.g. "getNextCustomer" -> "get next customer"); parameters appended; change it in the @Logged annotation.
-* Parameters annotated as @LogContext are added to the [MDC](http://slf4j.org/manual.html#mdc) (and cleaned up thereafter). Very handy for adding the main business reference key to all logs written below.
-* Define producers for LogContextVariables for other MDC variables; a producer for the version of the containing jar/ear/war is provided (requires the implementation or specification version in the manifest).
-* Add a MDC variable `indent` to your pattern to visualize the call hierarchy of logged statements.
-* Define converters, to e.g. extract the customer number from a customer object, by implementing LogConverter.
- 
+The interceptor is annotated with a @Priority (see the last paragraph in [Java EE Tutorial](http://docs.oracle.com/javaee/7/tutorial/doc/cdi-adv006.htm)). So it is automatically activated if you add it as a library to you application.
+
 ## Enable in Java EE 6 ##
 
 If you'd just add the logging-interceptor.jar to your war or ear, it became a separate CDI module, and the interceptor was not useable in your application. So you'll have to overlay the jar contents into your application by adding this to your pom.xml:
@@ -76,7 +80,3 @@ Then you can activate the interceptor in the application's breans.xml:
 			<class>com.github.t1.log.LoggingInterceptor</class>
 		</interceptors>
 	</beans>
-
-## Enable in Java EE 7 ##
-
-The interceptor is annotated with a @Priority (see the last paragraph in [Java EE Tutorial](http://docs.oracle.com/javaee/7/tutorial/doc/cdi-adv006.htm)). So it is automatically activated if you add it as a library to you application.
