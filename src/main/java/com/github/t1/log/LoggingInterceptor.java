@@ -1,5 +1,6 @@
 package com.github.t1.log;
 
+import static com.github.t1.log.LogLevel.*;
 import static java.lang.Character.*;
 import static javax.interceptor.Interceptor.Priority.*;
 
@@ -37,17 +38,41 @@ public class LoggingInterceptor {
             this.context = context;
             this.parameters = Parameter.allOf(method());
 
-            Logged loggedAnnotation = Annotations.on(method()).getAnnotation(Logged.class);
-            this.logLevel = loggedAnnotation.level();
-            this.logMessage = loggedAnnotation.value();
-            this.logger = getLogger(resolveLogger(loggedAnnotation.logger()));
+            this.logMessage = loggedAnnotation().value();
+            this.logLevel = resolveLevel();
+            this.logger = getLogger(resolveLogger());
         }
 
         private Method method() {
             return context.getMethod();
         }
 
-        private Class<?> resolveLogger(Class<?> loggerType) {
+        private Logged loggedAnnotation() {
+            return Annotations.on(method()).getAnnotation(Logged.class);
+        }
+
+        private LogLevel resolveLevel() {
+            LogLevel level = loggedAnnotation().level();
+            if (level != _DERIVED_)
+                return level;
+            return resolveLevelOn(method().getDeclaringClass());
+        }
+
+        private LogLevel resolveLevelOn(Class<?> type) {
+            Logged logged = Annotations.on(type).getAnnotation(Logged.class);
+            if (logged != null) {
+                LogLevel level = logged.level();
+                if (level != _DERIVED_)
+                    return level;
+                if (type.getEnclosingClass() != null) {
+                    return resolveLevelOn(type.getEnclosingClass());
+                }
+            }
+            return DEBUG;
+        }
+
+        private Class<?> resolveLogger() {
+            Class<?> loggerType = loggedAnnotation().logger();
             if (loggerType == void.class) {
                 // the method is declared in the target type, while context.getTarget() is the CDI proxy
                 loggerType = method().getDeclaringClass();

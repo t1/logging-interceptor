@@ -16,7 +16,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.slf4j.MDC;
 
-@Logged
+@Logged(level = WARN)
 public class LoggedTest extends AbstractLoggedTest {
     @Test
     public void shouldLogALongMethodNameWithSpaces() throws Exception {
@@ -194,6 +194,36 @@ public class LoggedTest extends AbstractLoggedTest {
     }
 
     @Test
+    public void shouldInheritLogLevelFromContainer() throws Exception {
+        @Logged(level = INFO)
+        class Container {
+            @Logged
+            public void method() {}
+        }
+        when(logger.isInfoEnabled()).thenReturn(true);
+        whenMethod(new Container(), "method");
+
+        interceptor.aroundInvoke(context);
+
+        verify(logger).info("method", new Object[0]);
+    }
+
+    @Test
+    public void shouldInheritLogLevelFromEnclosingClass() throws Exception {
+        @Logged
+        class Container {
+            @Logged
+            public void method() {}
+        }
+        when(logger.isWarnEnabled()).thenReturn(true);
+        whenMethod(new Container(), "method");
+
+        interceptor.aroundInvoke(context);
+
+        verify(logger).warn("method", new Object[0]);
+    }
+
+    @Test
     public void shouldUseExplicitLoggerClass() throws Exception {
         class Container {
             @Logged(logger = Integer.class)
@@ -236,6 +266,15 @@ public class LoggedTest extends AbstractLoggedTest {
         assertEquals(Nested.class, loggerType);
     }
 
+    @Test
+    public void shouldDefaultLoggerToContainerOfNestedLoggerClass() throws Exception {
+        whenMethod(new Nested(), "implicit");
+
+        interceptor.aroundInvoke(context);
+
+        assertEquals(LoggedTest.class, loggerType);
+    }
+
     private static class Inner {
         @Logged
         public void implicit() {}
@@ -251,6 +290,15 @@ public class LoggedTest extends AbstractLoggedTest {
         interceptor.aroundInvoke(context);
 
         assertEquals(Inner.class, loggerType);
+    }
+
+    @Test
+    public void shouldDefaultToContainerOfInnerLoggerClass() throws Exception {
+        whenMethod(new Inner(), "implicit");
+
+        interceptor.aroundInvoke(context);
+
+        assertEquals(LoggedTest.class, loggerType);
     }
 
     @Test
@@ -284,24 +332,6 @@ public class LoggedTest extends AbstractLoggedTest {
             public void foo() {}
         }
         whenMethod(new Container(), "foo");
-
-        interceptor.aroundInvoke(context);
-
-        assertEquals(LoggedTest.class, loggerType);
-    }
-
-    @Test
-    public void shouldDefaultToContainerOfNestedLoggerClass() throws Exception {
-        whenMethod(new Nested(), "implicit");
-
-        interceptor.aroundInvoke(context);
-
-        assertEquals(LoggedTest.class, loggerType);
-    }
-
-    @Test
-    public void shouldDefaultToContainerOfInnerLoggerClass() throws Exception {
-        whenMethod(new Inner(), "implicit");
 
         interceptor.aroundInvoke(context);
 

@@ -94,6 +94,23 @@ public enum LogLevel {
         public void log(Logger logger, String message, Throwable throwable) {
             logger.error(message, throwable);
         }
+    },
+    /** This log level is only for the default of Logged#level(). The actual default is {@link #DEBUG}. */
+    _DERIVED_ {
+        @Override
+        public boolean isEnabled(Logger logger) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void log(Logger logger, String message, Object... args) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void log(Logger logger, String message, Throwable throwable) {
+            throw new UnsupportedOperationException();
+        }
     };
 
     public abstract boolean isEnabled(Logger logger);

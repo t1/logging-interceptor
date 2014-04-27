@@ -5,6 +5,8 @@ import java.util.*;
 public class Indent {
     private static final List<String> INDENT_STRINGS = new ArrayList<>();
 
+    private Indent() {}
+
     private static String spaces(int length) {
         char[] chars = new char[length];
         Arrays.fill(chars, ' ');
