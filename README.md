@@ -1,4 +1,4 @@
-# logging-interceptor #
+# CDI logging-interceptor #
 
 CDI interceptor for logging to slf4j.
 
@@ -23,9 +23,53 @@ Note that interceptors are not triggered when you do local calls.
 * Add a MDC variable `indent` to your pattern to visualize the call hierarchy of logged statements.
 * Define converters, to e.g. extract the customer number from a customer object, by implementing LogConverter.
 
+## Examples ##
+
+### Basic Trace ###
+
+```java
+@Path("/customers")
+@Logged(level = INFO)
+public class CustomersResource {
+    @GET
+    @Path("/{customer-id}")
+    public Customer getCustomer(@PathParam("customer-id") String customerId) {
+        return ...
+    }
+}    
+```
+
+would log calls to all methods in `CustomersResource` at `INFO` level, e.g.:
+
+```
+get customer 1234
+return Customer(id=1234, firstName="Joe", ...)
+```
+
+### Classic Logger ###
+
+```java
+static class CustomersResourceLogger {
+    @Logged("found {} for id {}")
+    void foundCustomerForId(Customer customer, String customerId) {}
+}
+
+@Inject CustomersResourceLogger log;
+
+...
+log.foundCustomerForId(customer, "1234");
+...
+```
+
+would log:
+
+```
+found Customer(id=1234, firstName="Joe", ...) for id 1234
+```
+
 ## Download ##
 
-Add [Bintray](https://bintray.com/t1/javaee-helpers/logging-interceptor) to your `settings.xml` (see the `Set me up!` buton) and a Maven dependency:
+Add [Bintray](https://bintray.com/t1/javaee-helpers/logging-interceptor) to your `settings.xml` (see the `Set me up!` buton) and a Maven dependency to your `pom.xml`:
 
 ```
 <dependency>
