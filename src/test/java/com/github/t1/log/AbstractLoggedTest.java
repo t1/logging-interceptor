@@ -17,25 +17,10 @@ import org.mockito.internal.stubbing.answers.ReturnsArgumentAt;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-import org.slf4j.*;
+import org.slf4j.Logger;
 
 @RunWith(MockitoJUnitRunner.class)
 public abstract class AbstractLoggedTest {
-    public static final class StoreMdcAnswer implements Answer<Void> {
-        private final String key;
-        public String value;
-
-        public StoreMdcAnswer(String key) {
-            this.key = key;
-        }
-
-        @Override
-        public Void answer(InvocationOnMock invocation) throws Throwable {
-            value = MDC.get(key);
-            return null;
-        }
-    }
-
     @Mock
     protected InvocationContext context;
     @Mock

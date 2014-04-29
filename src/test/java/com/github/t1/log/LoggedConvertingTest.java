@@ -1,14 +1,13 @@
 package com.github.t1.log;
 
-import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
+import static org.slf4j.impl.StaticMDCBinder.*;
 import lombok.Value;
 
 import org.junit.*;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.slf4j.MDC;
 
 public class LoggedConvertingTest extends AbstractLoggedTest {
     @Value
@@ -29,9 +28,10 @@ public class LoggedConvertingTest extends AbstractLoggedTest {
 
     @Test
     public void shouldConvertParameter() throws Exception {
+        @SuppressWarnings("unused")
         class Container {
             @Logged
-            public void foo(@SuppressWarnings("unused") Pojo pojo) {}
+            public void foo(Pojo pojo) {}
         }
         whenMethod(new Container(), "foo", new Pojo("a", "b"));
 
@@ -58,18 +58,15 @@ public class LoggedConvertingTest extends AbstractLoggedTest {
 
     @Test
     public void shouldConvertLogContextParameter() throws Exception {
+        @SuppressWarnings("unused")
         class Container {
             @Logged
-            public void foo(@SuppressWarnings("unused") @LogContext(value = "foobar") Pojo pojo) {}
+            public void foo(@LogContext(value = "foobar") Pojo pojo) {}
         }
         whenMethod(new Container(), "foo", new Pojo("a", "b"));
-        StoreMdcAnswer mdc = new StoreMdcAnswer("foobar");
-        when(context.proceed()).then(mdc);
-        MDC.put("foobar", "bar");
 
         interceptor.aroundInvoke(context);
 
-        assertEquals("bar", MDC.get("foobar"));
-        assertEquals("a", mdc.value);
+        verify(mdc()).put("foobar", "a");
     }
 }

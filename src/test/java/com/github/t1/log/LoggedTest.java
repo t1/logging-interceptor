@@ -4,6 +4,7 @@ import static com.github.t1.log.LogLevel.*;
 import static java.util.Arrays.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
+import static org.slf4j.impl.StaticMDCBinder.*;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -11,10 +12,8 @@ import java.net.URL;
 import java.util.Enumeration;
 import java.util.regex.Pattern;
 
-import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import org.slf4j.MDC;
+import org.junit.*;
+import org.mockito.InOrder;
 
 @Logged(level = WARN)
 public class LoggedTest extends AbstractLoggedTest {
@@ -29,6 +28,11 @@ public class LoggedTest extends AbstractLoggedTest {
         interceptor.aroundInvoke(context);
 
         verify(logger).debug("method with a long name", new Object[0]);
+    }
+
+    @Before
+    public void before() {
+        reset(mdc());
     }
 
     @Test
@@ -383,15 +387,10 @@ public class LoggedTest extends AbstractLoggedTest {
             public void methodWithLogContextParameter(@LogContext("var") String one, @Deprecated String two) {}
         }
         whenMethod(new Container(), "methodWithLogContextParameter", "foo", "bar");
-        StoreMdcAnswer mdc = new StoreMdcAnswer("var");
-        when(context.proceed()).then(mdc);
 
-        MDC.put("var", "bar");
         interceptor.aroundInvoke(context);
-        assertEquals("bar", MDC.get("var"));
 
-        verify(logger).debug("method with log context parameter {} {}", new Object[] { "foo", "bar" });
-        assertEquals("foo", mdc.value);
+        verifyMdc("var", "foo");
     }
 
     @Test
@@ -402,26 +401,11 @@ public class LoggedTest extends AbstractLoggedTest {
             public void methodWithLogContextParameter(@LogContext("var1") String one, @LogContext("var2") String two) {}
         }
         whenMethod(new Container(), "methodWithLogContextParameter", "foo", "bar");
-        final String[] result1 = new String[1];
-        final String[] result2 = new String[1];
-        when(context.proceed()).then(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) throws Throwable {
-                result1[0] = MDC.get("var1");
-                result2[0] = MDC.get("var2");
-                return null;
-            }
-        });
 
-        MDC.put("var1", "old1");
-        MDC.put("var2", "old2");
         interceptor.aroundInvoke(context);
-        assertEquals("old1", MDC.get("var1"));
-        assertEquals("old2", MDC.get("var2"));
 
-        verify(logger).debug("method with log context parameter {} {}", new Object[] { "foo", "bar" });
-        assertEquals("foo", result1[0]);
-        assertEquals("bar", result2[0]);
+        verifyMdc("var1", "foo");
+        verifyMdc("var2", "bar");
     }
 
     @Test
@@ -432,25 +416,26 @@ public class LoggedTest extends AbstractLoggedTest {
             public void methodWithLogContextParameter(@LogContext("var") String one, @LogContext("var") String two) {}
         }
         whenMethod(new Container(), "methodWithLogContextParameter", "foo", "bar");
-        StoreMdcAnswer mdc = new StoreMdcAnswer("var");
-        when(context.proceed()).then(mdc);
 
         interceptor.aroundInvoke(context);
 
-        assertEquals("foo bar", mdc.value);
+        verifyMdc("var", "foo bar");
     }
 
     @Test
     public void shouldRestoreMdcValue() throws Exception {
+        when(mdc().get("foo")).thenReturn("oldvalue");
         class Container {
             @Logged
             public void methodWithLogContextParameter(@SuppressWarnings("unused") @LogContext("foo") String foo) {}
         }
         whenMethod(new Container(), "methodWithLogContextParameter", "newvalue");
 
-        MDC.put("foo", "oldvalue");
         interceptor.aroundInvoke(context);
-        assertEquals("oldvalue", MDC.get("foo"));
+
+        InOrder inOrder = inOrder(mdc());
+        inOrder.verify(mdc()).put("foo", "newvalue");
+        inOrder.verify(mdc()).put("foo", "oldvalue");
     }
 
     @Test
@@ -462,30 +447,25 @@ public class LoggedTest extends AbstractLoggedTest {
         }
         whenMethod(new Container(), "methodWithLogContextParameter", "foo", "bar");
 
-        MDC.remove("var"); // just to make sure with other tests running before
         interceptor.aroundInvoke(context);
-        assertEquals(null, MDC.get("var"));
+        verify(mdc()).remove("var");
     }
 
     @Test
-    public void shouldFindAddALogContextVariable() throws Exception {
+    public void shouldAddLogContextVariable() throws Exception {
         class Container {
             @Logged
             public void foo() {}
         }
         whenMethod(new Container(), "foo");
-        StoreMdcAnswer mdc = new StoreMdcAnswer("foo");
-        when(context.proceed()).then(mdc);
 
         LogContextVariable variable = new LogContextVariable("foo", "baz");
         when(variables.iterator()).thenReturn(asList(variable).iterator());
 
-        MDC.put("foo", "bar");
         interceptor.aroundInvoke(context);
-        assertEquals("bar", MDC.get("foo"));
 
         verify(logger).debug("foo", new Object[0]);
-        assertEquals("baz", mdc.value);
+        verifyMdc("foo", "baz");
     }
 
     @Test
@@ -495,17 +475,12 @@ public class LoggedTest extends AbstractLoggedTest {
             public void foo() {}
         }
         whenMethod(new Container(), "foo");
-        StoreMdcAnswer mdc = new StoreMdcAnswer("foo");
-        when(context.proceed()).then(mdc);
 
         when(variables.iterator()).thenReturn(asList((LogContextVariable) null).iterator());
 
-        MDC.put("foo", "bar");
         interceptor.aroundInvoke(context);
-        assertEquals("bar", MDC.get("foo"));
 
         verify(logger).debug("foo", new Object[0]);
-        assertEquals("bar", mdc.value);
     }
 
     @Test
@@ -530,74 +505,59 @@ public class LoggedTest extends AbstractLoggedTest {
 
     @Test
     public void shouldIndentFromNull() throws Exception {
-        MDC.put("indent", null);
-        final String[] indent = new String[1];
         class Container {
             @Logged
-            public void method() {
-                indent[0] = MDC.get("indent");
-            }
+            public void method() {}
         }
         whenMethod(new Container(), "method");
 
         interceptor.aroundInvoke(context);
 
-        assertEquals("", indent[0]);
-        assertEquals(null, MDC.get("indent"));
+        verifyMdc("indent", "");
     }
 
     @Test
     public void shouldIndentFrom0() throws Exception {
-        MDC.put("indent", "");
-        final String[] indent = new String[1];
+        when(mdc().get("indent")).thenReturn("");
         class Container {
             @Logged
-            public void method() {
-                indent[0] = MDC.get("indent");
-            }
+            public void method() {}
         }
         whenMethod(new Container(), "method");
 
         interceptor.aroundInvoke(context);
 
-        assertEquals("  ", indent[0]);
-        assertEquals("", MDC.get("indent"));
+        verify(mdc()).put("indent", "  ");
+        verify(mdc()).put("indent", "");
     }
 
     @Test
     public void shouldIndentFrom1() throws Exception {
-        MDC.put("indent", "  ");
-        final String[] indent = new String[1];
+        when(mdc().get("indent")).thenReturn("  ");
         class Container {
             @Logged
-            public void method() {
-                indent[0] = MDC.get("indent");
-            }
+            public void method() {}
         }
         whenMethod(new Container(), "method");
 
         interceptor.aroundInvoke(context);
 
-        assertEquals("    ", indent[0]);
-        assertEquals("  ", MDC.get("indent"));
+        verify(mdc()).put("indent", "    ");
+        verify(mdc()).put("indent", "  ");
     }
 
     @Test
     public void shouldNotIndentWhenDisabled() throws Exception {
-        MDC.put("indent", "  ");
-        final String[] indent = new String[1];
+        when(mdc().get("indent")).thenReturn("  ");
         class Container {
             @Logged(level = OFF)
-            public void method() {
-                indent[0] = MDC.get("indent");
-            }
+            public void method() {}
         }
         whenMethod(new Container(), "method");
 
         interceptor.aroundInvoke(context);
 
-        assertEquals("  ", indent[0]);
-        assertEquals("  ", MDC.get("indent"));
+        verify(mdc(), never()).put("indent", "    ");
     }
 }
 
