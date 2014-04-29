@@ -1,22 +1,18 @@
 package com.github.t1.log;
 
-import static com.github.t1.log.PrintInvocation.*;
-import static org.mockito.Matchers.*;
+import static com.github.t1.log.LogLevel.*;
 import static org.mockito.Mockito.*;
+import static org.slf4j.impl.StaticMDCBinder.*;
 
-import javax.inject.Inject;
-
-import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.Before;
 import org.slf4j.*;
 
-@RunWith(Arquillian.class)
-public class LoggingInterceptorIT {
+public abstract class AbstractLogTests {
+    protected static final Object[] NO_ARGS = new Object[0];
+
     private static final String BEANS_XML = //
             "<beans " //
                     + "xmlns=\"http://java.sun.com/xml/ns/javaee\" " //
@@ -29,10 +25,8 @@ public class LoggingInterceptorIT {
                     + "</beans>" //
     ;
 
-    @Deployment
-    public static JavaArchive createDeployment() {
+    protected static JavaArchive loggingInterceptorDeployment() {
         return ShrinkWrap.create(JavaArchive.class) //
-                .addClass(CustomerService.class) //
                 .addClasses(//
                         Converter.class, //
                         Converters.class, //
@@ -52,26 +46,35 @@ public class LoggingInterceptorIT {
         ;
     }
 
-    @Inject
-    CustomerService service;
+    protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    Logger log = LoggerFactory.getLogger(CustomerService.class);
-
-    @Test
-    public void shouldLogWithMocks() {
-        doPrint().when(log).info(anyString());
-
-        log.info("info-log-message");
-
-        verify(log).info("info-log-message");
+    @Before
+    public void resetMdc() {
+        reset(mdc());
     }
 
-    @Test
-    public void shouldLogUsingInterceptor() {
-        when(log.isInfoEnabled()).thenReturn(true);
+    @Before
+    public void givenLogLevelDebug() {
+        givenLogLevel(DEBUG);
+    }
 
-        service.hello();
-
-        verify(log).info("hello", new Object[0]);
+    protected void givenLogLevel(LogLevel level) {
+        reset(log);
+        switch (level) {
+            case _DERIVED_:
+                throw new IllegalArgumentException("unsupported log level");
+            case TRACE:
+                when(log.isTraceEnabled()).thenReturn(true);
+            case DEBUG:
+                when(log.isDebugEnabled()).thenReturn(true);
+            case INFO:
+                when(log.isInfoEnabled()).thenReturn(true);
+            case WARN:
+                when(log.isWarnEnabled()).thenReturn(true);
+            case ERROR:
+                when(log.isErrorEnabled()).thenReturn(true);
+            case OFF:
+                break;
+        }
     }
 }

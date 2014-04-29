@@ -140,8 +140,7 @@ public class LoggingInterceptor {
 
         private void incrementIndentLogContext() {
             int indent = getIndentLogContext();
-            ++indent;
-            setIndentLogContext(indent);
+            setIndentLogContext(indent + 1);
         }
 
         private int getIndentLogContext() {
