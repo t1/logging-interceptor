@@ -14,7 +14,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(Arquillian.class)
-public class LogIndentTest extends AbstractLogTests {
+public class LogIndentTest extends AbstractLoggingInterceptorTests {
     @Deployment
     public static JavaArchive createDeployment() {
         return loggingInterceptorDeployment();

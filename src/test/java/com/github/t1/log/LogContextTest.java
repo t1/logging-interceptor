@@ -1,145 +1,125 @@
 package com.github.t1.log;
 
-import static java.util.Arrays.*;
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.slf4j.impl.StaticMDCBinder.*;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.Enumeration;
-import java.util.regex.Pattern;
+import javax.enterprise.inject.Produces;
+import javax.inject.Inject;
 
-import org.junit.*;
+import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InOrder;
 
-public class LogContextTest extends AbstractLoggedTest {
-    @Before
-    public void resetMdc() {
-        reset(mdc());
+@RunWith(Arquillian.class)
+public class LogContextTest extends AbstractLoggingInterceptorTests {
+    @Deployment
+    public static JavaArchive createDeployment() {
+        return loggingInterceptorDeployment();
     }
 
-    @Test
-    public void shouldLogContextParameter() throws Exception {
-        class Container {
-            @Logged
-            @SuppressWarnings("unused")
-            public void methodWithLogContextParameter(@LogContext("var") String one, @Deprecated String two) {}
-        }
-        whenMethod(new Container(), "methodWithLogContextParameter", "foo", "bar");
+    // ----------------------------------------------------------------------------------
 
-        interceptor.aroundInvoke(context);
+    public static class LogContextParameterClass {
+        @Logged
+        @SuppressWarnings("unused")
+        public void methodWithLogContextParameter(@LogContext("var") String one, @Deprecated String two) {}
+    }
+
+    @Inject
+    LogContextParameterClass logContextParameterClass;
+
+    @Test
+    public void shouldLogContextParameter() {
+        logContextParameterClass.methodWithLogContextParameter("foo", "bar");
 
         verifyMdc("var", "foo");
     }
 
     @Test
-    public void shouldLogTwoDifferentContextParameters() throws Exception {
-        class Container {
-            @Logged
-            @SuppressWarnings("unused")
-            public void methodWithLogContextParameter(@LogContext("var1") String one, @LogContext("var2") String two) {}
-        }
-        whenMethod(new Container(), "methodWithLogContextParameter", "foo", "bar");
+    public void shouldRestoreMdcValue() {
+        when(mdc().get("var")).thenReturn("oldvalue");
 
-        interceptor.aroundInvoke(context);
+        logContextParameterClass.methodWithLogContextParameter("newvalue", "bar");
+
+        InOrder inOrder = inOrder(mdc());
+        inOrder.verify(mdc()).put("var", "newvalue");
+        inOrder.verify(mdc()).put("var", "oldvalue");
+    }
+
+    @Test
+    public void shouldRestoreNullMdcValue() {
+        logContextParameterClass.methodWithLogContextParameter("newvalue", "bar");
+
+        verify(mdc()).remove("var");
+    }
+
+    // ----------------------------------------------------------------------------------
+
+    public static class TwoContextVariables {
+        @Logged
+        @SuppressWarnings("unused")
+        public void methodWithLogContextParameter(@LogContext("var1") String one, @LogContext("var2") String two) {}
+    }
+
+    @Inject
+    TwoContextVariables twoContextVariables;
+
+    @Test
+    public void shouldLogTwoDifferentContextParameters() {
+        twoContextVariables.methodWithLogContextParameter("foo", "bar");
 
         verifyMdc("var1", "foo");
         verifyMdc("var2", "bar");
     }
 
-    @Test
-    public void shouldConcatenateTwoContextParametersWithTheSameName() throws Exception {
-        class Container {
-            @Logged
-            @SuppressWarnings("unused")
-            public void methodWithLogContextParameter(@LogContext("var") String one, @LogContext("var") String two) {}
-        }
-        whenMethod(new Container(), "methodWithLogContextParameter", "foo", "bar");
+    // ----------------------------------------------------------------------------------
+    public static class ConcatenateLogContextParams {
+        @Logged
+        @SuppressWarnings("unused")
+        public void methodWithLogContextParameter(@LogContext("var") String one, @LogContext("var") String two) {}
+    }
 
-        interceptor.aroundInvoke(context);
+    @Inject
+    ConcatenateLogContextParams concatenateLogContextParams;
+
+    @Test
+    public void shouldConcatenateTwoContextParametersWithTheSameName() {
+        concatenateLogContextParams.methodWithLogContextParameter("foo", "bar");
 
         verifyMdc("var", "foo bar");
     }
 
-    @Test
-    public void shouldRestoreMdcValue() throws Exception {
-        when(mdc().get("foo")).thenReturn("oldvalue");
-        class Container {
-            @Logged
-            public void methodWithLogContextParameter(@SuppressWarnings("unused") @LogContext("foo") String foo) {}
-        }
-        whenMethod(new Container(), "methodWithLogContextParameter", "newvalue");
 
-        interceptor.aroundInvoke(context);
+    // ----------------------------------------------------------------------------------
 
-        InOrder inOrder = inOrder(mdc());
-        inOrder.verify(mdc()).put("foo", "newvalue");
-        inOrder.verify(mdc()).put("foo", "oldvalue");
+    public static class SimpleClass {
+        @Logged
+        public void simple() {}
     }
 
-    @Test
-    public void shouldRestoreNullMdcValue() throws Exception {
-        class Container {
-            @Logged
-            @SuppressWarnings("unused")
-            public void methodWithLogContextParameter(@LogContext("var") String one, String two) {}
-        }
-        whenMethod(new Container(), "methodWithLogContextParameter", "foo", "bar");
+    @Inject
+    SimpleClass simple;
 
-        interceptor.aroundInvoke(context);
-        verify(mdc()).remove("var");
+    @Produces
+    LogContextVariable fooBarVariable = new LogContextVariable("foo", "bar");
+
+    @Test
+    public void shouldAddLogContextVariable() {
+        simple.simple();
+
+        verifyMdc("foo", "bar");
     }
 
-    @Test
-    public void shouldAddLogContextVariable() throws Exception {
-        class Container {
-            @Logged
-            public void foo() {}
-        }
-        whenMethod(new Container(), "foo");
-
-        LogContextVariable variable = new LogContextVariable("foo", "baz");
-        when(variables.iterator()).thenReturn(asList(variable).iterator());
-
-        interceptor.aroundInvoke(context);
-
-        verify(logger).debug("foo", new Object[0]);
-        verifyMdc("foo", "baz");
-    }
+    @Produces
+    LogContextVariable nullVariable = null;
 
     @Test
-    public void shouldSkipNullLogContextVariable() throws Exception {
-        class Container {
-            @Logged
-            public void foo() {}
-        }
-        whenMethod(new Container(), "foo");
+    public void shouldSkipNullLogContextVariable() {
+        simple.simple();
 
-        when(variables.iterator()).thenReturn(asList((LogContextVariable) null).iterator());
-
-        interceptor.aroundInvoke(context);
-
-        verify(logger).debug("foo", new Object[0]);
-    }
-
-    @Test
-    public void shouldProduceVersionLogContextVariable() {
-        VersionLogContextVariableProducer producer = new VersionLogContextVariableProducer() {
-            @Override
-            Enumeration<URL> manifests(ClassLoader classLoader) throws IOException {
-                return new ListEnumeration<>(new URL("file:target/test-classes/TEST-MANIFEST.MF"));
-            }
-
-            @Override
-            Pattern mainManifestPattern() {
-                return Pattern.compile("file:.*/(.*)");
-            }
-        };
-
-        assertNotNull(producer.app());
-        assertEquals("TEST-MANIFEST.MF", producer.app().getValue());
-        assertNotNull(producer.version());
-        assertEquals("1.0", producer.version().getValue());
+        // verify not possible... just check that there's no exception
     }
 }

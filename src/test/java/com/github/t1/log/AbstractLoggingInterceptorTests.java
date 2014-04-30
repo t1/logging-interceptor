@@ -10,7 +10,7 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Before;
 import org.slf4j.*;
 
-public abstract class AbstractLogTests {
+public abstract class AbstractLoggingInterceptorTests {
     protected static final Object[] NO_ARGS = new Object[0];
 
     private static final String BEANS_XML = //

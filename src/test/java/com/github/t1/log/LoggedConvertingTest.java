@@ -1,72 +1,93 @@
 package com.github.t1.log;
 
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.slf4j.impl.StaticMDCBinder.*;
+
+import javax.inject.Inject;
+
 import lombok.Value;
 
-import org.junit.*;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
+import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-public class LoggedConvertingTest extends AbstractLoggedTest {
+@RunWith(Arquillian.class)
+public class LoggedConvertingTest extends AbstractLoggingInterceptorTests {
+    @Deployment
+    public static JavaArchive createDeployment() {
+        return loggingInterceptorDeployment();
+    }
+
+    // ----------------------------------------------------------------------------------
+
     @Value
-    private static class Pojo {
+    public static class Pojo {
         String one, two;
     }
 
-    @Before
-    @Override
-    public void setupConverters() {
-        when(converters.convert(isA(Pojo.class))).thenAnswer(new Answer<Object>() {
-            @Override
-            public Object answer(InvocationOnMock invocation) {
-                return ((Pojo) invocation.getArguments()[0]).one;
-            }
-        });
+    private static final Pojo POJO = new Pojo("foo", "bar");
+
+    @ConverterType(Pojo.class)
+    public static class PojoConverter implements Converter {
+        @Override
+        public String convert(Object pojo) {
+            Pojo o = (Pojo) pojo;
+            return o.one + "#" + o.two;
+        }
     }
 
-    @Test
-    public void shouldConvertParameter() throws Exception {
+    // ----------------------------------------------------------------------------------
+
+    public static class PojoParamClass {
         @SuppressWarnings("unused")
-        class Container {
-            @Logged
-            public void foo(Pojo pojo) {}
-        }
-        whenMethod(new Container(), "foo", new Pojo("a", "b"));
-
-        interceptor.aroundInvoke(context);
-
-        verify(logger).debug("foo {}", new Object[] { "a" });
+        @Logged
+        public void pojoParamMethod(Pojo pojo) {}
     }
 
+    @Inject
+    PojoParamClass pojoParam;
+
     @Test
-    public void shouldConvertReturnValue() throws Exception {
-        class Container {
-            @Logged
-            public Pojo foo() {
-                return null;
-            }
-        }
-        whenMethod(new Container(), "foo");
-        when(context.proceed()).thenReturn(new Pojo("a", "b"));
+    public void shouldConvertParameter() {
+        pojoParam.pojoParamMethod(POJO);
 
-        interceptor.aroundInvoke(context);
-
-        verify(logger).debug("return {}", new Object[] { "a" });
+        verify(log).debug("pojo param method {}", new Object[] { "foo#bar" });
     }
 
+    // ----------------------------------------------------------------------------------
+    public static class PojoReturnClass {
+        @Logged
+        public Pojo foo() {
+            return POJO;
+        }
+    }
+
+    @Inject
+    PojoReturnClass pojoReturn;
+
     @Test
-    public void shouldConvertLogContextParameter() throws Exception {
+    public void shouldConvertReturnValue() {
+        pojoReturn.foo();
+
+        verify(log).debug("return {}", new Object[] { "foo#bar" });
+    }
+
+    // ----------------------------------------------------------------------------------
+    public static class PojoLogContextClass {
         @SuppressWarnings("unused")
-        class Container {
-            @Logged
-            public void foo(@LogContext(value = "foobar") Pojo pojo) {}
-        }
-        whenMethod(new Container(), "foo", new Pojo("a", "b"));
+        @Logged
+        public void foo(@LogContext(value = "var") Pojo pojo) {}
+    }
 
-        interceptor.aroundInvoke(context);
+    @Inject
+    PojoLogContextClass pojoLogContext;
 
-        verify(mdc()).put("foobar", "a");
+    @Test
+    public void shouldConvertLogContextParameter() {
+        pojoLogContext.foo(POJO);
+
+        verify(mdc()).put("var", "foo#bar");
     }
 }

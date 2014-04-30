@@ -20,6 +20,7 @@ import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 
 @RunWith(MockitoJUnitRunner.class)
+@Deprecated
 public abstract class AbstractLoggedTest {
     @Mock
     protected InvocationContext context;
