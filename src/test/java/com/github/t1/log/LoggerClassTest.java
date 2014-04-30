@@ -1,39 +1,86 @@
 package com.github.t1.log;
 
 import static com.github.t1.log.LogLevel.*;
-import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
+import javax.inject.Inject;
+
+import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.slf4j.*;
 
 @Logged(level = WARN)
-public class LoggerClassTest extends AbstractLoggedTest {
-    @Test
-    public void shouldUseExplicitLoggerClass() throws Exception {
-        class Container {
-            @Logged(logger = Integer.class)
-            public void foo() {}
-        }
-        whenMethod(new Container(), "foo");
-
-        interceptor.aroundInvoke(context);
-
-        assertEquals(Integer.class, loggerType);
+@RunWith(Arquillian.class)
+public class LoggerClassTest extends AbstractLoggingInterceptorTests {
+    @Deployment
+    public static JavaArchive createDeployment() {
+        return loggingInterceptorDeployment().addClass(ImplicitLoggerClass.class);
     }
 
-    @Test
-    public void shouldNotUnwrapUseExplicitLocalLoggerClass() throws Exception {
-        class Container {
-            @Logged(logger = Container.class)
-            public void foo() {}
-        }
-        whenMethod(new Container(), "foo");
-
-        interceptor.aroundInvoke(context);
-
-        assertEquals(Container.class, loggerType);
+    private Logger logger(Class<?> type) {
+        Logger logger = LoggerFactory.getLogger(type);
+        givenLogLevel(DEBUG, logger);
+        return logger;
     }
 
-    private class Nested {
+    // ----------------------------------------------------------------------------------
+
+    @Inject
+    ImplicitLoggerClass implicitLoggerClass;
+
+    @Test
+    public void shouldUseImplicitLoggerClass() {
+        Logger logger = logger(ImplicitLoggerClass.class);
+
+        implicitLoggerClass.foo();
+
+        verify(logger).debug("foo", new Object[0]);
+    }
+
+    // ----------------------------------------------------------------------------------
+
+    public static class ExplicitLoggerClass {
+        @Logged(logger = Integer.class)
+        public void foo() {}
+    }
+
+    @Inject
+    ExplicitLoggerClass explicitLoggerClass;
+
+    @Test
+    public void shouldUseExplicitLoggerClass() {
+        Logger logger = logger(Integer.class);
+
+        explicitLoggerClass.foo();
+
+        verify(logger).debug("foo", new Object[0]);
+    }
+
+    // ----------------------------------------------------------------------------------
+
+    public static class ExplicitSelfLoggerClass {
+        @Logged(logger = ExplicitSelfLoggerClass.class)
+        public void foo() {}
+    }
+
+    @Inject
+    ExplicitSelfLoggerClass explicitSelfLogger;
+
+    @Test
+    public void shouldNotUnwrapUseExplicitLocalLoggerClass() {
+        Logger logger = logger(ExplicitSelfLoggerClass.class);
+
+        explicitSelfLogger.foo();
+
+        verify(logger).debug("foo", new Object[0]);
+    }
+
+    // ----------------------------------------------------------------------------------
+
+    public static class Nested {
         @Logged
         public void implicit() {}
 
@@ -41,122 +88,65 @@ public class LoggerClassTest extends AbstractLoggedTest {
         public void explicit() {}
     }
 
+    @Inject
+    Nested nested;
+
     @Test
-    public void shouldNotUnwrapUseExplicitNestedLoggerClass() throws Exception {
-        whenMethod(new Nested(), "explicit");
+    public void shouldNotUnwrapUseExplicitNestedLoggerClass() {
+        Logger logger = logger(Nested.class);
 
-        interceptor.aroundInvoke(context);
+        nested.explicit();
 
-        assertEquals(Nested.class, loggerType);
+        verify(logger).debug("explicit", new Object[0]);
     }
 
     @Test
-    public void shouldDefaultLoggerToContainerOfNestedLoggerClass() throws Exception {
-        whenMethod(new Nested(), "implicit");
+    public void shouldDefaultToContainerOfNestedLoggerClass() {
+        Logger logger = logger(LoggerClassTest.class);
 
-        interceptor.aroundInvoke(context);
+        nested.implicit();
 
-        assertEquals(LoggerClassTest.class, loggerType);
+        verify(logger).debug("implicit", new Object[0]);
     }
 
-    private static class Inner {
-        @Logged
-        public void implicit() {}
+    // ----------------------------------------------------------------------------------
 
-        @Logged(logger = Inner.class)
-        public void explicit() {}
-    }
-
-    @Test
-    public void shouldNotUnwrapUseExplicitInnerLoggerClass() throws Exception {
-        whenMethod(new Inner(), "explicit");
-
-        interceptor.aroundInvoke(context);
-
-        assertEquals(Inner.class, loggerType);
-    }
-
-    @Test
-    public void shouldDefaultToContainerOfInnerLoggerClass() throws Exception {
-        whenMethod(new Inner(), "implicit");
-
-        interceptor.aroundInvoke(context);
-
-        assertEquals(LoggerClassTest.class, loggerType);
-    }
-
-    @Test
-    public void shouldNotUnwrapUseExplicitDollarLoggerClass() throws Exception {
-        class Container {
-            @Logged(logger = Dollar$Type.class)
-            public void foo() {}
-        }
-        whenMethod(new Container(), "foo");
-
-        interceptor.aroundInvoke(context);
-
-        assertEquals(Dollar$Type.class, loggerType);
-    }
-
-    public void someMethod() {}
-
-    @Test
-    public void shouldDefaultToLoggerClass() throws Exception {
-        whenMethod(new LoggerClassTest(), "someMethod");
-
-        interceptor.aroundInvoke(context);
-
-        assertEquals(LoggerClassTest.class, loggerType);
-    }
-
-    @Test
-    public void shouldDefaultToContainerOfLocalLoggerClass() throws Exception {
-        class Container {
+    public static class Outer {
+        public static class Inner {
             @Logged
             public void foo() {}
         }
-        whenMethod(new Container(), "foo");
-
-        interceptor.aroundInvoke(context);
-
-        assertEquals(LoggerClassTest.class, loggerType);
     }
 
+    @Inject
+    Outer.Inner inner;
+
     @Test
-    public void shouldDefaultToDoubleContainerLoggerClass() throws Exception {
-        class Outer {
-            class Inner {
-                @Logged
-                public void foo() {}
-            }
-        }
-        whenMethod(new Outer().new Inner(), "foo");
+    public void shouldDefaultToDoubleContainerLoggerClass() {
+        Logger logger = logger(LoggerClassTest.class);
 
-        interceptor.aroundInvoke(context);
+        inner.foo();
 
-        assertEquals(LoggerClassTest.class, loggerType);
+        verify(logger).debug("foo", new Object[0]);
     }
 
-    @Test
-    public void shouldDefaultToAnonymousLoggerClass() throws Exception {
-        whenMethod(new Runnable() {
-            @Override
-            @Logged
-            public void run() {}
-        }, "run");
+    // ----------------------------------------------------------------------------------
 
-        interceptor.aroundInvoke(context);
-
-        assertEquals(LoggerClassTest.class, loggerType);
+    public static class DollarLoggerClass {
+        @Logged(logger = Dollar$Type.class)
+        public void foo() {}
     }
 
+    @Inject
+    DollarLoggerClass dollarLoggerClass;
+
     @Test
-    public void shouldDefaultToDollarLoggerClass() throws Exception {
-        whenMethod(new Dollar$Type(), "foo");
+    public void shouldNotUnwrapUseExplicitDollarLoggerClass() {
+        Logger logger = logger(Dollar$Type.class);
 
-        interceptor.aroundInvoke(context);
+        dollarLoggerClass.foo();
 
-        assertEquals(Dollar$Type.class, loggerType);
+        verify(logger).debug("foo", new Object[0]);
     }
 }
 

@@ -54,11 +54,15 @@ public abstract class AbstractLoggingInterceptorTests {
     }
 
     @Before
-    public void givenLogLevelDebug() {
+    public void initLogLevelDebug() {
         givenLogLevel(DEBUG);
     }
 
     protected void givenLogLevel(LogLevel level) {
+        givenLogLevel(level, log);
+    }
+
+    protected void givenLogLevel(LogLevel level, Logger log) {
         reset(log);
         switch (level) {
             case _DERIVED_:
