@@ -5,9 +5,7 @@ import static org.mockito.Mockito.*;
 
 import javax.inject.Inject;
 
-import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.*;
@@ -15,11 +13,6 @@ import org.slf4j.*;
 @Logged(level = WARN)
 @RunWith(Arquillian.class)
 public class LoggerClassTest extends AbstractLoggingInterceptorTests {
-    @Deployment
-    public static JavaArchive createDeployment() {
-        return loggingInterceptorDeployment().addClass(ImplicitLoggerClass.class);
-    }
-
     private Logger logger(Class<?> type) {
         Logger logger = LoggerFactory.getLogger(type);
         givenLogLevel(DEBUG, logger);
@@ -37,7 +30,7 @@ public class LoggerClassTest extends AbstractLoggingInterceptorTests {
 
         implicitLoggerClass.foo();
 
-        verify(logger).debug("foo", new Object[0]);
+        verify(logger).debug("foo", NO_ARGS);
     }
 
     // ----------------------------------------------------------------------------------
@@ -56,7 +49,7 @@ public class LoggerClassTest extends AbstractLoggingInterceptorTests {
 
         explicitLoggerClass.foo();
 
-        verify(logger).debug("foo", new Object[0]);
+        verify(logger).debug("foo", NO_ARGS);
     }
 
     // ----------------------------------------------------------------------------------
@@ -75,7 +68,7 @@ public class LoggerClassTest extends AbstractLoggingInterceptorTests {
 
         explicitSelfLogger.foo();
 
-        verify(logger).debug("foo", new Object[0]);
+        verify(logger).debug("foo", NO_ARGS);
     }
 
     // ----------------------------------------------------------------------------------
@@ -97,7 +90,7 @@ public class LoggerClassTest extends AbstractLoggingInterceptorTests {
 
         nested.explicit();
 
-        verify(logger).debug("explicit", new Object[0]);
+        verify(logger).debug("explicit", NO_ARGS);
     }
 
     @Test
@@ -106,7 +99,7 @@ public class LoggerClassTest extends AbstractLoggingInterceptorTests {
 
         nested.implicit();
 
-        verify(logger).debug("implicit", new Object[0]);
+        verify(logger).debug("implicit", NO_ARGS);
     }
 
     // ----------------------------------------------------------------------------------
@@ -127,7 +120,7 @@ public class LoggerClassTest extends AbstractLoggingInterceptorTests {
 
         inner.foo();
 
-        verify(logger).debug("foo", new Object[0]);
+        verify(logger).debug("foo", NO_ARGS);
     }
 
     // ----------------------------------------------------------------------------------
@@ -146,7 +139,7 @@ public class LoggerClassTest extends AbstractLoggingInterceptorTests {
 
         dollarLoggerClass.foo();
 
-        verify(logger).debug("foo", new Object[0]);
+        verify(logger).debug("foo", NO_ARGS);
     }
 }
 

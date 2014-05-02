@@ -4,7 +4,7 @@ import static com.github.t1.log.LogLevel.*;
 import static java.lang.Character.*;
 import static javax.interceptor.Interceptor.Priority.*;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.util.*;
 
 import javax.annotation.Priority;
@@ -29,6 +29,7 @@ public class LoggingInterceptor {
         private final List<Parameter> parameters;
 
         private final LogLevel logLevel;
+        private final LogLevel throwLevel;
         private final Logger logger;
         private final String logMessage;
 
@@ -39,7 +40,8 @@ public class LoggingInterceptor {
             this.parameters = Parameter.allOf(method());
 
             this.logMessage = loggedAnnotation().value();
-            this.logLevel = resolveLevel();
+            this.logLevel = resolveLevel(false);
+            this.throwLevel = resolveLevel(true);
             this.logger = getLogger(resolveLogger());
         }
 
@@ -51,24 +53,37 @@ public class LoggingInterceptor {
             return Annotations.on(method()).getAnnotation(Logged.class);
         }
 
-        private LogLevel resolveLevel() {
-            LogLevel level = loggedAnnotation().level();
-            if (level != _DERIVED_)
-                return level;
-            return resolveLevelOn(method().getDeclaringClass());
+        private LogLevel resolveLevel(boolean throwing) {
+            return resolveLevel(method(), throwing);
         }
 
-        private LogLevel resolveLevelOn(Class<?> type) {
-            Logged logged = Annotations.on(type).getAnnotation(Logged.class);
+        private LogLevel resolveLevel(AnnotatedElement element, boolean throwing) {
+            Logged logged = logged(element);
             if (logged != null) {
-                LogLevel level = logged.level();
+                LogLevel level = throwing ? logged.throwLevel() : logged.level();
                 if (level != _DERIVED_)
                     return level;
-                if (type.getEnclosingClass() != null) {
-                    return resolveLevelOn(type.getEnclosingClass());
+                if (container(element) != null) {
+                    return resolveLevel(container(element), throwing);
                 }
             }
-            return DEBUG;
+            return throwing ? ERROR : DEBUG;
+        }
+
+        private Logged logged(AnnotatedElement element) {
+            return annotations(element).getAnnotation(Logged.class);
+        }
+
+        private AnnotatedElement annotations(AnnotatedElement element) {
+            if (element instanceof Method)
+                return Annotations.on((Method) element);
+            return Annotations.on((Class<?>) element);
+        }
+
+        private Class<?> container(AnnotatedElement element) {
+            if (element instanceof Member)
+                return ((Member) element).getDeclaringClass();
+            return ((Class<?>) element).getEnclosingClass();
         }
 
         private Class<?> resolveLogger() {
@@ -201,7 +216,7 @@ public class LoggingInterceptor {
         }
 
         public void logException(Exception e) {
-            logLevel.log(logger, "failed", e);
+            throwLevel.log(logger, "failed", e);
         }
 
         public void done() {

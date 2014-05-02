@@ -4,6 +4,7 @@ import static com.github.t1.log.LogLevel.*;
 import static org.mockito.Mockito.*;
 import static org.slf4j.impl.StaticMDCBinder.*;
 
+import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -25,7 +26,8 @@ public abstract class AbstractLoggingInterceptorTests {
                     + "</beans>" //
     ;
 
-    protected static JavaArchive loggingInterceptorDeployment() {
+    @Deployment
+    public static JavaArchive loggingInterceptorDeployment() {
         return ShrinkWrap.create(JavaArchive.class) //
                 .addClasses(//
                         Converter.class, //
@@ -42,6 +44,7 @@ public abstract class AbstractLoggingInterceptorTests {
                         RestorableMdc.class, //
                         VersionLogContextVariableProducer.class //
                 ) //
+                .addClass(ImplicitLoggerClass.class) //
                 .addAsManifestResource(new StringAsset(BEANS_XML), "beans.xml") //
         ;
     }

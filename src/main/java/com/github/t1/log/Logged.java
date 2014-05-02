@@ -23,7 +23,8 @@ import javax.interceptor.InterceptorBinding;
 @Retention(RUNTIME)
 public @interface Logged {
     /**
-     * The level of detail to log at. The default is {@link LogLevel#DEBUG}.
+     * The level of detail to log at. If none is specified, it's derived from the recursively enclosing type's
+     * <code>level</code> or finally {@link LogLevel#DEBUG}.
      * 
      * @see org.slf4j.Logger the logging methods for those levels
      */
@@ -46,4 +47,11 @@ public @interface Logged {
      */
     @Nonbinding
     public String value() default "";
+
+    /**
+     * The level to log exceptions at. If none is specified, it's derived from the recursively enclosing type's
+     * <code>throwLevel</code> or finally {@link LogLevel#ERROR}.
+     */
+    @Nonbinding
+    public LogLevel throwLevel() default _DERIVED_;
 }
