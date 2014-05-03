@@ -11,7 +11,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(Arquillian.class)
 @Logged(level = WARN)
-public class LoggLevelTest extends AbstractLoggingInterceptorTests {
+public class LogLevelTest extends AbstractLoggingInterceptorTests {
     // ----------------------------------------------------------------------------------
 
     public static class DefaultClass {

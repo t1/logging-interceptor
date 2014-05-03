@@ -16,7 +16,7 @@ Note that interceptors are not triggered when you do local calls.
 * Log to [slf4j](http://slf4j.org) (and you can go to any logging framework from there).
 * Annotate methods as `@Logged` to log the call and eventually return value or exceptions thrown; or a class to have all methods within logged.
 * Define the log level in the `@Logged` annotation; if you don't specify one, it's derived from the recursively containing type or finally `DEBUG`.
-* Define the log level for exceptions in the `@Logged` annotation; if you don't specify one, it's derived from the recursively containing type or finally `ERROR`.
+* Define the log level for exceptions in the `@Logged` annotation; if you don't specify one, it's the same as the log level.
 * Default logger is the top level class containing the method being logged; change it in the `@Logged` annotation.
 * Default log message is the name of the method, with camel case converted to spaces (e.g. "getNextCustomer" -> "get next customer") and parameters appended; change it in the `@Logged` annotation.
 * Parameters annotated as `@DontLog` are not logged; very useful for, e.g., passwords.
