@@ -69,24 +69,6 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
     }
 
     // ----------------------------------------------------------------------------------
-    public static class ConcatenateLogContextParams {
-        @Logged
-        @SuppressWarnings("unused")
-        public void methodWithLogContextParameter(@LogContext("var") String one, @LogContext("var") String two) {}
-    }
-
-    @Inject
-    ConcatenateLogContextParams concatenateLogContextParams;
-
-    @Test
-    public void shouldConcatenateTwoContextParametersWithTheSameName() {
-        concatenateLogContextParams.methodWithLogContextParameter("foo", "bar");
-
-        verifyMdc("var", "foo bar");
-    }
-
-
-    // ----------------------------------------------------------------------------------
 
     public static class SimpleClass {
         @Logged

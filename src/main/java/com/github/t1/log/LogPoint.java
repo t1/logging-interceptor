@@ -17,7 +17,11 @@ class LogPoint {
     private static final String INDENT = "indent";
 
     private final Method method;
+    private final Instance<LogContextVariable> variables;
+    private final Converters converters;
+
     private final List<Parameter> parameters;
+    private final List<LogContextParameter> logContextParameters;
 
     private final LogLevel logLevel;
     private final LogLevel throwLevel;
@@ -25,8 +29,6 @@ class LogPoint {
     private final String logMessage;
 
     private final RestorableMdc mdc = new RestorableMdc();
-    private final Instance<LogContextVariable> variables;
-    private final Converters converters;
 
     public LogPoint(Method method, Instance<LogContextVariable> variables, Converters converters) {
         this.method = method;
@@ -34,6 +36,7 @@ class LogPoint {
         this.converters = converters;
 
         this.parameters = Parameter.allOf(method);
+        this.logContextParameters = LogContextParameter.list(parameters, converters);
 
         this.logMessage = logMessage(loggedAnnotation().value());
         this.logLevel = resolveLevel(false);
@@ -141,33 +144,9 @@ class LogPoint {
     }
 
     private void addParamaterLogContexts(InvocationContext context) {
-        Map<String, String> collected = collectParameterLogContexts(context);
-        storeParameterLogContexts(collected);
-    }
-
-    private void storeParameterLogContexts(Map<String, String> collected) {
-        for (String key : collected.keySet()) {
-            mdc.put(key, collected.get(key));
+        for (LogContextParameter logContextParameter : logContextParameters) {
+            logContextParameter.set(mdc, context);
         }
-    }
-
-    private Map<String, String> collectParameterLogContexts(InvocationContext context) {
-        Map<String, String> map = new LinkedHashMap<>();
-        for (Parameter parameter : parameters) {
-            if (parameter.isAnnotationPresent(LogContext.class)) {
-                LogContext logContext = parameter.getAnnotation(LogContext.class);
-                String key = logContext.value();
-                Object object = context.getParameters()[parameter.getIndex()];
-                Object converted = converters.convert(object);
-                if (converted != null) {
-                    String value = converted.toString();
-                    if (map.containsKey(key))
-                        value = map.get(key) + " " + value;
-                    map.put(key, value);
-                }
-            }
-        }
-        return map;
     }
 
     private void addLogContextVariables() {
