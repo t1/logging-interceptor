@@ -20,8 +20,7 @@ class LogPoint {
     private final Instance<LogContextVariable> variables;
     private final Converters converters;
 
-    private final List<Parameter> parameters;
-    private final List<LogContextParameter> logContextParameters;
+    private final List<LogParameter> parameters;
 
     private final LogLevel logLevel;
     private final LogLevel throwLevel;
@@ -35,13 +34,12 @@ class LogPoint {
         this.variables = variables;
         this.converters = converters;
 
-        this.parameters = Parameter.allOf(method);
-        this.logContextParameters = LogContextParameter.list(parameters, converters);
+        this.parameters = LogParameter.allOf(method, converters);
 
         this.logMessage = logMessage(loggedAnnotation().value());
         this.logLevel = resolveLevel(false);
         this.throwLevel = resolveLevel(true);
-        this.logger = getLogger(resolveLogger());
+        this.logger = LoggerFactory.getLogger(loggerType());
     }
 
     private Logged loggedAnnotation() {
@@ -71,9 +69,7 @@ class LogPoint {
 
     private String messageParamPlaceholders() {
         StringBuilder out = new StringBuilder();
-        for (Parameter parameter : parameters) {
-            if (parameter.isAnnotationPresent(DontLog.class))
-                continue;
+        for (int i = 0; i < parameters.size(); i++) {
             out.append(" {}");
         }
         return out.toString();
@@ -112,7 +108,7 @@ class LogPoint {
         return ((Class<?>) element).getEnclosingClass();
     }
 
-    private Class<?> resolveLogger() {
+    private Class<?> loggerType() {
         Class<?> loggerType = loggedAnnotation().logger();
         if (loggerType == void.class) {
             // the method is declared in the target type, while context.getTarget() is the CDI proxy
@@ -122,10 +118,6 @@ class LogPoint {
             }
         }
         return loggerType;
-    }
-
-    private Logger getLogger(Class<?> loggerType) {
-        return LoggerFactory.getLogger(loggerType);
     }
 
     public void logCall(InvocationContext context) {
@@ -144,8 +136,8 @@ class LogPoint {
     }
 
     private void addParamaterLogContexts(InvocationContext context) {
-        for (LogContextParameter logContextParameter : logContextParameters) {
-            logContextParameter.set(mdc, context);
+        for (LogParameter parameter : parameters) {
+            parameter.set(mdc, context);
         }
     }
 
@@ -175,11 +167,8 @@ class LogPoint {
 
     private Object[] parameterValues(InvocationContext context) {
         List<Object> result = new ArrayList<>();
-        for (Parameter parameter : parameters) {
-            if (parameter.isAnnotationPresent(DontLog.class))
-                continue;
-            Object value = context.getParameters()[parameter.getIndex()];
-            result.add(converters.convert(value));
+        for (LogParameter parameter : parameters) {
+            result.add(parameter.value(context));
         }
         return result.toArray();
     }

@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Archiver-Version: some-Archiver
+Specification-Title: spec-title
+Specification-Version: 1.2.3
+Implementation-Title: impl-title
+Implementation-Version: 1.2.4
+Implementation-Vendor-Id: impl-vendor
+

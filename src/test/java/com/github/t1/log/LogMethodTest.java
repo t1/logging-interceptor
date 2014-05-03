@@ -1,6 +1,7 @@
 package com.github.t1.log;
 
 import static com.github.t1.log.LogLevel.*;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import javax.inject.Inject;
@@ -37,6 +38,23 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
         simpleClass.foo();
 
         verify(log).info("foo", NO_ARGS);
+    }
+
+    @Test
+    public void shouldCacheLogPoint() {
+        givenLogLevel(INFO);
+
+        long t0 = System.nanoTime();
+        simpleClass.foo();
+        long t1 = System.nanoTime();
+        simpleClass.foo();
+        long t2 = System.nanoTime();
+
+        long d0 = t1 - t0;
+        long d1 = t2 - t1;
+
+        verify(log, times(2)).info("foo", NO_ARGS); // actually did log twice
+        assertTrue(d1 < d0); // but the second one was faster
     }
 
     // ----------------------------------------------------------------------------------

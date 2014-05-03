@@ -32,6 +32,13 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
     }
 
     @Test
+    public void shouldLogNullContextParameter() {
+        logContextParameterClass.methodWithLogContextParameter(null, "bar");
+
+        verifyMdc("var", null);
+    }
+
+    @Test
     public void shouldRestoreMdcValue() {
         when(mdc().get("var")).thenReturn("oldvalue");
 

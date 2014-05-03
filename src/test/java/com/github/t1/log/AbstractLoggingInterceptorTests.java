@@ -14,16 +14,12 @@ import org.slf4j.*;
 public abstract class AbstractLoggingInterceptorTests {
     protected static final Object[] NO_ARGS = new Object[0];
 
-    private static final String BEANS_XML = //
-            "<beans " //
-                    + "xmlns=\"http://java.sun.com/xml/ns/javaee\" " //
-                    + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " //
-                    + "xsi:schemaLocation=\"http://java.sun.com/xml/ns/javaee " //
-                    + "http://java.sun.com/xml/ns/javaee/beans_1_0.xsd\">\n" //
-                    + "    <interceptors>\n" //
-                    + "        <class>com.github.t1.log.LoggingInterceptor</class>\n" //
-                    + "    </interceptors>\n" //
-                    + "</beans>" //
+    private static final String BEANS_XML = "" //
+            + "<beans>\n" //
+            + "    <interceptors>\n" //
+            + "        <class>com.github.t1.log.LoggingInterceptor</class>\n" //
+            + "    </interceptors>\n" //
+            + "</beans>" //
     ;
 
     @Deployment
@@ -40,7 +36,7 @@ public abstract class AbstractLoggingInterceptorTests {
                         Logged.class, //
                         LoggingInterceptor.class, //
                         LogLevel.class, //
-                        Parameter.class, //
+                        LogParameter.class, //
                         RestorableMdc.class, //
                         VersionLogContextVariableProducer.class //
                 ) //

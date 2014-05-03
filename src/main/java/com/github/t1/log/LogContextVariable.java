@@ -1,12 +1,13 @@
 package com.github.t1.log;
 
-import lombok.Value;
+import lombok.*;
 
 /**
  * A variable that can be added to the {@link org.slf4j.MDC}. If a producers returns <code>null</code>, nothing will be
  * added.
  */
-@Value
+@Getter
+@AllArgsConstructor
 public class LogContextVariable {
-    String key, value;
+    private final String key, value;
 }
