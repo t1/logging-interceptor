@@ -10,6 +10,7 @@ import javax.enterprise.inject.Instance;
 import javax.interceptor.InvocationContext;
 
 import org.slf4j.*;
+import org.slf4j.helpers.MessageFormatter;
 
 import com.github.t1.stereotypes.Annotations;
 
@@ -20,10 +21,10 @@ class LogPoint {
     private final Instance<LogContextVariable> variables;
     private final Converters converters;
 
+    private final Logged logged;
     private final List<LogParameter> parameters;
 
     private final LogLevel logLevel;
-    private final LogLevel throwLevel;
     private final Logger logger;
     private final String logMessage;
 
@@ -34,19 +35,16 @@ class LogPoint {
         this.variables = variables;
         this.converters = converters;
 
+        this.logged = Annotations.on(method).getAnnotation(Logged.class);
         this.parameters = LogParameter.allOf(method, converters);
 
-        this.logMessage = logMessage(loggedAnnotation().value());
-        this.logLevel = resolveLevel(false);
-        this.throwLevel = resolveLevel(true);
+        this.logMessage = logMessage();
+        this.logLevel = resolveLevel();
         this.logger = LoggerFactory.getLogger(loggerType());
     }
 
-    private Logged loggedAnnotation() {
-        return Annotations.on(method).getAnnotation(Logged.class);
-    }
-
-    private String logMessage(String message) {
+    private String logMessage() {
+        String message = logged.value();
         if ("".equals(message)) {
             return camelToSpaces(method.getName()) + messageParamPlaceholders();
         } else {
@@ -69,27 +67,29 @@ class LogPoint {
 
     private String messageParamPlaceholders() {
         StringBuilder out = new StringBuilder();
-        for (int i = 0; i < parameters.size(); i++) {
+        for (LogParameter parameter : parameters) {
+            if (parameter.isLastThrowable())
+                continue;
             out.append(" {}");
         }
         return out.toString();
     }
 
-    private LogLevel resolveLevel(boolean throwing) {
-        return resolveLevel(method, throwing);
+    private LogLevel resolveLevel() {
+        return resolveLevel(method);
     }
 
-    private LogLevel resolveLevel(AnnotatedElement element, boolean throwing) {
+    private LogLevel resolveLevel(AnnotatedElement element) {
         Logged logged = logged(element);
         if (logged != null) {
-            LogLevel level = throwing ? logged.throwLevel() : logged.level();
+            LogLevel level = logged.level();
             if (level != _DERIVED_)
                 return level;
             if (container(element) != null) {
-                return resolveLevel(container(element), throwing);
+                return resolveLevel(container(element));
             }
         }
-        return throwing ? ERROR : DEBUG;
+        return DEBUG;
     }
 
     private Logged logged(AnnotatedElement element) {
@@ -109,7 +109,7 @@ class LogPoint {
     }
 
     private Class<?> loggerType() {
-        Class<?> loggerType = loggedAnnotation().logger();
+        Class<?> loggerType = logged.logger();
         if (loggerType == void.class) {
             // the method is declared in the target type, while context.getTarget() is the CDI proxy
             loggerType = method.getDeclaringClass();
@@ -121,18 +121,18 @@ class LogPoint {
     }
 
     public void logCall(InvocationContext context) {
-        // System.out.println("--------------- log call do");
         addParamaterLogContexts(context);
         addLogContextVariables();
 
-        // System.out.println("logger " + logger.getName());
-        // System.out.println("level " + logLevel + ": " + logLevel.isEnabled(logger));
         if (logLevel.isEnabled(logger)) {
             incrementIndentLogContext();
-            // System.out.println("message " + logMessage + ": " + message());
-            logLevel.log(logger, logMessage, parameterValues(context));
+            if (!parameters.isEmpty() && lastParameter().isThrowable()) {
+                String message = throwableMessage(context);
+                logLevel.log(logger, message, (Throwable) lastParameter().value(context));
+            } else {
+                logLevel.log(logger, logMessage, parameterValues(context));
+            }
         }
-        // System.out.println("--------------- log call done");
     }
 
     private void addParamaterLogContexts(InvocationContext context) {
@@ -165,9 +165,19 @@ class LogPoint {
         mdc.put(INDENT, Indent.of(indent));
     }
 
+    private LogParameter lastParameter() {
+        return parameters.get(parameters.size() - 1);
+    }
+
+    private String throwableMessage(InvocationContext context) {
+        return MessageFormatter.arrayFormat(logMessage, parameterValues(context)).getMessage();
+    }
+
     private Object[] parameterValues(InvocationContext context) {
         List<Object> result = new ArrayList<>();
         for (LogParameter parameter : parameters) {
+            if (parameter.isLastThrowable())
+                continue;
             result.add(parameter.value(context));
         }
         return result.toArray();
@@ -180,7 +190,24 @@ class LogPoint {
     }
 
     public void logException(Exception e) {
-        throwLevel.log(logger, "failed", e);
+        logLevel.log(logger, "failed with {}", toString(e));
+    }
+
+    private String toString(Exception e) {
+        StringBuilder out = new StringBuilder();
+        toString(out, e);
+        return out.toString();
+    }
+
+    private void toString(StringBuilder out, Throwable e) {
+        out.append(e.getClass().getSimpleName());
+        if (e.getMessage() != null) {
+            out.append("(").append(e.getMessage()).append(")");
+        }
+        if (e.getCause() != null) {
+            out.append(" -> ");
+            toString(out, e.getCause());
+        }
     }
 
     public void done() {

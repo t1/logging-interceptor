@@ -47,11 +47,4 @@ public @interface Logged {
      */
     @Nonbinding
     public String value() default "";
-
-    /**
-     * The level to log exceptions at. If none is specified, it's derived from the recursively enclosing type's
-     * <code>throwLevel</code> or finally {@link LogLevel#ERROR}.
-     */
-    @Nonbinding
-    public LogLevel throwLevel() default _DERIVED_;
 }

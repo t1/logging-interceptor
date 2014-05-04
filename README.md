@@ -14,9 +14,9 @@ Note that interceptors are not triggered when you do local calls.
 ## Features ##
 
 * Log to [slf4j](http://slf4j.org) (and you can go to any logging framework from there).
-* Annotate methods as `@Logged` to log the call and eventually return value or exceptions thrown; or a class to have all methods within logged.
+* Annotate methods as `@Logged` to log the call and eventually return value or exceptions thrown; or a class to have all methods within logged (see examples below). The exception thrown is logged with a message like `failed with IllegalArgumentException` so the stack trace isn't repeated for every method the throw passes through; if you want the stack trace, log the exception explicitly as a last parameter (see example below).
 * Define the log level in the `@Logged` annotation; if you don't specify one, it's derived from the recursively containing type or finally `DEBUG`.
-* Define the log level for exceptions in the `@Logged` annotation; if you don't specify one, it's the same as the log level.
+* If the last parameter is a `Throwable`, it's passed to slf4j, so the stack trace is printed out; i.e. the logging-interceptor formats the message without the `Throwable` before it passes it on (that's an addition to the slf4j api).
 * Default logger is the top level class containing the method being logged; change it in the `@Logged` annotation.
 * Default log message is the name of the method, with camel case converted to spaces (e.g. "getNextCustomer" -> "get next customer") and parameters appended; change it in the `@Logged` annotation.
 * Parameters annotated as `@DontLog` are not logged; very useful for, e.g., passwords.
@@ -33,12 +33,12 @@ Note that interceptors are not triggered when you do local calls.
 @Path("/customers")
 @Logged(level = INFO)
 public class CustomersResource {
-    @GET
-    @Path("/{customer-id}")
-    public Customer getCustomer(@PathParam("customer-id") String customerId) {
-        return ...
-    }
-}    
+	@GET
+	@Path("/{customer-id}")
+	public Customer getCustomer(@PathParam("customer-id") String customerId) {
+		return ...
+	}
+}
 ```
 
 would log calls to all methods in `CustomersResource` at `INFO` level, e.g.:
@@ -52,8 +52,8 @@ return Customer(id=1234, firstName="Joe", ...)
 
 ```java
 static class CustomersResourceLogger {
-    @Logged("found {} for id {}")
-    void foundCustomerForId(Customer customer, String customerId) {}
+	@Logged("found {} for id {}")
+	void foundCustomerForId(Customer customer, String customerId) {}
 }
 
 @Inject CustomersResourceLogger log;
@@ -68,6 +68,28 @@ would log:
 ```
 found Customer(id=1234, firstName="Joe", ...) for id 1234
 ```
+
+### Log Stack Trace ###
+
+```java
+static class ExceptionLogger {
+	@Logged(level = ERROR)
+	void failed(String operation, RuntimeException e) {}
+}
+
+@Inject
+ExceptionLogger exceptionLogger;
+
+...
+try {
+	...
+} catch (RuntimeException e) {
+	exceptionLogger.failed("my operation", e);
+}
+...
+```
+
+would log the message `failed my operation` with the exception and stack trace.
 
 ## Download ##
 

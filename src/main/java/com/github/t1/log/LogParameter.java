@@ -67,4 +67,20 @@ public class LogParameter {
         Object object = context.getParameters()[index];
         return converters.convert(object);
     }
+
+    public boolean isLastThrowable() {
+        return isLast() && isThrowable();
+    }
+
+    private boolean isLast() {
+        return index == method.getParameterTypes().length - 1;
+    }
+
+    public boolean isThrowable() {
+        return Throwable.class.isAssignableFrom(type());
+    }
+
+    private Class<?> type() {
+        return method.getParameterTypes()[index];
+    }
 }

@@ -2,194 +2,156 @@ package com.github.t1.log;
 
 import static com.github.t1.log.LogLevel.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import javax.inject.Inject;
 
 import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
+import org.mockito.internal.util.MockUtil;
+import org.mockito.invocation.Invocation;
 
 @RunWith(Arquillian.class)
 public class LogExceptionTest extends AbstractLoggingInterceptorTests {
-    // ----------------------------------------------------------------------------------
+    @After
+    public void printLogs() {
+        for (Invocation invocation : new MockUtil().getMockHandler(log).getInvocationContainer().getInvocations()) {
+            System.out.println(invocation);
+        }
+    }
 
-    public static class DefaultThrowLevelClass {
+    public static class ThrowingClass {
         @Logged
-        public String foo() {
+        public String throwRuntimeExeptionWithoutMessage() {
+            throw new RuntimeException();
+        }
+
+        @Logged
+        public String throwRuntimeExeptionWithMessage() {
             throw new RuntimeException("bar");
+        }
+
+        @Logged
+        public String throwRuntimeExeptionWithCausingNpe() {
+            throw new RuntimeException("foo", new NullPointerException("bar"));
+        }
+
+        @Logged
+        public String throwRuntimeExeptionWithCausingIllegalArgumentAndCausingNpe() {
+            throw new RuntimeException("foo", new IllegalArgumentException("bar", new NullPointerException("baz")));
         }
     }
 
     @Inject
-    DefaultThrowLevelClass defaultThrowLevel;
+    ThrowingClass throwing;
 
     @Test
-    public void shouldLogThrownExeptionByDefaultAtLevel() {
+    public void shouldLogThrownExeptionWithoutMessage() {
         try {
-            defaultThrowLevel.foo();
+            throwing.throwRuntimeExeptionWithoutMessage();
             fail("expected RuntimeException");
         } catch (RuntimeException e) {}
 
-        verify(log).error(eq("failed"), any(RuntimeException.class));
+        verify(log).debug("throw runtime exeption without message", NO_ARGS);
+        verify(log).debug("failed with {}", new Object[] { "RuntimeException" });
+    }
+
+    @Test
+    public void shouldLogThrownExeptionWithMessage() {
+        try {
+            throwing.throwRuntimeExeptionWithMessage();
+            fail("expected RuntimeException");
+        } catch (RuntimeException e) {}
+
+        verify(log).debug("throw runtime exeption with message", NO_ARGS);
+        verify(log).debug("failed with {}", new Object[] { "RuntimeException(bar)" });
+    }
+
+    @Test
+    public void shouldLogThrownExeptionWithCausingNpe() {
+        try {
+            throwing.throwRuntimeExeptionWithCausingNpe();
+            fail("expected RuntimeException");
+        } catch (RuntimeException e) {}
+
+        verify(log).debug("throw runtime exeption with causing npe", NO_ARGS);
+        verify(log).debug("failed with {}", new Object[] { "RuntimeException(foo) -> NullPointerException(bar)" });
+    }
+
+    @Test
+    public void shouldLogThrownExeptionWithCausingNpeAndCausingIllegalArgument() {
+        try {
+            throwing.throwRuntimeExeptionWithCausingIllegalArgumentAndCausingNpe();
+            fail("expected RuntimeException");
+        } catch (RuntimeException e) {}
+
+        verify(log).debug("throw runtime exeption with causing illegal argument and causing npe", NO_ARGS);
+        verify(log).debug("failed with {}", new Object[] { "RuntimeException(foo)" //
+                + " -> IllegalArgumentException(bar)" //
+                + " -> NullPointerException(baz)" });
     }
 
     // ----------------------------------------------------------------------------------
 
-    public static class ThrowAtExplicitErrorClass {
-        @Logged(throwLevel = ERROR)
-        public String foo() {
-            throw new RuntimeException("bar");
-        }
+    @SuppressWarnings("unused")
+    public static class ThrowableLogger {
+        @Logged
+        public void throwing(RuntimeException t) {}
+
+        @Logged
+        public void throwing(String param, RuntimeException t) {}
+
+        @Logged
+        public void notThrowing(RuntimeException t, String param) {}
     }
 
     @Inject
-    ThrowAtExplicitErrorClass throwAtErrorClass;
+    ThrowableLogger throwableLogger;
 
     @Test
-    public void shouldLogThrownExeptionAtErrorLevel() {
-        try {
-            throwAtErrorClass.foo();
-            fail("expected RuntimeException");
-        } catch (RuntimeException e) {}
+    public void shouldLogRuntimeExceptionParamAsThrowable() {
+        IllegalArgumentException exception = new IllegalArgumentException("foo");
 
-        verify(log).error(eq("failed"), any(RuntimeException.class));
+        throwableLogger.throwing(exception);
+
+        verify(log).debug("throwing", exception);
+    }
+
+    @Test
+    public void shouldLogRuntimeExceptionParamAsThrowableWithFormattedMessage() {
+        IllegalArgumentException exception = new IllegalArgumentException("foo");
+
+        throwableLogger.throwing("foo", exception);
+
+        verify(log).debug("throwing foo", exception);
+    }
+
+    @Test
+    public void shouldLogRuntimeExceptionParamNormallyWhenNotLast() {
+        IllegalArgumentException exception = new IllegalArgumentException("foo");
+
+        throwableLogger.notThrowing(exception, "foo");
+
+        verify(log).debug("not throwing {} {}", new Object[] { exception, "foo" });
     }
 
     // ----------------------------------------------------------------------------------
-
-    public static class ThrowAtWarnClass {
-        @Logged(throwLevel = WARN)
-        public String foo() {
-            throw new RuntimeException("bar");
-        }
+    @SuppressWarnings("unused")
+    static class ExceptionLogger {
+        @Logged(level = ERROR)
+        void failed(String operation, RuntimeException e) {}
     }
 
     @Inject
-    ThrowAtWarnClass throwAtWarnClass;
+    ExceptionLogger exceptionLogger;
 
     @Test
-    public void shouldLogThrownExeptionAtWarnLevel() {
+    public void example() {
         try {
-            throwAtWarnClass.foo();
-            fail("expected RuntimeException");
-        } catch (RuntimeException e) {}
-
-        verify(log).warn(eq("failed"), any(RuntimeException.class));
-    }
-
-    // ----------------------------------------------------------------------------------
-
-    public static class ThrowAtInfoClass {
-        @Logged(throwLevel = INFO)
-        public String foo() {
-            throw new RuntimeException("bar");
+            throw new RuntimeException();
+        } catch (RuntimeException e) {
+            exceptionLogger.failed("my operation", e);
         }
-    }
-
-    @Inject
-    ThrowAtInfoClass throwAtInfoClass;
-
-    @Test
-    public void shouldLogThrownExeptionAtInfoLevel() {
-        try {
-            throwAtInfoClass.foo();
-            fail("expected RuntimeException");
-        } catch (RuntimeException e) {}
-
-        verify(log).info(eq("failed"), any(RuntimeException.class));
-    }
-
-    // ----------------------------------------------------------------------------------
-
-    public static class ThrowAtDebugClass {
-        @Logged(throwLevel = DEBUG)
-        public String foo() {
-            throw new RuntimeException("bar");
-        }
-    }
-
-    @Inject
-    ThrowAtDebugClass throwAtDebugClass;
-
-    @Test
-    public void shouldLogThrownExeptionAtDebugLevel() {
-        try {
-            throwAtDebugClass.foo();
-            fail("expected RuntimeException");
-        } catch (RuntimeException e) {}
-
-        verify(log).debug(eq("failed"), any(RuntimeException.class));
-    }
-
-    // ----------------------------------------------------------------------------------
-
-    public static class ThrowAtTraceClass {
-        @Logged(throwLevel = TRACE)
-        public String foo() {
-            throw new RuntimeException("bar");
-        }
-    }
-
-    @Inject
-    ThrowAtTraceClass throwAtTraceClass;
-
-    @Test
-    public void shouldLogThrownExeptionAtTraceLevel() {
-        try {
-            throwAtTraceClass.foo();
-            fail("expected RuntimeException");
-        } catch (RuntimeException e) {}
-
-        verify(log).trace(eq("failed"), any(RuntimeException.class));
-    }
-
-    // ----------------------------------------------------------------------------------
-
-    public static class ThrowAtOffClass {
-        @Logged(throwLevel = OFF)
-        public String foo() {
-            throw new RuntimeException("bar");
-        }
-    }
-
-    @Inject
-    ThrowAtOffClass throwAtOffClass;
-
-    @Test
-    public void shouldLogThrownExeptionAtOffLevel() {
-        try {
-            throwAtOffClass.foo();
-            fail("expected RuntimeException");
-        } catch (RuntimeException e) {}
-
-        verify(log).isDebugEnabled();
-        verify(log).debug("foo", NO_ARGS);
-        verifyNoMoreInteractions(log);
-    }
-
-    // ----------------------------------------------------------------------------------
-
-    @Logged(throwLevel = DEBUG)
-    public static class ThrowAtDerivedLevelClass {
-        @Logged("foo-message")
-        public String foo() {
-            throw new RuntimeException("bar");
-        }
-    }
-
-    @Inject
-    ThrowAtDerivedLevelClass throwAtDerivedLevelClass;
-
-    @Test
-    public void shouldLogThrownExeptionAtDerivedLevel() {
-        try {
-            throwAtDerivedLevelClass.foo();
-            fail("expected RuntimeException");
-        } catch (RuntimeException e) {}
-
-        verify(log).debug("foo-message", NO_ARGS);
-        verify(log).debug(eq("failed"), any(RuntimeException.class));
     }
 }
