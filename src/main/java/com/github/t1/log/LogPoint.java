@@ -85,9 +85,7 @@ class LogPoint {
             LogLevel level = logged.level();
             if (level != _DERIVED_)
                 return level;
-            if (container(element) != null) {
-                return resolveLevel(container(element));
-            }
+            return resolveLevel(container(element));
         }
         return DEBUG;
     }

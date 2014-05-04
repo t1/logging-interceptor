@@ -7,20 +7,11 @@ import static org.mockito.Mockito.*;
 import javax.inject.Inject;
 
 import org.jboss.arquillian.junit.Arquillian;
-import org.junit.*;
+import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.internal.util.MockUtil;
-import org.mockito.invocation.Invocation;
 
 @RunWith(Arquillian.class)
 public class LogExceptionTest extends AbstractLoggingInterceptorTests {
-    @After
-    public void printLogs() {
-        for (Invocation invocation : new MockUtil().getMockHandler(log).getInvocationContainer().getInvocations()) {
-            System.out.println(invocation);
-        }
-    }
-
     public static class ThrowingClass {
         @Logged
         public String throwRuntimeExeptionWithoutMessage() {
@@ -134,6 +125,74 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
         throwableLogger.notThrowing(exception, "foo");
 
         verify(log).debug("not throwing {} {}", new Object[] { exception, "foo" });
+    }
+
+    // ----------------------------------------------------------------------------------
+    @SuppressWarnings("unused")
+    static class ExceptionLevelLogger {
+        @Logged(level = ERROR)
+        void error(RuntimeException e) {}
+
+        @Logged(level = WARN)
+        void warn(RuntimeException e) {}
+
+        @Logged(level = INFO)
+        void info(RuntimeException e) {}
+
+        @Logged(level = DEBUG)
+        void debug(RuntimeException e) {}
+
+        @Logged(level = TRACE)
+        void trace(RuntimeException e) {}
+    }
+
+    @Inject
+    ExceptionLevelLogger exceptionLevelLogger;
+
+    @Test
+    public void shouldLogExceptionAtErrorLevel() {
+        RuntimeException exception = new RuntimeException();
+
+        exceptionLevelLogger.error(exception);
+
+        verify(log).error("error", exception);
+    }
+
+    @Test
+    public void shouldLogExceptionAtWarnLevel() {
+        RuntimeException exception = new RuntimeException();
+
+        exceptionLevelLogger.warn(exception);
+
+        verify(log).warn("warn", exception);
+    }
+
+    @Test
+    public void shouldLogExceptionAtInfoLevel() {
+        RuntimeException exception = new RuntimeException();
+
+        exceptionLevelLogger.info(exception);
+
+        verify(log).info("info", exception);
+    }
+
+    @Test
+    public void shouldLogExceptionAtDebugLevel() {
+        RuntimeException exception = new RuntimeException();
+
+        exceptionLevelLogger.debug(exception);
+
+        verify(log).debug("debug", exception);
+    }
+
+    @Test
+    public void shouldLogExceptionAtTraceLevel() {
+        givenLogLevel(TRACE);
+        RuntimeException exception = new RuntimeException();
+
+        exceptionLevelLogger.trace(exception);
+
+        verify(log).trace("trace", exception);
     }
 
     // ----------------------------------------------------------------------------------

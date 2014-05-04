@@ -6,7 +6,7 @@ import java.net.*;
 import java.util.Enumeration;
 import java.util.regex.Pattern;
 
-import org.junit.*;
+import org.junit.Test;
 import org.mockito.internal.util.MockUtil;
 import org.mockito.invocation.Invocation;
 import org.slf4j.*;
@@ -14,7 +14,7 @@ import org.slf4j.*;
 public class VersionLogContextVariableProducerTest {
     private final Logger log = LoggerFactory.getLogger(VersionLogContextVariableProducer.class);
 
-    @After
+    // @After
     public void printLogs() {
         for (Invocation invocation : new MockUtil().getMockHandler(log).getInvocationContainer().getInvocations()) {
             System.out.println(invocation);
