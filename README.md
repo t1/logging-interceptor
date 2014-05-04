@@ -14,7 +14,7 @@ Note that interceptors are not triggered when you do local calls.
 ## Features ##
 
 * Log to [slf4j](http://slf4j.org) (and you can go to any logging framework from there).
-* Annotate methods as `@Logged` to log the call and eventually return value or exceptions thrown; or a class to have all methods within logged (see [examples below](#examples)). The exception thrown is logged with a message like `failed with IllegalArgumentException` so the stack trace isn't repeated for every method the throw passes through; if you want the stack trace, log the exception explicitly as a last parameter (see [example below](#log-stack-trace)).
+* Annotate methods as `@Logged` to log the call and eventually return value or exceptions thrown; or a class to have all methods within logged (see [examples](#examples)). The exception thrown is logged with a message like `failed with IllegalArgumentException` so the stack trace isn't repeated for every method the throw passes through; if you want the stack trace, log the exception explicitly as a last parameter (see [example](#log-stack-trace)).
 * Define the log level in the `@Logged` annotation; if you don't specify one, it's derived from the recursively containing type or finally `DEBUG`.
 * If the last parameter is a `Throwable`, it's passed to slf4j, so the stack trace is printed out; i.e. the logging-interceptor formats the message without the `Throwable` before it passes it on (that's an addition to the slf4j api).
 * Default logger is the top level class containing the method being logged; change it in the `@Logged` annotation.
