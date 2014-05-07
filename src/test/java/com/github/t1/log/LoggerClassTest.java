@@ -10,7 +10,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.*;
 
-@Logged(level = WARN)
 @RunWith(Arquillian.class)
 public class LoggerClassTest extends AbstractLoggingInterceptorTests {
     private Logger logger(Class<?> type) {

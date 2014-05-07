@@ -12,7 +12,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(Arquillian.class)
-public class LoggedConvertingTest extends AbstractLoggingInterceptorTests {
+public class LogConverterTest extends AbstractLoggingInterceptorTests {
     // ----------------------------------------------------------------------------------
 
     @Value

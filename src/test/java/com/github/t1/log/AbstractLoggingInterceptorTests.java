@@ -25,22 +25,7 @@ public abstract class AbstractLoggingInterceptorTests {
     @Deployment
     public static JavaArchive loggingInterceptorDeployment() {
         return ShrinkWrap.create(JavaArchive.class) //
-                .addClasses(//
-                        Converter.class, //
-                        Converters.class, //
-                        ConverterType.class, //
-                        DontLog.class, //
-                        Indent.class, //
-                        LogContext.class, //
-                        LogContextVariable.class, //
-                        Logged.class, //
-                        LoggingInterceptor.class, //
-                        LogLevel.class, //
-                        LogParameter.class, //
-                        RestorableMdc.class, //
-                        VersionLogContextVariableProducer.class //
-                ) //
-                .addClass(ImplicitLoggerClass.class) //
+                .addPackage(LoggingInterceptor.class.getPackage()) //
                 .addAsManifestResource(new StringAsset(BEANS_XML), "beans.xml") //
         ;
     }

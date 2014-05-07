@@ -14,19 +14,14 @@ import org.junit.runner.RunWith;
 public class LogLevelTest extends AbstractLoggingInterceptorTests {
     // ----------------------------------------------------------------------------------
 
-    public static class DefaultClass {
-        @Logged
-        public void foo() {}
-    }
-
     @Inject
-    DefaultClass defaultClass;
+    SimpleLoggedClass simpleLoggedClass;
 
     @Test
     public void shouldNotLogWhenLevelIsNotEnabled() {
         givenLogLevel(INFO);
 
-        defaultClass.foo();
+        simpleLoggedClass.foo();
 
         verify(log, atLeast(0)).isDebugEnabled();
         verifyNoMoreInteractions(log);

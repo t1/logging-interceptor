@@ -17,7 +17,7 @@ import org.mockito.*;
 import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class LogConvertersTest {
+public class ConvertersTest {
     @Mock
     private Instance<Converter> converterInstances;
     @InjectMocks
