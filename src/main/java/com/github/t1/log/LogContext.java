@@ -11,7 +11,7 @@ import java.lang.annotation.*;
  * every line logged, so you can easily find all interactions concerning this order. When the logged method returns, the
  * previous value is restored.
  * <p>
- * If <code>toString</code> is not good enough, you can write a {@link Converter}.
+ * If <code>toString</code> is not good enough, you can write a {@link LogConverter}.
  * <p>
  * Note that the MDC is set even if the log level is not enabled!
  */

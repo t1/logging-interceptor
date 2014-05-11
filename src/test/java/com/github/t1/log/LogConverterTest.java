@@ -22,12 +22,10 @@ public class LogConverterTest extends AbstractLoggingInterceptorTests {
 
     private static final Pojo POJO = new Pojo("foo", "bar");
 
-    @ConverterType(Pojo.class)
-    public static class PojoConverter implements Converter {
+    public static class PojoConverter implements LogConverter<Pojo> {
         @Override
-        public String convert(Object pojo) {
-            Pojo o = (Pojo) pojo;
-            return o.one + "#" + o.two;
+        public String convert(Pojo pojo) {
+            return pojo.one + "#" + pojo.two;
         }
     }
 
