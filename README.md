@@ -1,6 +1,6 @@
 # CDI logging-interceptor #
 
-CDI interceptor for logging to slf4j.
+CDI interceptor for logging to slf4j. [ ![Download](https://api.bintray.com/packages/t1/javaee-helpers/logging-interceptor/images/download.png) ](https://bintray.com/t1/javaee-helpers/logging-interceptor/_latestVersion)
 
 Logging is the standard example for writing interceptors. Yet, I didn't find a good one, so I wrote my own (and it was fun :)
 
@@ -94,7 +94,7 @@ would log the message `failed my operation` with the exception and stack trace.
 
 ## Download ##
 
-Add [Bintray](https://bintray.com/t1/javaee-helpers/logging-interceptor) to your `settings.xml` (see the `Set me up!` buton) and a Maven dependency to your `pom.xml`:
+Add [Bintray](https://bintray.com/t1/javaee-helpers/logging-interceptor) to your `settings.xml` (see the `Set me up!` buton) and this Maven dependency to your `pom.xml`:
 
 ```
 <dependency>
