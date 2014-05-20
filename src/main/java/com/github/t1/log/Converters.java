@@ -56,6 +56,7 @@ public class Converters {
         for (Converter converter : converterInstances) {
             new ConverterLoader(converter).run();
         }
+        log.debug("converters loaded");
     }
 
     public Object convert(Object value) {

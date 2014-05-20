@@ -4,61 +4,56 @@ import static java.util.jar.Attributes.Name.*;
 
 import java.io.*;
 import java.net.URL;
-import java.util.Enumeration;
 import java.util.jar.*;
-import java.util.regex.*;
+import java.util.regex.Matcher;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Produces;
-import javax.inject.Singleton;
+import javax.inject.*;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Singleton
 public class VersionLogContextVariableProducer {
-    private static final Pattern MAIN_MANIFEST = Pattern
-            .compile("vfs:/content/(.*).(war|jar|ear)/META-INF/MANIFEST.MF");
+    @Inject
+    private ManifestFinder manifestFinder;
 
     private String version;
     private String app;
 
-    public VersionLogContextVariableProducer() {
+    @PostConstruct
+    public void scan() {
+        log.debug("scan for manifests");
         try {
-            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-            scanManifests(classLoader);
+            scanManifests();
         } catch (RuntimeException | IOException e) {
             log.debug("can't read manifest", e);
         }
     }
 
-    private void scanManifests(ClassLoader classLoader) throws IOException {
+    private void scanManifests() throws IOException {
         log.trace("scanning for manifest");
-        Enumeration<URL> resources = manifests(classLoader);
-        while (resources.hasMoreElements()) {
-            URL manifestUrl = resources.nextElement();
+        for (URL manifestUrl : manifestFinder.manifests()) {
             log.trace("matching {}", manifestUrl);
-            Matcher matcher = mainManifestPattern().matcher(manifestUrl.toString());
-            if (!matcher.matches()) {
-                log.trace("manifest url not matching {}", mainManifestPattern());
-                continue;
+            Matcher matcher = manifestFinder.matcher(manifestUrl.toString());
+            if (matcher.matches()) {
+                String path = matcher.group("path");
+                log.trace("found potential match of type {} at {}", matcher.group("type"), path);
+                if (!isNested(path)) {
+                    log.trace("found non-nested manifest at {}", manifestUrl);
+                    app = matcher.group("path");
+                    version = readManifest(manifestUrl);
+                    log.debug("app={} version={}", app, version);
+                    return;
+                }
             }
-            log.trace("found manifest at {}", manifestUrl);
-            app = matcher.group(1);
-            version = readManifest(manifestUrl);
-            log.debug("app={} version={}", app, version);
-            return;
         }
         log.debug("no manifest found");
     }
 
-    // @VisibleForTesting
-    Enumeration<URL> manifests(ClassLoader classLoader) throws IOException {
-        return classLoader.getResources("/META-INF/MANIFEST.MF");
-    }
-
-    // @VisibleForTesting
-    Pattern mainManifestPattern() {
-        return MAIN_MANIFEST;
+    private boolean isNested(String path) {
+        return path.contains(".war/") || path.contains(".ear/") || path.contains(".jar/");
     }
 
     private String readManifest(URL manifestUrl) throws IOException {

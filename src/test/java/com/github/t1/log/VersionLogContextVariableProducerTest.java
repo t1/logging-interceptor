@@ -1,31 +1,28 @@
 package com.github.t1.log;
 
+import static java.util.Arrays.*;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
+import java.io.IOException;
 import java.net.*;
-import java.util.Enumeration;
-import java.util.regex.Pattern;
+import java.util.regex.*;
 
-import org.junit.Test;
+import org.junit.*;
+import org.junit.runner.RunWith;
+import org.mockito.*;
 import org.mockito.internal.util.MockUtil;
-import org.mockito.invocation.Invocation;
+import org.mockito.invocation.*;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.slf4j.*;
 
+@RunWith(MockitoJUnitRunner.class)
 public class VersionLogContextVariableProducerTest {
     private final Logger log = LoggerFactory.getLogger(VersionLogContextVariableProducer.class);
 
-    // @After
-    public void printLogs() {
-        for (Invocation invocation : new MockUtil().getMockHandler(log).getInvocationContainer().getInvocations()) {
-            System.out.println(invocation);
-        }
-    }
-
-    private VersionLogContextVariableProducer createVersionProducer() {
-        return createVersionProducer(testFileManifestUrl("spec-version"));
-    }
-
-    private URL url(String string) {
+    private static URL url(String string) {
         try {
             return new URL(string);
         } catch (MalformedURLException e) {
@@ -33,18 +30,28 @@ public class VersionLogContextVariableProducerTest {
         }
     }
 
-    private VersionLogContextVariableProducer createVersionProducer(final URL url) {
-        return new VersionLogContextVariableProducer() {
-            @Override
-            Enumeration<URL> manifests(ClassLoader classLoader) {
-                return new ListEnumeration<>(url);
-            }
+    @After
+    public void printLogs() {
+        for (Invocation invocation : new MockUtil().getMockHandler(log).getInvocationContainer().getInvocations()) {
+            System.out.println(invocation);
+        }
+    }
 
+    @Mock
+    private ManifestFinder finder;
+
+    @InjectMocks
+    private VersionLogContextVariableProducer producer;
+
+    private void givenManifestsAt(URL... urls) throws IOException {
+        when(finder.matcher(anyString())).thenAnswer(new Answer<Matcher>() {
             @Override
-            Pattern mainManifestPattern() {
-                return Pattern.compile("file:(.*).(war|jar|ear)/META-INF/MANIFEST.MF");
+            public Matcher answer(InvocationOnMock invocation) {
+                String string = (String) invocation.getArguments()[0];
+                return Pattern.compile("file:.*/(?<path>.*).(?<type>war|jar|ear)/META-INF/MANIFEST.MF").matcher(string);
             }
-        };
+        });
+        when(finder.manifests()).thenReturn(asList(urls));
     }
 
     private URL testFileManifestUrl(String app) {
@@ -52,38 +59,59 @@ public class VersionLogContextVariableProducerTest {
     }
 
     @Test
-    public void shouldFindApplicationName() {
-        VersionLogContextVariableProducer producer = createVersionProducer();
+    public void shouldFindApplicationName() throws IOException {
+        givenManifestsAt(testFileManifestUrl("spec-version"));
 
-        assertEquals("src/test/resources/spec-version", producer.app().getValue());
+        producer.scan();
+
+        assertEquals("spec-version", producer.app().value());
     }
 
     @Test
-    public void shouldFindVersion() {
-        VersionLogContextVariableProducer producer = createVersionProducer();
+    public void shouldFindVersion() throws IOException {
+        givenManifestsAt(testFileManifestUrl("spec-version"));
 
-        assertEquals("1.2.3", producer.version().getValue());
+        producer.scan();
+
+        assertEquals("1.2.3", producer.version().value());
     }
 
     @Test
-    public void shouldIgnoreMissingManifest() {
-        createVersionProducer(url("file:does/not/exist.war/META-INF/MANIFEST.MF"));
+    public void shouldIgnoreMissingManifest() throws IOException {
+        givenManifestsAt(url("file:does/not/exist.war/META-INF/MANIFEST.MF"));
+
+        producer.scan();
+
+        assertEquals("exist", producer.app().value());
+        assertNull(producer.version());
     }
 
     @Test
-    public void shouldIgnoreNonMatchingManifest() {
-        createVersionProducer(url("mailto:no@where.com"));
+    public void shouldIgnoreNonMatchingManifest() throws IOException {
+        givenManifestsAt(url("mailto:no@where.com"));
+
+        producer.scan();
+
+        assertNull(producer.app());
+        assertNull(producer.version());
     }
 
     @Test
-    public void shouldIgnoreEmptyManifest() {
-        createVersionProducer(testFileManifestUrl("empty-manifest"));
+    public void shouldIgnoreEmptyManifest() throws IOException {
+        givenManifestsAt(testFileManifestUrl("empty-manifest"));
+
+        producer.scan();
+
+        assertEquals("empty-manifest", producer.app().value());
+        assertNull(producer.version());
     }
 
     @Test
-    public void shouldFindSpecVersionManifest() {
-        VersionLogContextVariableProducer producer = createVersionProducer(testFileManifestUrl("impl-version"));
+    public void shouldFindSpecVersionManifest() throws IOException {
+        givenManifestsAt(testFileManifestUrl("impl-version"));
 
-        assertEquals("1.2.4", producer.version().getValue());
+        producer.scan();
+
+        assertEquals("1.2.4", producer.version().value());
     }
 }

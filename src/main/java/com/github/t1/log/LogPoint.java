@@ -145,8 +145,8 @@ class LogPoint {
         for (LogContextVariable variable : variables) {
             if (variable == null) // producers are allowed to return null
                 continue;
-            String key = variable.getKey();
-            String value = variable.getValue();
+            String key = variable.key();
+            String value = variable.value();
             mdc.put(key, value);
         }
     }
