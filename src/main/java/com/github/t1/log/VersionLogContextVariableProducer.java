@@ -44,7 +44,7 @@ public class VersionLogContextVariableProducer {
                     log.trace("found non-nested manifest at {}", manifestUrl);
                     app = matcher.group("path");
                     version = readManifest(manifestUrl);
-                    log.debug("app={} version={}", app, version);
+                    log.debug("found app={} version={} in {}", app, version, manifestUrl);
                     return;
                 }
             }
