@@ -67,7 +67,7 @@ public class Converters {
         if (converter != null) {
             try {
                 return converter.convert(value);
-            } catch (RuntimeException e) {
+            } catch (RuntimeException | LinkageError | AssertionError e) {
                 log.debug("failed to convert " + value, e);
             }
         }

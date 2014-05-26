@@ -173,14 +173,54 @@ public class ConvertersTest {
     }
 
     @Test
-    public void shouldNotConvertIfTheConverterThrowsAnExeption() {
+    public void shouldNotConvertIfTheConverterThrowsRuntimeExeption() {
         class Pojo {}
 
         @ConverterType(Pojo.class)
         class FailingConverter implements Converter {
             @Override
             public String convert(Object object) {
-                throw new RuntimeException("bar");
+                throw new RuntimeException("dummy");
+            }
+        }
+
+        givenConverters(new FailingConverter());
+
+        Pojo pojo = new Pojo();
+        Object converted = converters.convert(pojo);
+
+        assertTrue(pojo == converted);
+    }
+
+    @Test
+    public void shouldNotConvertIfTheConverterThrowsLinkageError() {
+        class Pojo {}
+
+        @ConverterType(Pojo.class)
+        class FailingConverter implements Converter {
+            @Override
+            public String convert(Object object) {
+                throw new NoSuchMethodError("dummy");
+            }
+        }
+
+        givenConverters(new FailingConverter());
+
+        Pojo pojo = new Pojo();
+        Object converted = converters.convert(pojo);
+
+        assertTrue(pojo == converted);
+    }
+
+    @Test
+    public void shouldNotConvertIfTheConverterThrowsAssertionError() {
+        class Pojo {}
+
+        @ConverterType(Pojo.class)
+        class FailingConverter implements Converter {
+            @Override
+            public String convert(Object object) {
+                throw new AssertionError("dummy");
             }
         }
 
