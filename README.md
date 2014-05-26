@@ -11,6 +11,7 @@ There are two main use-cases for logging interceptors:
 
 Note that interceptors are not triggered when you do local calls.
 
+
 ## Features ##
 
 * Log to [slf4j](http://slf4j.org) (and you can go to any logging framework from there).
