@@ -135,40 +135,54 @@ The interceptor is annotated with a @Priority (see the last paragraph in [Java E
 
 Enabling interceptors from a library jar is a bit tricky in CDI 1.0. If you'd just add the logging-interceptor.jar to your war or ear, it was a separate CDI module, and the interceptor was not useable in your application. So you'll have to overlay the jar contents into your application by adding this to your pom.xml:
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-war-plugin</artifactId>
-				<version>2.4</version>
-				<configuration>
-					<overlays>
-						<overlay>
-							<groupId>com.github.t1</groupId>
-							<artifactId>logging-interceptor</artifactId>
-							<type>jar</type>
-							<targetPath>WEB-INF/classes</targetPath>
-						</overlay>
-					</overlays>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+```xml
+<build>
+	<plugins>
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-war-plugin</artifactId>
+			<version>2.4</version>
+			<configuration>
+				<overlays>
+					<overlay>
+						<groupId>com.github.t1</groupId>
+						<artifactId>logging-interceptor</artifactId>
+						<type>jar</type>
+						<targetPath>WEB-INF/classes</targetPath>
+					</overlay>
+					<overlay>
+						<groupId>com.github.t1</groupId>
+						<artifactId>stereotype-helper</artifactId>
+						<type>jar</type>
+						<targetPath>WEB-INF/classes</targetPath>
+					</overlay>
+				</overlays>
+			</configuration>
+		</plugin>
+	</plugins>
+</build>
 
-	<dependencies>
-		<dependency>
-			<groupId>com.github.t1</groupId>
-			<artifactId>logging-interceptor</artifactId>
-			<version>1.1</version>
-			<optional>true</optional>
-		</dependency>
-	</dependencies>
+<dependencies>
+	<dependency>
+		<groupId>com.github.t1</groupId>
+		<artifactId>logging-interceptor</artifactId>
+		<optional>true</optional>
+	</dependency>
+	<dependency>
+		<groupId>com.github.t1</groupId>
+		<artifactId>stereotype-helper</artifactId>
+		<optional>true</optional>
+	</dependency>
+</dependencies>
+```
 
 Then you can activate the interceptor in the application's `breans.xml`:
 
-	<beans xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/beans_1_0.xsd">
-		<interceptors>
-			<class>com.github.t1.log.LoggingInterceptor</class>
-		</interceptors>
-	</beans>
+```xml
+<beans xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/beans_1_0.xsd">
+	<interceptors>
+		<class>com.github.t1.log.LoggingInterceptor</class>
+	</interceptors>
+</beans>
+```
