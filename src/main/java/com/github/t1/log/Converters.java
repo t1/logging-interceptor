@@ -64,8 +64,13 @@ public class Converters {
             return null;
         Class<?> type = value.getClass();
         Converter converter = findConverter(type);
-        if (converter != null)
-            return converter.convert(value);
+        if (converter != null) {
+            try {
+                return converter.convert(value);
+            } catch (RuntimeException e) {
+                log.debug("failed to convert " + value, e);
+            }
+        }
         return value;
     }
 

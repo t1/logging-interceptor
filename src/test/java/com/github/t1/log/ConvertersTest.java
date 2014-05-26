@@ -171,4 +171,24 @@ public class ConvertersTest {
 
         assertEquals("#", converted);
     }
+
+    @Test
+    public void shouldNotConvertIfTheConverterThrowsAnExeption() {
+        class Pojo {}
+
+        @ConverterType(Pojo.class)
+        class FailingConverter implements Converter {
+            @Override
+            public String convert(Object object) {
+                throw new RuntimeException("bar");
+            }
+        }
+
+        givenConverters(new FailingConverter());
+
+        Pojo pojo = new Pojo();
+        Object converted = converters.convert(pojo);
+
+        assertTrue(pojo == converted);
+    }
 }
