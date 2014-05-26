@@ -59,7 +59,9 @@ public class LogParameter {
     public void set(RestorableMdc mdc, InvocationContext context) {
         if (logContextVariableName != null) {
             Object value = value(context);
-            mdc.put(logContextVariableName, (value == null) ? null : value.toString());
+            if (value != null) {
+                mdc.put(logContextVariableName, value.toString());
+            }
         }
     }
 
