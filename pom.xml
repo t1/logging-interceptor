@@ -3,7 +3,7 @@
 
     <groupId>com.github.t1</groupId>
     <artifactId>logging-interceptor</artifactId>
-    <version>1.5.2-SNAPSHOT</version>
+    <version>1.5.1-SNAPSHOT</version>
 
     <name>Logging-Interceptor</name>
     <description>CDI interceptor for logging to slf4j</description>
