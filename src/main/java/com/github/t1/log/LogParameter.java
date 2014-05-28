@@ -2,33 +2,16 @@ package com.github.t1.log;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.*;
 
 import javax.interceptor.InvocationContext;
 
-/**
- * The Java reflection api (before Java 8) regards method arguments as second class citizens: They are not represented
- * as objects like Class, Method, Package, etc. are; they are only accessible through helper methods.<br/>
- * This class tries to fill that gap as good as it goes.
- */
-public class LogParameter {
-    public static List<LogParameter> allOf(Method method, Converters converters) {
-        final List<LogParameter> list = new ArrayList<>();
-        for (int i = 0; i < method.getParameterTypes().length; i++) {
-            LogParameter parameter = new LogParameter(method, i, converters);
-            if (!parameter.isAnnotationPresent(DontLog.class)) {
-                list.add(parameter);
-            }
-        }
-        return Collections.unmodifiableList(list);
-    }
-
+class LogParameter {
     private final Method method;
     private final int index;
     private final String logContextVariableName;
     private final Converters converters;
 
-    private LogParameter(Method method, int index, Converters converters) {
+    LogParameter(Method method, int index, Converters converters) {
         this.method = method;
         this.index = index;
         this.converters = converters;
@@ -43,7 +26,7 @@ public class LogParameter {
         return logContext.value();
     }
 
-    private <T extends Annotation> boolean isAnnotationPresent(Class<T> annotationType) {
+    public <T extends Annotation> boolean isAnnotationPresent(Class<T> annotationType) {
         return getAnnotation(annotationType) != null;
     }
 
@@ -70,19 +53,15 @@ public class LogParameter {
         return converters.convert(object);
     }
 
-    public boolean isLastThrowable() {
-        return isLast() && isThrowable();
-    }
-
-    private boolean isLast() {
-        return index == method.getParameterTypes().length - 1;
-    }
-
     public boolean isThrowable() {
         return Throwable.class.isAssignableFrom(type());
     }
 
     private Class<?> type() {
         return method.getParameterTypes()[index];
+    }
+
+    public int index() {
+        return index;
     }
 }

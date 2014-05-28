@@ -117,4 +117,22 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
 
         verify(log).debug("foo {} {}", new Object[] { "foo", "bar" });
     }
+
+    // ----------------------------------------------------------------------------------
+
+    public static class TwoParamsByIndexClass {
+        @Logged("two={1}, one={0}")
+        @SuppressWarnings("unused")
+        public void foo(String one, String two) {}
+    }
+
+    @Inject
+    TwoParamsByIndexClass twoParamsByIndexClass;
+
+    @Test
+    public void shouldLogTwoParametersByIndex() {
+        twoParamsByIndexClass.foo("foo", "bar");
+
+        verify(log).debug("two={}, one={}", new Object[] { "bar", "foo" });
+    }
 }

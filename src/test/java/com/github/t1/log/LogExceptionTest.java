@@ -122,9 +122,9 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
     public void shouldLogRuntimeExceptionParamNormallyWhenNotLast() {
         IllegalArgumentException exception = new IllegalArgumentException("foo");
 
-        throwableLogger.notThrowing(exception, "foo");
+        throwableLogger.notThrowing(exception, "bar");
 
-        verify(log).debug("not throwing {} {}", new Object[] { exception, "foo" });
+        verify(log).debug("not throwing {} {}", new Object[] { exception, "bar" });
     }
 
     // ----------------------------------------------------------------------------------

@@ -45,7 +45,7 @@ public class LoggingInterceptor {
     private LogPoint logPoint(Method method) {
         LogPoint logPoint = cache.get(method);
         if (logPoint == null) {
-            logPoint = new LogPoint(method, variables, converters);
+            logPoint = new LogPointBuilder(method, variables, converters).build();
             cache.put(method, logPoint);
         }
         return logPoint;

@@ -43,7 +43,7 @@ public @interface Logged {
     /**
      * The format of the message to log. Defaults to a camel-case-to-space-separated string of the method name with the
      * space separated arguments appended. If you do provide a format, make sure to include enough placeholders ("{}")
-     * for the arguments.
+     * for the arguments. TODO add documentation for positional and named parameters
      */
     @Nonbinding
     public String value() default "";
