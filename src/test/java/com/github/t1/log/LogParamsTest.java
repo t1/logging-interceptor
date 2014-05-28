@@ -120,19 +120,59 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
-    public static class TwoParamsByIndexClass {
+    public static class ParamsWithIndexClass {
+        @Logged("one={0}, two={1}")
+        @SuppressWarnings("unused")
+        public void withIndex(String one, String two) {}
+
         @Logged("two={1}, one={0}")
         @SuppressWarnings("unused")
-        public void foo(String one, String two) {}
+        public void withInvertedIndex(String one, String two) {}
+
+        @Logged("one={0}, again={0}")
+        @SuppressWarnings("unused")
+        public void withRepeatedIndex(String one, String two) {}
+
+        @Logged("one={2}")
+        @SuppressWarnings("unused")
+        public void withInvalidIndex(String one, String two) {}
+
+        @Logged("one={-1}")
+        @SuppressWarnings("unused")
+        public void withNegativeIndex(String one, String two) {}
     }
 
     @Inject
-    TwoParamsByIndexClass twoParamsByIndexClass;
+    ParamsWithIndexClass paramsWithIndex;
 
     @Test
-    public void shouldLogTwoParametersByIndex() {
-        twoParamsByIndexClass.foo("foo", "bar");
+    public void shouldLogParametersWithIndex() {
+        paramsWithIndex.withIndex("foo", "bar");
+
+        verify(log).debug("one={}, two={}", new Object[] { "foo", "bar" });
+    }
+
+    @Test
+    public void shouldLogParametersWithInvertedIndex() {
+        paramsWithIndex.withInvertedIndex("foo", "bar");
 
         verify(log).debug("two={}, one={}", new Object[] { "bar", "foo" });
+    }
+
+    @Test
+    public void shouldLogParametersWithRepeatedIndex() {
+        paramsWithIndex.withRepeatedIndex("foo", "bar");
+
+        verify(log).debug("one={}, again={}", new Object[] { "foo", "foo" });
+    }
+
+    @Test(expected = ArrayIndexOutOfBoundsException.class)
+    public void shouldLogParametersWithInvalidIndex() {
+        paramsWithIndex.withInvalidIndex("foo", "bar");
+    }
+
+    @Test(expected = ArrayIndexOutOfBoundsException.class)
+    public void shouldLogParametersWithNegativeIndex() {
+        paramsWithIndex.withNegativeIndex("foo", "bar");
     }
 }

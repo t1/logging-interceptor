@@ -15,7 +15,7 @@ import com.github.t1.stereotypes.Annotations;
 
 class LogPointBuilder {
     private static final Pattern VAR = Pattern.compile("\\{(?<var>[^}]*)\\}");
-    private static final Pattern NUMERIC = Pattern.compile("\\d+");
+    private static final Pattern NUMERIC = Pattern.compile("(\\+|-|)\\d+");
 
     private final Method method;
     private final Instance<LogContextVariable> variables;
