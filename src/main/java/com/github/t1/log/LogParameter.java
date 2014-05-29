@@ -1,42 +1,25 @@
 package com.github.t1.log;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-
 import javax.interceptor.InvocationContext;
 
+/** a precursor to JDK 1.8 java.lang.Parameter */
 class LogParameter {
-    private final Method method;
-    private final int index;
     private final String logContextVariableName;
     private final Converters converters;
+    private final Parameter parameter;
 
-    LogParameter(Method method, int index, Converters converters) {
-        this.method = method;
-        this.index = index;
+    LogParameter(Parameter parameter, Converters converters) {
+        this.parameter = parameter;
         this.converters = converters;
 
         this.logContextVariableName = logContextVariableName();
     }
 
     private String logContextVariableName() {
-        if (!isAnnotationPresent(LogContext.class))
+        if (!parameter.isAnnotationPresent(LogContext.class))
             return null;
-        LogContext logContext = getAnnotation(LogContext.class);
+        LogContext logContext = parameter.getAnnotation(LogContext.class);
         return logContext.value();
-    }
-
-    public <T extends Annotation> boolean isAnnotationPresent(Class<T> annotationType) {
-        return getAnnotation(annotationType) != null;
-    }
-
-    private <T extends Annotation> T getAnnotation(Class<T> annotationType) {
-        for (final Annotation annotation : method.getParameterAnnotations()[index]) {
-            if (annotationType.isInstance(annotation)) {
-                return annotationType.cast(annotation);
-            }
-        }
-        return null;
     }
 
     public void set(RestorableMdc mdc, InvocationContext context) {
@@ -49,19 +32,19 @@ class LogParameter {
     }
 
     public Object value(InvocationContext context) {
-        Object object = context.getParameters()[index];
+        Object object = context.getParameters()[parameter.index()];
         return converters.convert(object);
     }
 
+    public String defaultParamPlaceholder() {
+        return (parameter.isAnnotationPresent(DontLog.class) || isLastThrowable()) ? "" : " {}";
+    }
+
+    public boolean isLastThrowable() {
+        return parameter.isLast() && isThrowable();
+    }
+
     public boolean isThrowable() {
-        return Throwable.class.isAssignableFrom(type());
-    }
-
-    private Class<?> type() {
-        return method.getParameterTypes()[index];
-    }
-
-    public int index() {
-        return index;
+        return Throwable.class.isAssignableFrom(parameter.type());
     }
 }

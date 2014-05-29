@@ -23,7 +23,7 @@ class LogPointBuilder {
     private final Converters converters;
 
     private final Logged logged;
-    private final List<LogParameter> rawParams;
+    private final List<LogParameter> logParameters;
 
     public LogPointBuilder(Method method, Instance<LogContextVariable> variables, Converters converters) {
         this.method = method;
@@ -31,15 +31,39 @@ class LogPointBuilder {
         this.converters = converters;
 
         this.logged = Annotations.on(method).getAnnotation(Logged.class);
-        this.rawParams = rawParams();
+        this.logParameters = buildParams();
     }
 
-    private List<LogParameter> rawParams() {
-        List<LogParameter> list = new ArrayList<>();
+    private List<LogParameter> buildParams() {
+        List<Parameter> rawParams = rawParams();
+        final List<LogParameter> result = new ArrayList<>();
+        int defaultIndex = 0;
+        if (defaultLogMessage()) {
+            for (Parameter parameter : rawParams) {
+                if (!parameter.isAnnotationPresent(DontLog.class)) {
+                    result.add(logParam(parameter));
+                }
+            }
+        } else {
+            Matcher matcher = VAR.matcher(logged.value());
+            while (matcher.find()) {
+                int index = index(matcher, defaultIndex++);
+                result.add(logParam(rawParams.get(index)));
+            }
+        }
+        return Collections.unmodifiableList(result);
+    }
+
+    private List<Parameter> rawParams() {
+        List<Parameter> list = new ArrayList<>();
         for (int index = 0; index < method.getParameterTypes().length; index++) {
-            list.add(new LogParameter(method, index, converters));
+            list.add(new Parameter(method, index));
         }
         return unmodifiableList(list);
+    }
+
+    private LogParameter logParam(Parameter parameter) {
+        return new LogParameter(parameter, converters);
     }
 
     private LogLevel resolveLevel() {
@@ -110,16 +134,10 @@ class LogPointBuilder {
 
     private String messageParamPlaceholders() {
         StringBuilder out = new StringBuilder();
-        for (LogParameter parameter : rawParams) {
-            if (!parameter.isAnnotationPresent(DontLog.class) && !isLastThrowable(parameter)) {
-                out.append(" {}");
-            }
+        for (LogParameter parameter : logParameters) {
+            out.append(parameter.defaultParamPlaceholder());
         }
         return out.toString();
-    }
-
-    private boolean isLastThrowable(LogParameter parameter) {
-        return method.getParameterTypes().length - 1 == parameter.index() && parameter.isThrowable();
     }
 
     private String stripPlaceholderBodies(String message) {
@@ -130,25 +148,6 @@ class LogPointBuilder {
         }
         matcher.appendTail(out);
         return out.toString();
-    }
-
-    private List<LogParameter> buildParameters() {
-        final List<LogParameter> list = new ArrayList<>();
-        int defaultIndex = 0;
-        if (defaultLogMessage()) {
-            for (LogParameter parameter : rawParams) {
-                if (!parameter.isAnnotationPresent(DontLog.class)) {
-                    list.add(parameter);
-                }
-            }
-        } else {
-            Matcher matcher = VAR.matcher(logged.value());
-            while (matcher.find()) {
-                int index = index(matcher, defaultIndex++);
-                list.add(rawParams.get(index));
-            }
-        }
-        return Collections.unmodifiableList(list);
     }
 
     private boolean defaultLogMessage() {
@@ -172,9 +171,8 @@ class LogPointBuilder {
         Logger logger = LoggerFactory.getLogger(loggerType());
         LogLevel level = resolveLevel();
         String message = parseMessage();
-        List<LogParameter> parameters = buildParameters();
         boolean logResult = method.getReturnType() != void.class;
 
-        return new LogPoint(logger, level, message, parameters, variables, logResult, converters);
+        return new LogPoint(logger, level, message, logParameters, variables, logResult, converters);
     }
 }

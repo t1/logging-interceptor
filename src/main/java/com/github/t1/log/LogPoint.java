@@ -84,15 +84,9 @@ class LogPoint {
     private Object[] parameterValues(InvocationContext context) {
         List<Object> result = new ArrayList<>();
         for (LogParameter parameter : parameters) {
-            if (isLast(parameter) && parameter.isThrowable())
-                continue;
             result.add(parameter.value(context));
         }
         return result.toArray();
-    }
-
-    private boolean isLast(LogParameter parameter) {
-        return parameter == lastParameter();
     }
 
     public void logResult(Object result) {
