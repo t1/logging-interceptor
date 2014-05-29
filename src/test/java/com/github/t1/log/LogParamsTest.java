@@ -5,7 +5,7 @@ import static org.mockito.Mockito.*;
 import javax.inject.Inject;
 
 import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 
 @RunWith(Arquillian.class)
@@ -166,13 +166,32 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
         verify(log).debug("one={}, again={}", new Object[] { "foo", "foo" });
     }
 
-    @Test(expected = ArrayIndexOutOfBoundsException.class)
-    public void shouldLogParametersWithInvalidIndex() {
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void shouldFailToLogParametersWithInvalidIndex() {
         paramsWithIndex.withInvalidIndex("foo", "bar");
     }
 
     @Test(expected = ArrayIndexOutOfBoundsException.class)
-    public void shouldLogParametersWithNegativeIndex() {
+    public void shouldFailToLogParametersWithNegativeIndex() {
         paramsWithIndex.withNegativeIndex("foo", "bar");
+    }
+
+    // ----------------------------------------------------------------------------------
+
+    public static class ParamsWithNameClass {
+        @Logged("one={invalid}")
+        @SuppressWarnings("unused")
+        public void withInvalidName(String one) {}
+    }
+
+    @Inject
+    ParamsWithNameClass paramsWithName;
+
+    @Test
+    @Ignore
+    public void shouldNotLogParametersWithInvalidName() {
+        paramsWithName.withInvalidName("foo");
+
+        verify(log).debug("one={}", new Object[] { "invalid log parameter name: {invalid}" });
     }
 }

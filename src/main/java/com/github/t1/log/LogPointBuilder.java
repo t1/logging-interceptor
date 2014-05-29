@@ -2,6 +2,7 @@ package com.github.t1.log;
 
 import static com.github.t1.log.LogLevel.*;
 import static java.lang.Character.*;
+import static java.util.Collections.*;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -22,6 +23,7 @@ class LogPointBuilder {
     private final Converters converters;
 
     private final Logged logged;
+    private final List<LogParameter> rawParams;
 
     public LogPointBuilder(Method method, Instance<LogContextVariable> variables, Converters converters) {
         this.method = method;
@@ -29,6 +31,15 @@ class LogPointBuilder {
         this.converters = converters;
 
         this.logged = Annotations.on(method).getAnnotation(Logged.class);
+        this.rawParams = rawParams();
+    }
+
+    private List<LogParameter> rawParams() {
+        List<LogParameter> list = new ArrayList<>();
+        for (int index = 0; index < method.getParameterTypes().length; index++) {
+            list.add(new LogParameter(method, index, converters));
+        }
+        return unmodifiableList(list);
     }
 
     private LogLevel resolveLevel() {
@@ -99,11 +110,10 @@ class LogPointBuilder {
 
     private String messageParamPlaceholders() {
         StringBuilder out = new StringBuilder();
-        for (int index = 0; index < method.getParameterTypes().length; index++) {
-            LogParameter parameter = new LogParameter(method, index, converters);
-            if (parameter.isAnnotationPresent(DontLog.class) || isLastThrowable(parameter))
-                continue;
-            out.append(" {}");
+        for (LogParameter parameter : rawParams) {
+            if (!parameter.isAnnotationPresent(DontLog.class) && !isLastThrowable(parameter)) {
+                out.append(" {}");
+            }
         }
         return out.toString();
     }
@@ -122,28 +132,23 @@ class LogPointBuilder {
         return out.toString();
     }
 
-    private List<LogParameter> buildParameters(Converters converters) {
+    private List<LogParameter> buildParameters() {
         final List<LogParameter> list = new ArrayList<>();
         int defaultIndex = 0;
         if (defaultLogMessage()) {
-            for (int index = 0; index < method.getParameterTypes().length; index++) {
-                buildParameter(index, list, converters);
+            for (LogParameter parameter : rawParams) {
+                if (!parameter.isAnnotationPresent(DontLog.class)) {
+                    list.add(parameter);
+                }
             }
         } else {
             Matcher matcher = VAR.matcher(logged.value());
             while (matcher.find()) {
                 int index = index(matcher, defaultIndex++);
-                buildParameter(index, list, converters);
+                list.add(rawParams.get(index));
             }
         }
         return Collections.unmodifiableList(list);
-    }
-
-    private void buildParameter(int index, final List<LogParameter> list, Converters converters) {
-        LogParameter parameter = new LogParameter(method, index, converters);
-        if (!parameter.isAnnotationPresent(DontLog.class)) {
-            list.add(parameter);
-        }
     }
 
     private boolean defaultLogMessage() {
@@ -152,9 +157,11 @@ class LogPointBuilder {
 
     private int index(Matcher matcher, int defaultIndex) {
         String expression = matcher.group("var");
+        if (expression.isEmpty())
+            return defaultIndex;
         if (isNumeric(expression))
             return Integer.parseInt(expression);
-        return defaultIndex;
+        return -1;
     }
 
     private boolean isNumeric(String expression) {
@@ -165,7 +172,7 @@ class LogPointBuilder {
         Logger logger = LoggerFactory.getLogger(loggerType());
         LogLevel level = resolveLevel();
         String message = parseMessage();
-        List<LogParameter> parameters = buildParameters(converters);
+        List<LogParameter> parameters = buildParameters();
         boolean logResult = method.getReturnType() != void.class;
 
         return new LogPoint(logger, level, message, parameters, variables, logResult, converters);
