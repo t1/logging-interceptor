@@ -11,13 +11,64 @@ import org.slf4j.Logger;
 import org.slf4j.helpers.MessageFormatter;
 
 @AllArgsConstructor
-class LogPoint {
+abstract class LogPoint {
     private static final String INDENT = "indent";
 
-    private final Logger logger;
-    private final LogLevel level;
-    private final String message;
-    private final List<LogParameter> parameters;
+    static class StandardLogPoint extends LogPoint {
+        private final String message;
+
+        public StandardLogPoint(Logger logger, LogLevel level, String message, List<LogParameter> parameters,
+                Instance<LogContextVariable> variables, boolean logResult, Converters converters) {
+            super(logger, level, parameters, variables, logResult, converters);
+            this.message = message;
+        }
+
+        @Override
+        protected void logCallDo(InvocationContext context) {
+            level.log(logger, message, parameterValues(context));
+        }
+
+        private Object[] parameterValues(InvocationContext context) {
+            List<Object> result = new ArrayList<>();
+            for (LogParameter parameter : parameters) {
+                result.add(parameter.value(context));
+            }
+            return result.toArray();
+        }
+    }
+
+    static class ThrowableLogPoint extends LogPoint {
+        private final String message;
+        private final List<LogParameter> parameters;
+        private final LogParameter throwableParameter;
+
+        public ThrowableLogPoint(Logger logger, LogLevel level, String message, List<LogParameter> parameters,
+                LogParameter throwableParameter, Instance<LogContextVariable> variables, boolean logResult,
+                Converters converters) {
+            super(logger, level, parameters, variables, logResult, converters);
+            this.message = message;
+            this.parameters = parameters;
+            this.throwableParameter = throwableParameter;
+        }
+
+        @Override
+        protected void logCallDo(InvocationContext context) {
+            level.log(logger, message(context), (Throwable) throwableParameter.value(context));
+        }
+
+        private String message(InvocationContext context) {
+            List<Object> result = new ArrayList<>();
+            for (LogParameter parameter : parameters) {
+                result.add(parameter.value(context));
+            }
+            return MessageFormatter.arrayFormat(message, result.toArray()).getMessage();
+        }
+    }
+
+    protected final Logger logger;
+    protected final LogLevel level;
+    protected final List<LogParameter> parameters;
+
     private final Instance<LogContextVariable> variables;
     private final boolean logResult;
     private final Converters converters;
@@ -25,21 +76,16 @@ class LogPoint {
     private final RestorableMdc mdc = new RestorableMdc();
 
     public void logCall(InvocationContext context) {
-        addParamaterLogContexts(context);
+        addParameterLogContexts(context);
         addLogContextVariables();
 
         if (level.isEnabled(logger)) {
             incrementIndentLogContext();
-            if (isLogThrowable()) {
-                String message = throwableMessage(context);
-                level.log(logger, message, (Throwable) lastParameter().value(context));
-            } else {
-                level.log(logger, message, parameterValues(context));
-            }
+            logCallDo(context);
         }
     }
 
-    private void addParamaterLogContexts(InvocationContext context) {
+    private void addParameterLogContexts(InvocationContext context) {
         for (LogParameter parameter : parameters) {
             parameter.set(mdc, context);
         }
@@ -69,25 +115,7 @@ class LogPoint {
         mdc.put(INDENT, Indent.of(indent));
     }
 
-    private boolean isLogThrowable() {
-        return !parameters.isEmpty() && lastParameter().isThrowable();
-    }
-
-    private LogParameter lastParameter() {
-        return parameters.get(parameters.size() - 1);
-    }
-
-    private String throwableMessage(InvocationContext context) {
-        return MessageFormatter.arrayFormat(message, parameterValues(context)).getMessage();
-    }
-
-    private Object[] parameterValues(InvocationContext context) {
-        List<Object> result = new ArrayList<>();
-        for (LogParameter parameter : parameters) {
-            result.add(parameter.value(context));
-        }
-        return result.toArray();
-    }
+    protected abstract void logCallDo(InvocationContext context);
 
     public void logResult(Object result) {
         if (logResult) {

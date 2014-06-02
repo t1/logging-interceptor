@@ -36,19 +36,4 @@ class RealLogParameter implements LogParameter {
         Object object = context.getParameters()[parameter.index()];
         return converters.convert(object);
     }
-
-    @Override
-    public String defaultParamPlaceholder() {
-        return (parameter.isAnnotationPresent(DontLog.class) || isLastThrowable()) ? "" : " {}";
-    }
-
-    @Override
-    public boolean isLastThrowable() {
-        return parameter.isLast() && isThrowable();
-    }
-
-    @Override
-    public boolean isThrowable() {
-        return Throwable.class.isAssignableFrom(parameter.type());
-    }
 }

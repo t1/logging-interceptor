@@ -16,19 +16,4 @@ public class StaticLogParameter implements LogParameter {
     public Object value(InvocationContext context) {
         return value;
     }
-
-    @Override
-    public String defaultParamPlaceholder() {
-        return null;
-    }
-
-    @Override
-    public boolean isLastThrowable() {
-        return false;
-    }
-
-    @Override
-    public boolean isThrowable() {
-        return false;
-    }
 }
