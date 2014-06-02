@@ -5,7 +5,7 @@ import static org.mockito.Mockito.*;
 import javax.inject.Inject;
 
 import org.jboss.arquillian.junit.Arquillian;
-import org.junit.*;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(Arquillian.class)
@@ -139,7 +139,15 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
 
         @Logged("one={-1}")
         @SuppressWarnings("unused")
-        public void withNegativeIndex(String one, String two) {}
+        public void withNegativeIndex(String one) {}
+
+        @Logged("one={}, two={1}")
+        @SuppressWarnings("unused")
+        public void withMixedIndex(String one, String two) {}
+
+        @Logged("one={0}, again={}, two={}")
+        @SuppressWarnings("unused")
+        public void withMixedIndex2(String one, String two) {}
     }
 
     @Inject
@@ -166,14 +174,32 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
         verify(log).debug("one={}, again={}", new Object[] { "foo", "foo" });
     }
 
-    @Test(expected = IndexOutOfBoundsException.class)
+    @Test
     public void shouldFailToLogParametersWithInvalidIndex() {
         paramsWithIndex.withInvalidIndex("foo", "bar");
+
+        verify(log).debug("one={}", new Object[] { "invalid log parameter index: 2" });
     }
 
-    @Test(expected = ArrayIndexOutOfBoundsException.class)
+    @Test
     public void shouldFailToLogParametersWithNegativeIndex() {
-        paramsWithIndex.withNegativeIndex("foo", "bar");
+        paramsWithIndex.withNegativeIndex("foo");
+
+        verify(log).debug("one={}", new Object[] { "invalid log parameter index: -1" });
+    }
+
+    @Test
+    public void shouldLogMixedParameters() {
+        paramsWithIndex.withMixedIndex("foo", "bar");
+
+        verify(log).debug("one={}, two={}", new Object[] { "foo", "bar" });
+    }
+
+    @Test
+    public void shouldLogMixedParameters2() {
+        paramsWithIndex.withMixedIndex2("foo", "bar");
+
+        verify(log).debug("one={}, again={}, two={}", new Object[] { "foo", "foo", "bar" });
     }
 
     // ----------------------------------------------------------------------------------
@@ -188,10 +214,9 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     ParamsWithNameClass paramsWithName;
 
     @Test
-    @Ignore
     public void shouldNotLogParametersWithInvalidName() {
         paramsWithName.withInvalidName("foo");
 
-        verify(log).debug("one={}", new Object[] { "invalid log parameter name: {invalid}" });
+        verify(log).debug("one={}", new Object[] { "invalid log parameter expression: invalid" });
     }
 }

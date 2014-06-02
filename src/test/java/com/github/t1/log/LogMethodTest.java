@@ -54,7 +54,7 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
         long d1 = t2 - t1;
 
         verify(log, times(2)).info("foo", NO_ARGS); // actually did log twice
-        assertTrue("second call must be faster, but " + d0 + " <= " + d1, d0 > d1);
+        assertTrue("expected second (cached) call must be faster, but actually " + d0 + " <= " + d1, d0 > d1);
     }
 
     // ----------------------------------------------------------------------------------

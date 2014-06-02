@@ -15,12 +15,15 @@ import org.slf4j.*;
 import com.github.t1.stereotypes.Annotations;
 
 class LogPointBuilder {
-    private static final Pattern VAR = Pattern.compile("\\{(?<var>[^}]*)\\}");
+    private static final int INVALID_PARAMETER_EXPRESSION = Integer.MIN_VALUE;
+    private static final Pattern VAR = Pattern.compile("\\{(?<expression>[^}]*)\\}");
     private static final Pattern NUMERIC = Pattern.compile("(\\+|-|)\\d+");
 
     private final Method method;
     private final Instance<LogContextVariable> variables;
     private final Converters converters;
+
+    private int defaultIndex = 0;
 
     private final Logged logged;
     private final List<LogParameter> logParameters;
@@ -37,7 +40,6 @@ class LogPointBuilder {
     private List<LogParameter> buildParams() {
         List<Parameter> rawParams = rawParams();
         final List<LogParameter> result = new ArrayList<>();
-        int defaultIndex = 0;
         if (defaultLogMessage()) {
             for (Parameter parameter : rawParams) {
                 if (!parameter.isAnnotationPresent(DontLog.class)) {
@@ -47,8 +49,14 @@ class LogPointBuilder {
         } else {
             Matcher matcher = VAR.matcher(logged.value());
             while (matcher.find()) {
-                int index = index(matcher, defaultIndex++);
-                result.add(logParam(rawParams.get(index)));
+                String expression = matcher.group("expression");
+                int index = index(expression);
+                if (index == INVALID_PARAMETER_EXPRESSION)
+                    result.add(new StaticLogParameter("invalid log parameter expression: " + expression));
+                else if (index < 0 || index >= rawParams.size())
+                    result.add(new StaticLogParameter("invalid log parameter index: " + index));
+                else
+                    result.add(logParam(rawParams.get(index)));
             }
         }
         return Collections.unmodifiableList(result);
@@ -63,7 +71,7 @@ class LogPointBuilder {
     }
 
     private LogParameter logParam(Parameter parameter) {
-        return new LogParameter(parameter, converters);
+        return new RealLogParameter(parameter, converters);
     }
 
     private LogLevel resolveLevel() {
@@ -154,13 +162,12 @@ class LogPointBuilder {
         return "".equals(logged.value());
     }
 
-    private int index(Matcher matcher, int defaultIndex) {
-        String expression = matcher.group("var");
+    private int index(String expression) {
         if (expression.isEmpty())
-            return defaultIndex;
+            return defaultIndex++;
         if (isNumeric(expression))
             return Integer.parseInt(expression);
-        return -1;
+        return INVALID_PARAMETER_EXPRESSION;
     }
 
     private boolean isNumeric(String expression) {
