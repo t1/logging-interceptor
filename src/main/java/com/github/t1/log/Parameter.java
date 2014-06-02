@@ -37,4 +37,9 @@ class Parameter {
     public boolean isLast() {
         return method.getParameterTypes().length - 1 == index;
     }
+
+    @Override
+    public String toString() {
+        return method + "#" + index;
+    }
 }

@@ -27,7 +27,7 @@ class LogPointBuilder {
 
     private final Logged logged;
     private final List<LogParameter> logParameters;
-    private final boolean logThrowable;
+    private final LogParameter throwableParameter;
 
     private int defaultIndex = 0;
 
@@ -40,7 +40,7 @@ class LogPointBuilder {
 
         List<Parameter> rawParams = rawParams();
         this.logParameters = buildParams(rawParams);
-        this.logThrowable = lastParamIsThrowable(rawParams);
+        this.throwableParameter = throwableParam(rawParams);
     }
 
     private List<LogParameter> buildParams(List<Parameter> rawParams) {
@@ -79,11 +79,13 @@ class LogPointBuilder {
         return new RealLogParameter(parameter, converters);
     }
 
-    private boolean lastParamIsThrowable(List<Parameter> params) {
+    private LogParameter throwableParam(List<Parameter> params) {
         if (params.isEmpty())
-            return false;
+            return null;
         Parameter lastParam = params.get(params.size() - 1);
-        return Throwable.class.isAssignableFrom(lastParam.type());
+        if (!Throwable.class.isAssignableFrom(lastParam.type()))
+            return null;
+        return logParam(lastParam);
     }
 
     public LogPoint build() {
@@ -92,12 +94,9 @@ class LogPointBuilder {
         String message = parseMessage();
         boolean logResult = method.getReturnType() != void.class;
 
-        if (logThrowable) {
-            int last = logParameters.size() - 1;
-            List<LogParameter> parameters = logParameters.subList(0, last);
-            LogParameter throwableParameter = logParameters.get(last);
-            return new ThrowableLogPoint(logger, level, message, parameters, throwableParameter, variables, logResult,
-                    converters);
+        if (throwableParameter != null) {
+            return new ThrowableLogPoint(logger, level, message, logParameters, throwableParameter, variables,
+                    logResult, converters);
         }
         return new StandardLogPoint(logger, level, message, logParameters, variables, logResult, converters);
     }
@@ -171,7 +170,7 @@ class LogPointBuilder {
     private String messageParamPlaceholders() {
         StringBuilder out = new StringBuilder();
         int n = logParameters.size();
-        if (logThrowable)
+        if (throwableParameter != null)
             --n;
         for (int i = 0; i < n; i++) {
             out.append(" {}");

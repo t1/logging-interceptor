@@ -128,6 +128,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
     }
 
     // ----------------------------------------------------------------------------------
+
     @SuppressWarnings("unused")
     static class ExceptionLevelLogger {
         @Logged(level = ERROR)
@@ -196,21 +197,58 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
     }
 
     // ----------------------------------------------------------------------------------
+
     @SuppressWarnings("unused")
     static class ExceptionLogger {
         @Logged(level = ERROR)
         void failed(String operation, RuntimeException e) {}
+
+        @Logged("message with {}")
+        void foo(RuntimeException foo) {}
+
+        @Logged("message with {}")
+        void foo(String message, RuntimeException foo) {}
+
+        @Logged("message with {} and {}")
+        void fooWithTwo(String message, RuntimeException foo) {}
     }
 
     @Inject
     ExceptionLogger exceptionLogger;
 
     @Test
-    public void example() {
-        try {
-            throw new RuntimeException();
-        } catch (RuntimeException e) {
-            exceptionLogger.failed("my operation", e);
-        }
+    public void shouldFormatDefaultMessageBeforeException() {
+        RuntimeException runtimeException = new RuntimeException();
+
+        exceptionLogger.failed("my operation", runtimeException);
+
+        verify(log).error("failed my operation", runtimeException);
+    }
+
+    @Test
+    public void shouldFormatExplicitMessageUsingException() {
+        RuntimeException runtimeException = new RuntimeException("foo");
+
+        exceptionLogger.foo(runtimeException);
+
+        verify(log).debug("message with " + runtimeException, runtimeException);
+    }
+
+    @Test
+    public void shouldFormatExplicitMessageBeforeException() {
+        RuntimeException runtimeException = new RuntimeException();
+
+        exceptionLogger.foo("message", runtimeException);
+
+        verify(log).debug("message with message", runtimeException);
+    }
+
+    @Test
+    public void shouldFormatExplicitMessageAndException() {
+        RuntimeException runtimeException = new RuntimeException();
+
+        exceptionLogger.fooWithTwo("message", runtimeException);
+
+        verify(log).debug("message with message and " + runtimeException, runtimeException);
     }
 }
