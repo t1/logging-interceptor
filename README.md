@@ -15,13 +15,16 @@ Note that interceptors are not triggered when you do local calls.
 
 ## Features ##
 
-* Log to [slf4j](http://slf4j.org) (and you can go to any logging framework from there).
-* Annotate methods as `@Logged` to log the call and eventually return value or exceptions thrown; or a class to have all methods within logged (see [examples](#examples)).
-* Define the log level in the `@Logged` annotation; if you don't specify one, it's derived from the recursively containing type or finally `DEBUG`.
+* Logs to [slf4j](http://slf4j.org) (and you can go to any logging framework from there).
+* Annotate methods as `@Logged` to log the call and eventually return value or exceptions thrown.
+* Annotate a class to have all managed methods within logged (see [examples](#examples)).
+* Annotate a CDI `@Stereotype` and have all managed methods logged.
+* Define the log level in the `@Logged` annotation; if you don't specify one, it's derived from the recursively containing type or package (i.e. you can annotate your `package-info.java` and inherit the log level from there; this doesn't work for the interception itself, as CDI doesn't support that) or finally `DEBUG`.
 * The exception thrown is logged with a message like `failed with IllegalArgumentException` so the stack trace isn't repeated for every method the throw passes through.
 * If the last parameter is a `Throwable`, it's passed to slf4j, so the stack trace is printed out; i.e. the logging-interceptor formats the message without the `Throwable` before it passes it on (that's an addition to the slf4j api). (see [example](#log-stack-trace))
-* Default logger is the top level class containing the method being logged; you can explicitly set it in the `@Logged` annotation.
-* Default log message is the name of the method, with camel case converted to spaces (e.g. "getNextCustomer" -> "get next customer") and parameters appended; you can change it in the `@Logged` annotation.
+* The default logger is the top level class containing the method being logged; you can explicitly set it in the `@Logged` annotation.
+* The default log message is the name of the method, with camel case converted to spaces (e.g. "getNextCustomer" -> "get next customer") and parameters appended; you can explicitly set it in the `@Logged` annotation.
+* In addition to the slf4j log message format placeholders, you can use positional indexes (e.g. `{0}`) or parameter names (e.g. `{firstName}`; requires jdk8 parameter meta data or debug info).
 * Parameters annotated as `@DontLog` are not logged; very useful for, e.g., passwords.
 * Parameters annotated as `@LogContext` are added to the [MDC](http://slf4j.org/manual.html#mdc) (and cleaned up thereafter). Very handy to add, e.g., the main business reference key to all logs written below.
 * Define producers for `LogContextVariables` for other MDC variables; a producer for the `version` and `app` of the containing jar/ear/war is provided (requires the implementation or specification version in the manifest).
