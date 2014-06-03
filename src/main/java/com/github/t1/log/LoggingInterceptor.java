@@ -22,7 +22,7 @@ public class LoggingInterceptor {
     @Inject
     private Converters converters;
 
-    private final Map<Method, LogPoint> cache = new ConcurrentHashMap<>();
+    static final Map<Method, LogPoint> CACHE = new ConcurrentHashMap<>();
 
     @AroundInvoke
     Object aroundInvoke(InvocationContext context) throws Exception {
@@ -43,10 +43,10 @@ public class LoggingInterceptor {
     }
 
     private LogPoint logPoint(Method method) {
-        LogPoint logPoint = cache.get(method);
+        LogPoint logPoint = CACHE.get(method);
         if (logPoint == null) {
             logPoint = new LogPointBuilder(method, variables, converters).build();
-            cache.put(method, logPoint);
+            CACHE.put(method, logPoint);
         }
         return logPoint;
     }

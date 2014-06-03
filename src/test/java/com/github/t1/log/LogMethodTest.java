@@ -43,18 +43,21 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
     @Test
     public void shouldCacheLogPoint() {
         givenLogLevel(INFO);
+        assertTrue(LoggingInterceptor.CACHE.isEmpty());
 
-        long t0 = System.nanoTime();
+        // the timing stuff is not very robust... but sometimes helpful ;)
+        // long t0 = System.nanoTime();
         simpleClass.foo();
-        long t1 = System.nanoTime();
+        // long t1 = System.nanoTime();
         simpleClass.foo();
-        long t2 = System.nanoTime();
+        // long t2 = System.nanoTime();
 
-        long d0 = t1 - t0;
-        long d1 = t2 - t1;
+        // long d0 = t1 - t0;
+        // long d1 = t2 - t1;
 
         verify(log, times(2)).info("foo", NO_ARGS); // actually did log twice
-        assertTrue("expected second (cached) call must be faster, but actually " + d0 + " <= " + d1, d0 > d1);
+        // assertTrue("expected second (cached) call must be faster, but actually " + d0 + " <= " + d1, d0 > d1);
+        assertFalse(LoggingInterceptor.CACHE.isEmpty());
     }
 
     // ----------------------------------------------------------------------------------

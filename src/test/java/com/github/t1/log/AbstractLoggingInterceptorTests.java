@@ -8,7 +8,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.Before;
+import org.junit.*;
 import org.slf4j.*;
 
 public abstract class AbstractLoggingInterceptorTests {
@@ -40,6 +40,11 @@ public abstract class AbstractLoggingInterceptorTests {
     @Before
     public void initLogLevelDebug() {
         givenLogLevel(DEBUG);
+    }
+
+    @After
+    public void clearLogPointCache() {
+        LoggingInterceptor.CACHE.clear();
     }
 
     protected void givenLogLevel(LogLevel level) {

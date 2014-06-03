@@ -204,10 +204,13 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @SuppressWarnings("unused")
     public static class ParamsWithNameClass {
         @Logged("one={invalid}")
-        @SuppressWarnings("unused")
         public void withInvalidName(String one) {}
+
+        @Logged("one={one}")
+        public void withValidName(String one) {}
     }
 
     @Inject
@@ -218,5 +221,12 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
         paramsWithName.withInvalidName("foo");
 
         verify(log).debug("one={}", new Object[] { "invalid log parameter expression: invalid" });
+    }
+
+    @Test
+    public void shouldNotLogParametersWithValidName() {
+        paramsWithName.withValidName("foo");
+
+        verify(log).debug("one={}", new Object[] { "foo" });
     }
 }

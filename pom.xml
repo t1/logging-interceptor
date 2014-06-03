@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.t1</groupId>
@@ -37,6 +38,7 @@
                     <source>1.7</source>
                     <target>1.7</target>
                     <showDeprecation>true</showDeprecation>
+                    <!-- <compilerArgument>-parameters</compilerArgument> -->
                 </configuration>
             </plugin>
             <plugin>
@@ -70,7 +72,19 @@
                                     <pattern>com.github.t1.stereotypes</pattern>
                                     <shadedPattern>com.github.t1.log.shaded.stereotypes</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>javassist</pattern>
+                                    <shadedPattern>com.github.t1.log.shaded.javassist</shadedPattern>
+                                </relocation>
                             </relocations>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/maven/**</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>
@@ -114,15 +128,19 @@
             <scope>provided</scope>
         </dependency>
 
-		<!-- compile scope -->
+		<!-- compile scope (will be shaded) -->
         <dependency>
             <groupId>com.github.t1</groupId>
             <artifactId>stereotype-helper</artifactId>
             <version>1.0.3</version>
-            <!-- we're shading this dependency -->
+        </dependency>
+        <dependency>
+            <groupId>org.javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>3.16.1-GA</version>
         </dependency>
 
-		<!-- test scope -->
+        <!-- test scope -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

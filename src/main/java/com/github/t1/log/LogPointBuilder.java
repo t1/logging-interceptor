@@ -26,6 +26,8 @@ class LogPointBuilder {
     private final Converters converters;
 
     private final Logged logged;
+    private final List<Parameter> rawParams;
+
     private final List<LogParameter> logParameters;
     private final LogParameter throwableParameter;
 
@@ -37,13 +39,13 @@ class LogPointBuilder {
         this.converters = converters;
 
         this.logged = Annotations.on(method).getAnnotation(Logged.class);
+        this.rawParams = rawParams();
 
-        List<Parameter> rawParams = rawParams();
-        this.logParameters = buildParams(rawParams);
-        this.throwableParameter = throwableParam(rawParams);
+        this.logParameters = buildParams();
+        this.throwableParameter = throwableParam();
     }
 
-    private List<LogParameter> buildParams(List<Parameter> rawParams) {
+    private List<LogParameter> buildParams() {
         final List<LogParameter> result = new ArrayList<>();
         if (defaultLogMessage()) {
             for (Parameter parameter : rawParams) {
@@ -79,10 +81,10 @@ class LogPointBuilder {
         return new RealLogParameter(parameter, converters);
     }
 
-    private LogParameter throwableParam(List<Parameter> params) {
-        if (params.isEmpty())
+    private LogParameter throwableParam() {
+        if (rawParams.isEmpty())
             return null;
-        Parameter lastParam = params.get(params.size() - 1);
+        Parameter lastParam = rawParams.get(rawParams.size() - 1);
         if (!Throwable.class.isAssignableFrom(lastParam.type()))
             return null;
         return logParam(lastParam);
@@ -197,10 +199,25 @@ class LogPointBuilder {
             return defaultIndex++;
         if (isNumeric(expression))
             return Integer.parseInt(expression);
+        if (isParameterName(expression))
+            return parameterNameIndex(expression);
         return INVALID_PARAMETER_EXPRESSION;
     }
 
     private boolean isNumeric(String expression) {
         return NUMERIC.matcher(expression).matches();
+    }
+
+    private boolean isParameterName(String expression) {
+        return parameterNameIndex(expression) >= 0;
+    }
+
+    private int parameterNameIndex(String expression) {
+        for (Parameter parameter : rawParams) {
+            if (expression.equals(parameter.getName())) {
+                return parameter.index();
+            }
+        }
+        return -1;
     }
 }
