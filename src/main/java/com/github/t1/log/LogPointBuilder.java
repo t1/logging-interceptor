@@ -17,7 +17,6 @@ import com.github.t1.log.LogPoint.ThrowableLogPoint;
 import com.github.t1.stereotypes.Annotations;
 
 class LogPointBuilder {
-    private static final int INVALID_PARAMETER_EXPRESSION = Integer.MIN_VALUE;
     private static final Pattern VAR = Pattern.compile("\\{(?<expression>[^}]*)\\}");
     private static final Pattern NUMERIC = Pattern.compile("(\\+|-|)\\d+");
 
@@ -50,20 +49,14 @@ class LogPointBuilder {
         if (defaultLogMessage()) {
             for (Parameter parameter : rawParams) {
                 if (!parameter.isAnnotationPresent(DontLog.class)) {
-                    result.add(logParam(parameter));
+                    result.add(new RealLogParameter(parameter, converters, null));
                 }
             }
         } else {
             Matcher matcher = VAR.matcher(logged.value());
             while (matcher.find()) {
                 String expression = matcher.group("expression");
-                int index = index(expression);
-                if (index == INVALID_PARAMETER_EXPRESSION)
-                    result.add(new StaticLogParameter("invalid log parameter expression: " + expression));
-                else if (index < 0 || index >= rawParams.size())
-                    result.add(new StaticLogParameter("invalid log parameter index: " + index));
-                else
-                    result.add(logParam(rawParams.get(index)));
+                result.add(logParameter(expression));
             }
         }
         return Collections.unmodifiableList(result);
@@ -77,17 +70,13 @@ class LogPointBuilder {
         return unmodifiableList(list);
     }
 
-    private LogParameter logParam(Parameter parameter) {
-        return new RealLogParameter(parameter, converters);
-    }
-
     private LogParameter throwableParam() {
         if (rawParams.isEmpty())
             return null;
         Parameter lastParam = rawParams.get(rawParams.size() - 1);
         if (!Throwable.class.isAssignableFrom(lastParam.type()))
             return null;
-        return logParam(lastParam);
+        return new RealLogParameter(lastParam, converters, null);
     }
 
     public LogPoint build() {
@@ -194,14 +183,29 @@ class LogPointBuilder {
         return "".equals(logged.value());
     }
 
-    private int index(String expression) {
-        if (expression.isEmpty())
-            return defaultIndex++;
-        if (isNumeric(expression))
-            return Integer.parseInt(expression);
-        if (isParameterName(expression))
-            return parameterNameIndex(expression);
-        return INVALID_PARAMETER_EXPRESSION;
+    private LogParameter logParameter(String expression) {
+        int dot = expression.indexOf('.');
+        String paramRef;
+        if (dot < 0) {
+            paramRef = expression;
+            expression = null;
+        } else {
+            paramRef = expression.substring(0, dot);
+            expression = expression.substring(dot + 1);
+        }
+        if (paramRef.isEmpty())
+            return logParam(defaultIndex++, expression);
+        if (isNumeric(paramRef))
+            return logParam(Integer.parseInt(paramRef), expression);
+        if (isParameterName(paramRef))
+            return logParam(parameterNameIndex(paramRef), expression);
+        return new StaticLogParameter("invalid log parameter reference: " + paramRef);
+    }
+
+    private LogParameter logParam(int index, String expression) {
+        if (index < 0 || index >= rawParams.size())
+            return new StaticLogParameter("invalid log parameter index: " + index);
+        return new RealLogParameter(rawParams.get(index), converters, expression);
     }
 
     private boolean isNumeric(String expression) {

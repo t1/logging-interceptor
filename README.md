@@ -24,7 +24,7 @@ Note that interceptors are not triggered when you do local calls.
 * If the last parameter is a `Throwable`, it's passed to slf4j, so the stack trace is printed out; i.e. the logging-interceptor formats the message without the `Throwable` before it passes it on (that's an addition to the slf4j api). (see [example](#log-stack-trace))
 * The default logger is the top level class containing the method being logged; you can explicitly set it in the `@Logged` annotation.
 * The default log message is the name of the method, with camel case converted to spaces (e.g. "getNextCustomer" -> "get next customer") and parameters appended; you can explicitly set it in the `@Logged` annotation.
-* In addition to the slf4j log message format placeholders, you can use positional indexes (e.g. `{0}`) or parameter names (e.g. `{firstName}`; requires jdk8 parameter meta data or debug info).
+* In addition to the slf4j log message format placeholders, you can use positional indexes (e.g. `{0}`) or parameter names (e.g. `{firstName}`; requires jdk8 parameter meta data or debug info). And you can use simple expressions, like `person.address.zip`.
 * Parameters annotated as `@DontLog` are not logged; very useful for, e.g., passwords.
 * Parameters annotated as `@LogContext` are added to the [MDC](http://slf4j.org/manual.html#mdc) (and cleaned up thereafter). Very handy to add, e.g., the main business reference key to all logs written below.
 * Define producers for `LogContextVariables` for other MDC variables; a producer for the `version` and `app` of the containing jar/ear/war is provided (requires the implementation or specification version in the manifest).

@@ -4,6 +4,8 @@ import static org.mockito.Mockito.*;
 
 import javax.inject.Inject;
 
+import lombok.Value;
+
 import org.jboss.arquillian.junit.Arquillian;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -204,6 +206,16 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Value
+    public static class Pojo {
+        String one, two;
+    }
+
+    @Value
+    public static class Wrapper {
+        Pojo pojo;
+    }
+
     @SuppressWarnings("unused")
     public static class ParamsWithNameClass {
         @Logged("one={invalid}")
@@ -211,6 +223,18 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
 
         @Logged("one={one}")
         public void withValidName(String one) {}
+
+        @Logged(".one={.one}")
+        public void withProperty(Pojo p) {}
+
+        @Logged("0.one={0.one}")
+        public void indexedWithProperty(Pojo p) {}
+
+        @Logged("p.one={p.one}")
+        public void namedWithProperty(Pojo p) {}
+
+        @Logged("wrapper.pojo.two={wrapper.pojo.two}")
+        public void wrappedWithProperty(Wrapper wrapper) {}
     }
 
     @Inject
@@ -220,13 +244,41 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     public void shouldNotLogParametersWithInvalidName() {
         paramsWithName.withInvalidName("foo");
 
-        verify(log).debug("one={}", new Object[] { "invalid log parameter expression: invalid" });
+        verify(log).debug("one={}", new Object[] { "invalid log parameter reference: invalid" });
     }
 
     @Test
-    public void shouldNotLogParametersWithValidName() {
+    public void shouldLogParametersWithValidName() {
         paramsWithName.withValidName("foo");
 
         verify(log).debug("one={}", new Object[] { "foo" });
+    }
+
+    @Test
+    public void shouldLogWithProperty() {
+        paramsWithName.withProperty(new Pojo("foo", "bar"));
+
+        verify(log).debug(".one={}", new Object[] { "foo" });
+    }
+
+    @Test
+    public void shouldLogIndexedWithProperty() {
+        paramsWithName.indexedWithProperty(new Pojo("foo", "bar"));
+
+        verify(log).debug("0.one={}", new Object[] { "foo" });
+    }
+
+    @Test
+    public void shouldLogNamedWithProperty() {
+        paramsWithName.namedWithProperty(new Pojo("foo", "bar"));
+
+        verify(log).debug("p.one={}", new Object[] { "foo" });
+    }
+
+    @Test
+    public void shouldLogWrappedProperty() {
+        paramsWithName.wrappedWithProperty(new Wrapper(new Pojo("foo", "bar")));
+
+        verify(log).debug("wrapper.pojo.two={}", new Object[] { "bar" });
     }
 }
