@@ -3,11 +3,8 @@ package com.github.t1.log;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.StatusType;
 
-@ConverterType(Response.class)
 public class ResponseLogConverter implements Converter {
-    @Override
-    public String convert(Object o) {
-        Response response = (Response) o;
+    public String convert(Response response) {
         StatusType statusInfo = response.getStatusInfo();
         return statusInfo.getStatusCode() + " " + statusInfo.getReasonPhrase() + entityInfo(response);
     }

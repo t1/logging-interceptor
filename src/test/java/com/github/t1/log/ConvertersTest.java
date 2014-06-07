@@ -17,6 +17,7 @@ import org.mockito.*;
 import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
+@SuppressWarnings("unused")
 public class ConvertersTest {
     @Mock
     private Instance<Converter> converterInstances;
@@ -64,11 +65,9 @@ public class ConvertersTest {
             String value = "x";
         }
 
-        @ConverterType(Pojo.class)
         class PojoConverter implements Converter {
-            @Override
-            public String convert(Object pojo) {
-                return ((Pojo) pojo).value + "#";
+            public String convert(Pojo pojo) {
+                return pojo.value + "#";
             }
         }
 
@@ -80,23 +79,79 @@ public class ConvertersTest {
     }
 
     @Test
-    public void shouldFailToLoadUnannotatedConverter() {
+    public void shouldIgnoreConverterMethodWithWrongName() {
         @Value
         class Pojo {
-            String one, two;
+            String value;
         }
 
-        class UnannotatedPojoConverter implements Converter {
-            @Override
-            public String convert(Object pojo) {
-                return ((Pojo) pojo).one;
+        givenConverters(new Converter() {
+            public String convertX(Pojo pojo) {
+                return pojo.value + "!1";
             }
+        });
+        Pojo pojo = new Pojo("x");
+
+        Object converted = converters.convert(pojo);
+
+        assertEquals(pojo, converted);
+    }
+
+    @Test
+    public void shouldIgnoreConverterMethodReturningVoid() {
+        @Value
+        class Pojo {
+            String value;
         }
 
-        expectedException.expect(RuntimeException.class);
-        expectedException.expectMessage("must be annotated as @" + ConverterType.class.getName());
+        givenConverters(new Converter() {
+            public void convert(Pojo pojo) {
+                throw new RuntimeException();
+            }
+        });
+        Pojo pojo = new Pojo("x");
 
-        givenConverters(new UnannotatedPojoConverter());
+        Object converted = converters.convert(pojo);
+
+        assertEquals(pojo, converted);
+    }
+
+    @Test
+    public void shouldIgnoreConverterMethodWithNoArguments() {
+        @Value
+        class Pojo {
+            String value;
+        }
+
+        givenConverters(new Converter() {
+            public String convert() {
+                return "unexpected";
+            }
+        });
+        Pojo pojo = new Pojo("x");
+
+        Object converted = converters.convert(pojo);
+
+        assertEquals(pojo, converted);
+    }
+
+    @Test
+    public void shouldIgnoreConverterMethodWithTwoArguments() {
+        @Value
+        class Pojo {
+            String value;
+        }
+
+        givenConverters(new Converter() {
+            public String convert(Pojo one, String two) {
+                return "unexpected";
+            }
+        });
+        Pojo pojo = new Pojo("x");
+
+        Object converted = converters.convert(pojo);
+
+        assertEquals(pojo, converted);
     }
 
 
@@ -107,21 +162,17 @@ public class ConvertersTest {
             String value;
         }
 
-        @ConverterType(DupPojo.class)
         class DuplicatePojoConverter1 implements Converter {
-            @Override
-            public String convert(Object object) {
-                return ((DupPojo) object).value + "!1";
+            public String convert(DupPojo pojo) {
+                return pojo.value + "!1";
+            }
+        }
+        class DuplicatePojoConverter2 implements Converter {
+            public String convert(DupPojo pojo) {
+                return pojo.value + "!2";
             }
         }
 
-        @ConverterType(DupPojo.class)
-        class DuplicatePojoConverter2 implements Converter {
-            @Override
-            public String convert(Object object) {
-                return ((DupPojo) object).value + "!2";
-            }
-        }
         givenConverters(new DuplicatePojoConverter1(), new DuplicatePojoConverter2());
 
         Object converted = converters.convert(new DupPojo("x"));
@@ -136,11 +187,9 @@ public class ConvertersTest {
         }
         class SubPojo extends SuperPojo {}
 
-        @ConverterType(SuperPojo.class)
         class SuperConverter implements Converter {
-            @Override
-            public String convert(Object object) {
-                return ((SuperPojo) object).value + "#";
+            public String convert(SuperPojo object) {
+                return object.value + "#";
             }
         }
 
@@ -157,10 +206,8 @@ public class ConvertersTest {
             private static final long serialVersionUID = 1L;
         }
 
-        @ConverterType(Serializable.class)
         class InterfaceConverter implements Converter {
-            @Override
-            public String convert(Object object) {
+            public String convert(Serializable object) {
                 return "#";
             }
         }
@@ -176,10 +223,8 @@ public class ConvertersTest {
     public void shouldNotConvertIfTheConverterThrowsRuntimeExeption() {
         class Pojo {}
 
-        @ConverterType(Pojo.class)
         class FailingConverter implements Converter {
-            @Override
-            public String convert(Object object) {
+            public String convert(Pojo object) {
                 throw new RuntimeException("dummy");
             }
         }
@@ -196,10 +241,8 @@ public class ConvertersTest {
     public void shouldNotConvertIfTheConverterThrowsLinkageError() {
         class Pojo {}
 
-        @ConverterType(Pojo.class)
         class FailingConverter implements Converter {
-            @Override
-            public String convert(Object object) {
+            public String convert(Pojo object) {
                 throw new NoSuchMethodError("dummy");
             }
         }
@@ -216,10 +259,8 @@ public class ConvertersTest {
     public void shouldNotConvertIfTheConverterThrowsAssertionError() {
         class Pojo {}
 
-        @ConverterType(Pojo.class)
         class FailingConverter implements Converter {
-            @Override
-            public String convert(Object object) {
+            public String convert(Pojo object) {
                 throw new AssertionError("dummy");
             }
         }

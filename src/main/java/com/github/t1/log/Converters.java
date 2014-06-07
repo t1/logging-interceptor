@@ -1,69 +1,69 @@
 package com.github.t1.log;
 
+import java.lang.reflect.Method;
 import java.util.*;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Instance;
 import javax.inject.*;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import com.github.t1.stereotypes.Annotations;
 
 /** Collects all implementations of {@link Converter}s and delegates {@link #convert(Object)}. */
 @Slf4j
 @Singleton
 public class Converters {
-    @Inject
-    private Instance<Converter> converterInstances;
+    @AllArgsConstructor
+    private static class ConverterMethod {
+        private final Converter converterInstance;
+        private final Method method;
 
-    Map<Class<?>, Converter> converters = new HashMap<>();
-
-    private class ConverterLoader {
-        private final Converter converter;
-        private final String converterType;
-        private final ConverterType annotation;
-
-        public ConverterLoader(Converter converter) {
-            this.converter = converter;
-
-            converterType = converter.getClass().getName();
-            log.debug("  register converter {}", converterType);
-
-            annotation = Annotations.on(converter.getClass()).getAnnotation(ConverterType.class);
-            if (annotation == null)
-                throw new RuntimeException("converter " + converterType + " must be annotated as @"
-                        + ConverterType.class.getName());
-        }
-
-        public void run() {
-            for (Class<?> type : annotation.value()) {
-                add(type);
-            }
-        }
-
-        private void add(Class<?> type) {
-            Converter old = converters.put(type, converter);
-            if (old != null) {
-                log.error("ambiguous converters for {}: {} and {}", type, converterType, old.getClass().getName());
+        public Object convert(Object value) {
+            try {
+                return method.invoke(converterInstance, value);
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException("can't convert", e);
             }
         }
     }
 
+    @Inject
+    private Instance<Converter> converterInstances;
+
+    Map<Class<?>, ConverterMethod> converters = new HashMap<>();
+
     @PostConstruct
     void loadConverters() {
         log.debug("loading converters");
-        for (Converter converter : converterInstances) {
-            new ConverterLoader(converter).run();
+        for (Converter converterInstance : converterInstances) {
+            Class<? extends Converter> converterType = converterInstance.getClass();
+            log.debug("register converters in {}", converterType);
+            int count = 0;
+            for (Method method : converterType.getMethods()) {
+                if (isConverterMethod(method)) {
+                    ConverterMethod converterMethod = new ConverterMethod(converterInstance, method);
+                    ConverterMethod old = converters.put(method.getParameterTypes()[0], converterMethod);
+                    if (old != null)
+                        log.error("ambiguous converters for {}: {} and {}", converterType, converterMethod, old);
+                    count++;
+                }
+            }
+            log.debug("registered {} converter methods in {}", count, converterType);
         }
         log.debug("converters loaded");
+    }
+
+    private boolean isConverterMethod(Method method) {
+        return "convert".equals(method.getName()) && method.getReturnType() != void.class
+                && method.getParameterTypes().length == 1;
     }
 
     public Object convert(Object value) {
         if (value == null)
             return null;
         Class<?> type = value.getClass();
-        Converter converter = findConverter(type);
+        ConverterMethod converter = findConverter(type);
         if (converter != null) {
             try {
                 return converter.convert(value);
@@ -74,8 +74,8 @@ public class Converters {
         return value;
     }
 
-    private Converter findConverter(Class<?> type) {
-        Converter converter = converters.get(type);
+    private ConverterMethod findConverter(Class<?> type) {
+        ConverterMethod converter = converters.get(type);
         if (converter != null)
             return converter;
         Class<?> superclass = type.getSuperclass();
