@@ -29,7 +29,7 @@ Note that interceptors are not triggered when you do local calls.
 * Parameters annotated as `@LogContext` are added to the [MDC](http://slf4j.org/manual.html#mdc) (and cleaned up thereafter). Very handy to add, e.g., the main business reference key to all logs written below.
 * Define producers for `LogContextVariables` for other MDC variables; a producer for the `version` and `app` of the containing jar/ear/war is provided (requires the implementation or specification version in the manifest).
 * Add a MDC variable `indent` to your pattern to visualize the call hierarchy of logged statements.
-* Define converters, to e.g. extract the customer number from a customer object, by implementing `Converter`. Converters for `javax.ws.rs.core.UriInfo` and `javax.ws.rs.core.Response` are provided.
+* Define converters, to e.g. extract the customer number from a customer object, by implementing `Converter` (see [example](#converter)). Converters for `javax.ws.rs.core.UriInfo` and `javax.ws.rs.core.Response` are provided.
 
 ## Examples ##
 
@@ -100,11 +100,8 @@ would log the message `failed my operation` with the exception and stack trace.
 ### Converter ###
 
 ```java
-@ConverterType(Response.class)
 public class ResponseLogConverter implements Converter {
-    @Override
-    public String convert(Object o) {
-        Response response = (Response) o;
+    public String convert(Response response) {
         StatusType statusInfo = response.getStatusInfo();
         return statusInfo.getStatusCode() + " " + statusInfo.getReasonPhrase() + entityInfo(response);
     }
@@ -117,8 +114,6 @@ public class ResponseLogConverter implements Converter {
     }
 }
 ```
-
-I'd like to have the `Converter` interface be generic, but I don't know how to inject those :-/
 
 ## Download ##
 
