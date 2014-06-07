@@ -38,18 +38,20 @@ public class Converters {
         log.debug("loading converters");
         for (Converter converterInstance : converterInstances) {
             Class<? extends Converter> converterType = converterInstance.getClass();
-            log.debug("register converters in {}", converterType);
+            log.debug("  register converters in {}", converterType);
             int count = 0;
             for (Method method : converterType.getMethods()) {
                 if (isConverterMethod(method)) {
+                    Class<?> type = method.getParameterTypes()[0];
+                    log.debug("    register converter for {}", type);
                     ConverterMethod converterMethod = new ConverterMethod(converterInstance, method);
-                    ConverterMethod old = converters.put(method.getParameterTypes()[0], converterMethod);
+                    ConverterMethod old = converters.put(type, converterMethod);
                     if (old != null)
                         log.error("ambiguous converters for {}: {} and {}", converterType, converterMethod, old);
                     count++;
                 }
             }
-            log.debug("registered {} converter methods in {}", count, converterType);
+            log.debug("  registered {} converter methods in {}", count, converterType);
         }
         log.debug("converters loaded");
     }
