@@ -64,8 +64,12 @@ class Parameter {
     }
 
     public String getName() {
-        if (name != null)
-            return name;
+        if (name == null)
+            initName();
+        return name;
+    }
+
+    private void initName() {
         if (isJdk8()) {
             log.debug("is jdk8; try to get parameter info");
             name = getJdk8ParameterName();
@@ -80,7 +84,6 @@ class Parameter {
             name = "arg" + index;
             log.debug("fall back to {}", name);
         }
-        return name;
     }
 
     private boolean isJdk8() {
