@@ -70,7 +70,8 @@ public class JsonLogParameter implements LogParameter {
         }
     }
 
-    protected final List<LogParameter> parameters;
+    private final List<LogParameter> parameters;
+    private final Converters converters;
 
     @Override
     public String name() {
@@ -94,7 +95,9 @@ public class JsonLogParameter implements LogParameter {
             if (this == parameter)
                 continue;
             String name = parameter.name();
-            out.set(name, parameter.value(context));
+            Object value = parameter.value(context);
+            value = converters.convert(value);
+            out.set(name, value);
         }
     }
 

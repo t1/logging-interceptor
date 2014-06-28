@@ -9,6 +9,8 @@ import java.math.BigDecimal;
 import javax.inject.Inject;
 import javax.json.*;
 
+import lombok.Value;
+
 import org.jboss.arquillian.junit.Arquillian;
 import org.joda.time.LocalDateTime;
 import org.junit.Test;
@@ -16,6 +18,22 @@ import org.junit.runner.RunWith;
 
 @RunWith(Arquillian.class)
 public class LogJsonTest extends AbstractLoggingInterceptorTests {
+    @Value
+    class Pojo {
+        String one, two;
+    }
+
+    @Value
+    class ConvertablePojo {
+        String one, two;
+    }
+
+    public static class PojoConverter implements Converter {
+        public String convert(ConvertablePojo pojo) {
+            return pojo.one + "#" + pojo.two;
+        }
+    }
+
     @SuppressWarnings("unused")
     @Logged(json = true)
     public static class JsonLoggedClass {
@@ -32,6 +50,10 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
         public void foo(double bar) {}
 
         public void foo(BigDecimal bar) {}
+
+        public void foo(Pojo pojo) {}
+
+        public void foo(ConvertablePojo pojo) {}
 
         public void foo(String one, String two) {}
     }
@@ -150,6 +172,22 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
         JsonObject json = json(captureMdc("json"));
         assertEquals("1", json.getString("one"));
         assertEquals("2", json.getString("two"));
+    }
+
+    @Test
+    public void shouldLogJsonToStringPojoParameter() {
+        jsonLog.foo(new Pojo("1", "2"));
+
+        JsonObject json = json(captureMdc("json"));
+        assertEquals("LogJsonTest.Pojo(one=1, two=2)", json.getString("pojo"));
+    }
+
+    @Test
+    public void shouldLogJsonConvertablePojoParameter() {
+        jsonLog.foo(new ConvertablePojo("1", "2"));
+
+        JsonObject json = json(captureMdc("json"));
+        assertEquals("1#2", json.getString("pojo"));
     }
 
     @Test

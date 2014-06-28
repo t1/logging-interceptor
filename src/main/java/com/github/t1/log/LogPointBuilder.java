@@ -61,7 +61,7 @@ class LogPointBuilder {
             }
         }
         if (logged.json()) {
-            result.add(new JsonLogParameter(result));
+            result.add(new JsonLogParameter(result, converters));
         }
         return Collections.unmodifiableList(result);
     }
