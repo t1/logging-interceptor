@@ -12,15 +12,25 @@ import org.slf4j.MDC;
 @Value
 public class JsonLogParameter implements LogParameter {
     private static class JsonBuilder {
-        StringBuilder out = new StringBuilder();
+        private final StringBuilder out = new StringBuilder();
+        private final Map<String, Object> map = new HashMap<>();
 
         public void set(String key, Object value) {
-            if (out.length() == 0)
-                out.append("{");
-            else
-                out.append(",");
-            out.append("\"").append(key).append("\":");
-            appendJson(value);
+            map.put(key, value);
+        }
+
+        @Override
+        public String toString() {
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                if (out.length() == 0)
+                    out.append("{");
+                else
+                    out.append(",");
+                out.append("\"").append(entry.getKey()).append("\":");
+                appendJson(entry.getValue());
+            }
+            out.append("}");
+            return out.toString();
         }
 
         private void appendJson(Object value) {
@@ -58,12 +68,6 @@ public class JsonLogParameter implements LogParameter {
                 return 'r';
             return c;
         }
-
-        @Override
-        public String toString() {
-            out.append("}");
-            return out.toString();
-        }
     }
 
     protected final List<LogParameter> parameters;
@@ -79,30 +83,25 @@ public class JsonLogParameter implements LogParameter {
 
         out.set("timestamp", LocalDateTime.now());
         out.set("event", context.getMethod().getName());
-        Set<String> names = addMethodParams(context, out);
-        addMdc(out, names);
+        addMdc(out);
+        addMethodParams(context, out);
 
         return out.toString();
     }
 
-    private Set<String> addMethodParams(InvocationContext context, JsonBuilder out) {
-        Set<String> names = new HashSet<>();
+    private void addMethodParams(InvocationContext context, JsonBuilder out) {
         for (LogParameter parameter : parameters) {
             if (this == parameter)
                 continue;
             String name = parameter.name();
-            names.add(name);
             out.set(name, parameter.value(context));
         }
-        return names;
     }
 
-    private void addMdc(JsonBuilder out, Set<String> skip) {
+    private void addMdc(JsonBuilder out) {
         @SuppressWarnings("unchecked")
         Set<String> keys = MDC.getCopyOfContextMap().keySet();
         for (String key : keys) {
-            if (skip.contains(key))
-                continue;
             out.set(key, MDC.get(key));
         }
     }
