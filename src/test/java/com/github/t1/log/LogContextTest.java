@@ -1,5 +1,6 @@
 package com.github.t1.log;
 
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.slf4j.impl.StaticMDCBinder.*;
 
@@ -28,14 +29,14 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
     public void shouldLogContextParameter() {
         logContextParameterClass.methodWithLogContextParameter("foo", "bar");
 
-        verifyMdc("var", "foo");
+        assertEquals("foo", captureMdc("var"));
     }
 
     @Test
     public void shouldNotLogNullContextParameter() {
         logContextParameterClass.methodWithLogContextParameter(null, "bar");
 
-        verifyMdc("foo", "bar");
+        assertEquals("bar", captureMdc("foo"));
     }
 
     @Test
@@ -71,8 +72,8 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
     public void shouldLogTwoDifferentContextParameters() {
         twoContextVariables.methodWithLogContextParameter("foo", "bar");
 
-        verifyMdc("var1", "foo");
-        verifyMdc("var2", "bar");
+        assertEquals("foo", captureMdc("var1"));
+        assertEquals("bar", captureMdc("var2"));
     }
 
     // ----------------------------------------------------------------------------------
@@ -92,7 +93,7 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
     public void shouldAddLogContextVariable() {
         simple.simple();
 
-        verifyMdc("foo", "bar");
+        assertEquals("bar", captureMdc("foo"));
     }
 
     @Produces

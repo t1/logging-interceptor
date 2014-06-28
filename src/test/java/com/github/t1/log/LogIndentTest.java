@@ -1,6 +1,7 @@
 package com.github.t1.log;
 
 import static com.github.t1.log.LogLevel.*;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.slf4j.impl.StaticMDCBinder.*;
@@ -27,7 +28,7 @@ public class LogIndentTest extends AbstractLoggingInterceptorTests {
     public void shouldIndentFromNull() {
         simpleClass.foo();
 
-        verifyMdc("indent", "");
+        assertEquals("", captureMdc("indent"));
     }
 
     @Test

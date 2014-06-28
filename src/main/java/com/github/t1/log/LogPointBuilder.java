@@ -1,6 +1,7 @@
 package com.github.t1.log;
 
 import static com.github.t1.log.LogLevel.*;
+import static com.github.t1.log.Logged.*;
 import static java.lang.Character.*;
 import static java.util.Collections.*;
 
@@ -59,7 +60,14 @@ class LogPointBuilder {
                 result.add(logParameter(expression));
             }
         }
+        if (logged.json()) {
+            result.add(new JsonLogParameter(result));
+        }
         return Collections.unmodifiableList(result);
+    }
+
+    private boolean defaultLogMessage() {
+        return CAMEL_CASE_METHOD_NAME.equals(logged.value());
     }
 
     private List<Parameter> rawParams() {
@@ -179,10 +187,6 @@ class LogPointBuilder {
         return out.toString();
     }
 
-    private boolean defaultLogMessage() {
-        return "".equals(logged.value());
-    }
-
     private LogParameter logParameter(String expression) {
         int dot = expression.indexOf('.');
         String paramRef;
@@ -199,12 +203,12 @@ class LogPointBuilder {
             return logParam(Integer.parseInt(paramRef), expression);
         if (isParameterName(paramRef))
             return logParam(parameterNameIndex(paramRef), expression);
-        return new StaticLogParameter("invalid log parameter reference: " + paramRef);
+        return new StaticLogParameter("error", "invalid log parameter reference: " + paramRef);
     }
 
     private LogParameter logParam(int index, String expression) {
         if (index < 0 || index >= rawParams.size())
-            return new StaticLogParameter("invalid log parameter index: " + index);
+            return new StaticLogParameter("error", "invalid log parameter index: " + index);
         return new RealLogParameter(rawParams.get(index), converters, expression);
     }
 

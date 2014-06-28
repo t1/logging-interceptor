@@ -22,6 +22,8 @@ import javax.interceptor.InterceptorBinding;
 @Target({ METHOD, TYPE, ANNOTATION_TYPE, PACKAGE })
 @Retention(RUNTIME)
 public @interface Logged {
+    public static final String CAMEL_CASE_METHOD_NAME = "###CAMEL_CASE_METHOD_NAME###";
+
     /**
      * The level of detail to log at. If none is specified, it's derived from the recursively enclosing type's
      * <code>level</code> or finally {@link LogLevel#DEBUG}.
@@ -42,9 +44,21 @@ public @interface Logged {
 
     /**
      * The format of the message to log. Defaults to a camel-case-to-space-separated string of the method name with the
-     * space separated arguments appended. If you do provide a format, make sure to include enough placeholders ("{}")
-     * for the arguments. TODO add documentation for positional and named parameters
+     * space separated arguments appended.
+     * <p/>
+     * If you do provide a format, you can either use the slf4j log message format placeholders <code>{}</code>. Or you
+     * can use positional indexes (e.g. `{0}`) or parameter names (e.g. `{firstName}`; this requires jdk8 parameter meta
+     * data or the normal debug info).
+     * <p/>
+     * And you can use simple expressions, like `person.address.zip`.
      */
     @Nonbinding
-    public String value() default "";
+    public String value() default CAMEL_CASE_METHOD_NAME;
+
+    /**
+     * Set to true to have everything put into an MDC variable <code>json</code>, so you can log a json file with the
+     * log pattern <code>${json}</code>.
+     */
+    @Nonbinding
+    public boolean json() default false;
 }

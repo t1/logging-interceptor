@@ -26,13 +26,8 @@ class RealLogParameter implements LogParameter {
     }
 
     @Override
-    public void set(RestorableMdc mdc, InvocationContext context) {
-        if (logContextVariableName != null) {
-            Object value = value(context);
-            if (value != null) {
-                mdc.put(logContextVariableName, value.toString());
-            }
-        }
+    public String name() {
+        return parameter.getName();
     }
 
     @Override
@@ -44,6 +39,16 @@ class RealLogParameter implements LogParameter {
             }
         }
         return converters.convert(object);
+    }
+
+    @Override
+    public void set(RestorableMdc mdc, InvocationContext context) {
+        if (logContextVariableName != null) {
+            Object value = value(context);
+            if (value != null) {
+                mdc.put(logContextVariableName, value.toString());
+            }
+        }
     }
 
     private Object propertyValue(Object object, String propertyName) {

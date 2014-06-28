@@ -127,7 +127,7 @@ class Parameter {
         classPool.insertClassPath(new LoaderClassPath(method.getDeclaringClass().getClassLoader()));
         CtClass ctClass = classPool.get(method.getDeclaringClass().getName());
 
-        CtMethod ctMethod = ctClass.getDeclaredMethod(method.getName());
+        CtMethod ctMethod = ctClass.getDeclaredMethod(method.getName(), classPool.get(classNames(method)));
         CodeAttribute code = (CodeAttribute) ctMethod.getMethodInfo().getAttribute("Code");
         // TODO if it's not an interface: log a warning: missing debug information; once per jar only!
         if (code == null)
@@ -135,8 +135,21 @@ class Parameter {
         return (LocalVariableAttribute) code.getAttribute("LocalVariableTable");
     }
 
+    private static String[] classNames(Method method) {
+        String[] args = new String[method.getParameterTypes().length];
+        int i = 0;
+        for (Class<?> paramType : method.getParameterTypes()) {
+            args[i++] = paramType.getName();
+        }
+        return args;
+    }
+
     /** if the method is not static, the first local variable is "this" */
     private static int thisOffset(Method method) {
-        return (Modifier.isStatic(method.getModifiers())) ? 0 : 1;
+        return isStatic(method) ? 0 : 1;
+    }
+
+    private static boolean isStatic(Method method) {
+        return Modifier.isStatic(method.getModifiers());
     }
 }
