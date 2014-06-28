@@ -95,10 +95,16 @@ public class JsonLogParameter implements LogParameter {
             if (this == parameter)
                 continue;
             String name = parameter.name();
-            Object value = parameter.value(context);
-            value = converters.convert(value);
+            Object value = convert(out, name, parameter.value(context));
             out.set(name, value);
         }
+    }
+
+    private Object convert(JsonBuilder out, String name, Object value) {
+        value = converters.convert(value);
+        if (value instanceof Throwable)
+            out.set(name + "-stacktrace", Arrays.toString(((Throwable) value).getStackTrace()));
+        return value;
     }
 
     private void addMdc(JsonBuilder out) {

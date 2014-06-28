@@ -5,6 +5,7 @@ import static org.slf4j.impl.StaticMDCBinder.*;
 
 import java.io.StringReader;
 import java.math.BigDecimal;
+import java.util.Arrays;
 
 import javax.inject.Inject;
 import javax.json.*;
@@ -51,11 +52,13 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
 
         public void foo(BigDecimal bar) {}
 
+        public void foo(String one, String two) {}
+
         public void foo(Pojo pojo) {}
 
         public void foo(ConvertablePojo pojo) {}
 
-        public void foo(String one, String two) {}
+        public void foo(RuntimeException exception) {}
     }
 
     @Inject
@@ -188,6 +191,16 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
 
         JsonObject json = json(captureMdc("json"));
         assertEquals("1#2", json.getString("pojo"));
+    }
+
+    @Test
+    public void shouldLogJsonThrowableParameter() {
+        IllegalStateException exception = new IllegalStateException("bar");
+        jsonLog.foo(exception);
+
+        JsonObject json = json(captureMdc("json"));
+        assertEquals(exception.toString(), json.getString("exception"));
+        assertEquals(Arrays.toString(exception.getStackTrace()), json.getString("exception-stacktrace"));
     }
 
     @Test
