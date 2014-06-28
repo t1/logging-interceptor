@@ -2,7 +2,6 @@ package com.github.t1.log;
 
 import static com.github.t1.log.LogLevel.*;
 import static org.mockito.Mockito.*;
-import static org.slf4j.impl.StaticMDCBinder.*;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -10,6 +9,7 @@ import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.*;
 import org.slf4j.*;
+import org.slf4j.impl.StaticMDCBinder;
 
 public abstract class AbstractLoggingInterceptorTests {
     protected static final Object[] NO_ARGS = new Object[0];
@@ -34,7 +34,7 @@ public abstract class AbstractLoggingInterceptorTests {
 
     @Before
     public void resetMdc() {
-        reset(mdc());
+        StaticMDCBinder.reset();
     }
 
     @Before

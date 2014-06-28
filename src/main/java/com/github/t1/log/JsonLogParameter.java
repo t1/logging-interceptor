@@ -1,12 +1,13 @@
 package com.github.t1.log;
 
-import java.util.List;
+import java.util.*;
 
 import javax.interceptor.InvocationContext;
 
 import lombok.Value;
 
 import org.joda.time.LocalDateTime;
+import org.slf4j.MDC;
 
 @Value
 public class JsonLogParameter implements LogParameter {
@@ -78,14 +79,32 @@ public class JsonLogParameter implements LogParameter {
 
         out.set("timestamp", LocalDateTime.now());
         out.set("event", context.getMethod().getName());
+        Set<String> names = addMethodParams(context, out);
+        addMdc(out, names);
 
+        return out.toString();
+    }
+
+    private Set<String> addMethodParams(InvocationContext context, JsonBuilder out) {
+        Set<String> names = new HashSet<>();
         for (LogParameter parameter : parameters) {
             if (this == parameter)
                 continue;
-            out.set(parameter.name(), parameter.value(context));
+            String name = parameter.name();
+            names.add(name);
+            out.set(name, parameter.value(context));
         }
+        return names;
+    }
 
-        return out.toString();
+    private void addMdc(JsonBuilder out, Set<String> skip) {
+        @SuppressWarnings("unchecked")
+        Set<String> keys = MDC.getCopyOfContextMap().keySet();
+        for (String key : keys) {
+            if (skip.contains(key))
+                continue;
+            out.set(key, MDC.get(key));
+        }
     }
 
     @Override

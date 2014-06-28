@@ -151,4 +151,24 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
         assertEquals("1", json.getString("one"));
         assertEquals("2", json.getString("two"));
     }
+
+    @Test
+    public void shouldLogJsonMdcVariable() {
+        givenMdc("foo", "bar");
+
+        jsonLog.foo();
+
+        JsonObject json = json(captureMdc("json"));
+        assertEquals("bar", json.getString("foo"));
+    }
+
+    @Test
+    public void shouldOverrideMdcVariableWithLogParameter() {
+        givenMdc("bar", "mdc-value");
+
+        jsonLog.foo("param-value");
+
+        JsonObject json = json(captureMdc("json"));
+        assertEquals("param-value", json.getString("bar"));
+    }
 }

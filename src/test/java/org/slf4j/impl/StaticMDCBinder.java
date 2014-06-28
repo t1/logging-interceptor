@@ -3,7 +3,9 @@ package org.slf4j.impl;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
-import org.mockito.ArgumentCaptor;
+import java.util.*;
+
+import org.mockito.*;
 import org.slf4j.spi.MDCAdapter;
 
 public class StaticMDCBinder {
@@ -15,6 +17,19 @@ public class StaticMDCBinder {
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
         verify(mdc()).put(eq(key), captor.capture());
         return captor.getValue();
+    }
+
+    private static Map<String, String> map = new HashMap<>();
+
+    public static void givenMdc(String key, String value) {
+        map.put(key, value);
+        when(mdc().getCopyOfContextMap()).thenReturn(map);
+        when(mdc().get(key)).thenReturn(value);
+    }
+
+    public static void reset() {
+        Mockito.reset(mdc());
+        map.clear();
     }
 
     public static MDCAdapter mdc() {
