@@ -1,5 +1,7 @@
 package com.github.t1.log;
 
+import static com.github.t1.log.JsonLogDetail.*;
+
 import java.util.*;
 
 import javax.interceptor.InvocationContext;
@@ -12,7 +14,6 @@ import org.slf4j.*;
 @Value
 public class JsonLogParameter implements LogParameter {
     private static class JsonBuilder {
-        private final StringBuilder out = new StringBuilder();
         private final Map<String, Object> map = new HashMap<>();
 
         public void set(String key, Object value) {
@@ -23,23 +24,26 @@ public class JsonLogParameter implements LogParameter {
 
         @Override
         public String toString() {
+            StringBuilder out = new StringBuilder();
             for (Map.Entry<String, Object> entry : map.entrySet()) {
                 if (out.length() == 0)
                     out.append("{");
                 else
                     out.append(",");
                 out.append("\"").append(entry.getKey()).append("\":");
-                appendJson(entry.getValue());
+                appendJson(out, entry.getValue());
             }
+            if (out.length() == 0)
+                out.append("{");
             out.append("}");
             return out.toString();
         }
 
-        private void appendJson(Object value) {
+        private void appendJson(StringBuilder out, Object value) {
             if (isJsonValue(value)) {
                 out.append(value);
             } else {
-                appendString(value);
+                appendString(out, value);
             }
         }
 
@@ -47,7 +51,7 @@ public class JsonLogParameter implements LogParameter {
             return value instanceof Boolean || value instanceof Number;
         }
 
-        private void appendString(Object value) {
+        private void appendString(StringBuilder out, Object value) {
             out.append('\"');
             String string = value.toString();
             for (int i = 0; i < string.length(); i++) {
@@ -72,6 +76,7 @@ public class JsonLogParameter implements LogParameter {
         }
     }
 
+    private final List<JsonLogDetail> jsonLogDetail;
     private final List<LogParameter> parameters;
     private final Converters converters;
     private final Logger logger;
@@ -84,17 +89,35 @@ public class JsonLogParameter implements LogParameter {
 
     @Override
     public Object value(InvocationContext context) {
+        return null;
+    }
+
+    @Override
+    public void set(RestorableMdc mdc, InvocationContext context) {
+        Object value = mdcValue(context);
+        mdc.put(name(), value.toString());
+    }
+
+    private String mdcValue(InvocationContext context) {
         JsonBuilder out = new JsonBuilder();
 
-        out.set("timestamp", LocalDateTime.now());
-        out.set("event", context.getMethod().getName());
-        out.set("logger", logger.getName());
-        out.set("level", level.name().toLowerCase());
+        if (isJsonLogDetail(EVENT)) {
+            out.set("timestamp", LocalDateTime.now());
+            out.set("event", context.getMethod().getName());
+            out.set("logger", logger.getName());
+            out.set("level", level.name().toLowerCase());
+        }
 
-        addMdc(out);
-        addMethodParams(context, out);
+        if (isJsonLogDetail(CONTEXT))
+            addMdc(out);
+        if (isJsonLogDetail(PARAMETERS))
+            addMethodParams(context, out);
 
         return out.toString();
+    }
+
+    private boolean isJsonLogDetail(JsonLogDetail detail) {
+        return jsonLogDetail.contains(ALL) || jsonLogDetail.contains(detail);
     }
 
     private void addMethodParams(InvocationContext context, JsonBuilder out) {
@@ -120,11 +143,5 @@ public class JsonLogParameter implements LogParameter {
         for (String key : keys) {
             out.set(key, MDC.get(key));
         }
-    }
-
-    @Override
-    public void set(RestorableMdc mdc, InvocationContext context) {
-        Object value = value(context);
-        mdc.put(name(), value.toString());
     }
 }

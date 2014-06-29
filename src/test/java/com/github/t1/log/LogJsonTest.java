@@ -1,5 +1,6 @@
 package com.github.t1.log;
 
+import static com.github.t1.log.JsonLogDetail.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.slf4j.impl.StaticMDCBinder.*;
@@ -38,7 +39,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     }
 
     @SuppressWarnings("unused")
-    @Logged(json = true)
+    @Logged(json = ALL)
     public static class JsonLoggedClass {
         public void foo() {}
 
@@ -71,9 +72,11 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     }
 
     @Test
-    public void shouldLogJsonTimestamp() {
+    public void shouldLogJsonTimestamp() throws InterruptedException {
         LocalDateTime before = LocalDateTime.now();
+        Thread.sleep(3);
         jsonLog.foo();
+        Thread.sleep(3);
         LocalDateTime after = LocalDateTime.now();
 
         JsonObject json = json(captureMdc("json"));
@@ -121,7 +124,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
         jsonLog.foo((String) null);
 
         JsonObject json = json(captureMdc("json"));
-        assertEquals(null, json.get("bar"));
+        assertNull(json.get("bar"));
     }
 
     @Test
@@ -249,5 +252,83 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
 
         JsonObject json = json(captureMdc("json"));
         assertEquals("param-value", json.getString("bar"));
+    }
+
+    @Logged(json = EVENT)
+    @SuppressWarnings("unused")
+    public static class JsonEventLoggedClass {
+        public void foo(String bar) {}
+    }
+
+    @Inject
+    JsonEventLoggedClass jsonEventLog;
+
+    @Test
+    public void shouldLogJsonEventDetails() {
+        when(LoggerFactory.getLogger(LogJsonTest.class).getName()).thenReturn("logger-name");
+        givenMdc("mdc-var", "mdc-value");
+
+        jsonEventLog.foo("baz");
+
+        JsonObject json = json(captureMdc("json"));
+        assertNull(json.get("bar"));
+        assertNull(json.get("mdc-var"));
+
+        assertNotNull(json.get("timestamp"));
+        assertNotNull(json.get("event"));
+        assertNotNull(json.get("logger"));
+        assertNotNull(json.get("level"));
+    }
+
+    @Logged(json = PARAMETERS)
+    @SuppressWarnings("unused")
+    public static class JsonParamsLoggedClass {
+        public void foo(String bar) {}
+    }
+
+    @Inject
+    JsonParamsLoggedClass jsonParamsLog;
+
+    @Test
+    public void shouldLogJsonParametersDetails() {
+        when(LoggerFactory.getLogger(LogJsonTest.class).getName()).thenReturn("logger-name");
+        givenMdc("mdc-var", "mdc-value");
+
+        jsonParamsLog.foo("baz");
+
+        JsonObject json = json(captureMdc("json"));
+        assertEquals("baz", json.getString("bar"));
+
+        assertNull(json.get("mdc-var"));
+        assertNull(json.get("timestamp"));
+        assertNull(json.get("event"));
+        assertNull(json.get("logger"));
+        assertNull(json.get("level"));
+    }
+
+    @Logged(json = CONTEXT)
+    @SuppressWarnings("unused")
+    public static class JsonContextLoggedClass {
+        public void foo(String bar) {}
+    }
+
+    @Inject
+    JsonContextLoggedClass jsonContextLog;
+
+    @Test
+    public void shouldLogJsonContextDetails() {
+        when(LoggerFactory.getLogger(LogJsonTest.class).getName()).thenReturn("logger-name");
+        givenMdc("mdc-var", "mdc-value");
+
+        jsonContextLog.foo("baz");
+
+        JsonObject json = json(captureMdc("json"));
+        assertEquals("mdc-value", json.getString("mdc-var"));
+
+        assertNull(json.get("bar"));
+        assertNull(json.get("timestamp"));
+        assertNull(json.get("event"));
+        assertNull(json.get("logger"));
+        assertNull(json.get("level"));
     }
 }

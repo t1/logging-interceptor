@@ -93,8 +93,9 @@ class LogPointBuilder {
                 result.add(logParameter(expression));
             }
         }
-        if (logged.json()) {
-            result.add(new JsonLogParameter(result, converters, logger, level));
+        if (logged.json().length > 0) {
+            List<JsonLogDetail> details = Arrays.asList(logged.json());
+            result.add(new JsonLogParameter(details, result, converters, logger, level));
         }
         return Collections.unmodifiableList(result);
     }

@@ -56,9 +56,10 @@ public @interface Logged {
     public String value() default CAMEL_CASE_METHOD_NAME;
 
     /**
-     * Set to true to have everything put into an MDC variable <code>json</code>, so you can log a json file with the
-     * log pattern <code>${json}</code>.
+     * Set this to have information added to an MDC variable <code>json</code>.
+     * 
+     * @see JsonLogDetail
      */
     @Nonbinding
-    public boolean json() default false;
+    public JsonLogDetail[] json() default {};
 }
