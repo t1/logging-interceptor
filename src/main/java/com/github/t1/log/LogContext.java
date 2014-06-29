@@ -18,6 +18,8 @@ import java.lang.annotation.*;
 @Target(PARAMETER)
 @Retention(RUNTIME)
 public @interface LogContext {
+    public static final String VARIABLE_NAME = "###VARIABLE_NAME###";
+
     /** The name of the MDC variable to put. */
-    String value();
+    String value() default VARIABLE_NAME;
 }

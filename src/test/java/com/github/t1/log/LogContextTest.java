@@ -105,4 +105,22 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
 
         // verify not possible... just check that there's no exception
     }
+
+    // ----------------------------------------------------------------------------------
+
+    public static class LogContextParameterVariableClass {
+        @Logged
+        @SuppressWarnings("unused")
+        public void methodWithLogContextParameter(@LogContext String one) {}
+    }
+
+    @Inject
+    LogContextParameterVariableClass logContextParameterVariableClass;
+
+    @Test
+    public void shouldLogContextParameterWithName() {
+        logContextParameterVariableClass.methodWithLogContextParameter("foo");
+
+        assertEquals("foo", captureMdc("one"));
+    }
 }

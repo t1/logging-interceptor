@@ -1,5 +1,7 @@
 package com.github.t1.log;
 
+import static com.github.t1.log.LogContext.*;
+
 import java.lang.reflect.Method;
 
 import javax.interceptor.InvocationContext;
@@ -21,8 +23,8 @@ class RealLogParameter implements LogParameter {
     private String logContextVariableName() {
         if (!parameter.isAnnotationPresent(LogContext.class))
             return null;
-        LogContext logContext = parameter.getAnnotation(LogContext.class);
-        return logContext.value();
+        String value = parameter.getAnnotation(LogContext.class).value();
+        return (VARIABLE_NAME.equals(value)) ? parameter.getName() : value;
     }
 
     @Override
