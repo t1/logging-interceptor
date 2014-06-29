@@ -1,6 +1,7 @@
 package com.github.t1.log;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 import static org.slf4j.impl.StaticMDCBinder.*;
 
 import java.io.StringReader;
@@ -16,6 +17,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.joda.time.LocalDateTime;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.LoggerFactory;
 
 @RunWith(Arquillian.class)
 public class LogJsonTest extends AbstractLoggingInterceptorTests {
@@ -69,14 +71,6 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     }
 
     @Test
-    public void shouldLogJsonEvent() {
-        jsonLog.foo();
-
-        JsonObject json = json(captureMdc("json"));
-        assertEquals("foo", json.getString("event"));
-    }
-
-    @Test
     public void shouldLogJsonTimestamp() {
         LocalDateTime before = LocalDateTime.now();
         jsonLog.foo();
@@ -89,11 +83,37 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     }
 
     @Test
+    public void shouldLogJsonEvent() {
+        jsonLog.foo();
+
+        JsonObject json = json(captureMdc("json"));
+        assertEquals("foo", json.getString("event"));
+    }
+
+    @Test
+    public void shouldLogJsonLogger() {
+        when(LoggerFactory.getLogger(LogJsonTest.class).getName()).thenReturn("logger-name");
+
+        jsonLog.foo();
+
+        JsonObject json = json(captureMdc("json"));
+        assertEquals("logger-name", json.getString("logger"));
+    }
+
+    @Test
     public void shouldLogJsonStringParameter() {
         jsonLog.foo("baz");
 
         JsonObject json = json(captureMdc("json"));
         assertEquals("baz", json.getString("bar"));
+    }
+
+    @Test
+    public void shouldLogJsonNullParameter() {
+        jsonLog.foo((String) null);
+
+        JsonObject json = json(captureMdc("json"));
+        assertEquals(null, json.get("bar"));
     }
 
     @Test

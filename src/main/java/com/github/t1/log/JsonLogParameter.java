@@ -7,7 +7,7 @@ import javax.interceptor.InvocationContext;
 import lombok.Value;
 
 import org.joda.time.LocalDateTime;
-import org.slf4j.MDC;
+import org.slf4j.*;
 
 @Value
 public class JsonLogParameter implements LogParameter {
@@ -16,6 +16,8 @@ public class JsonLogParameter implements LogParameter {
         private final Map<String, Object> map = new HashMap<>();
 
         public void set(String key, Object value) {
+            if (value == null)
+                return;
             map.put(key, value);
         }
 
@@ -72,6 +74,7 @@ public class JsonLogParameter implements LogParameter {
 
     private final List<LogParameter> parameters;
     private final Converters converters;
+    private final Logger logger;
 
     @Override
     public String name() {
@@ -84,6 +87,7 @@ public class JsonLogParameter implements LogParameter {
 
         out.set("timestamp", LocalDateTime.now());
         out.set("event", context.getMethod().getName());
+        out.set("logger", logger.getName());
         addMdc(out);
         addMethodParams(context, out);
 

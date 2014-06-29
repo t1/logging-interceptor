@@ -28,6 +28,7 @@ class LogPointBuilder {
     private final Logged logged;
     private final List<Parameter> rawParams;
 
+    private final Logger logger;
     private final List<LogParameter> logParameters;
     private final LogParameter throwableParameter;
 
@@ -41,6 +42,7 @@ class LogPointBuilder {
         this.logged = Annotations.on(method).getAnnotation(Logged.class);
         this.rawParams = rawParams();
 
+        this.logger = LoggerFactory.getLogger(loggerType());
         this.logParameters = buildParams();
         this.throwableParameter = throwableParam();
     }
@@ -61,7 +63,7 @@ class LogPointBuilder {
             }
         }
         if (logged.json()) {
-            result.add(new JsonLogParameter(result, converters));
+            result.add(new JsonLogParameter(result, converters, logger));
         }
         return Collections.unmodifiableList(result);
     }
@@ -78,6 +80,18 @@ class LogPointBuilder {
         return unmodifiableList(list);
     }
 
+    private Class<?> loggerType() {
+        Class<?> loggerType = logged.logger();
+        if (loggerType == void.class) {
+            // the method is declared in the target type, while context.getTarget() is the CDI proxy
+            loggerType = method.getDeclaringClass();
+            while (loggerType.getEnclosingClass() != null) {
+                loggerType = loggerType.getEnclosingClass();
+            }
+        }
+        return loggerType;
+    }
+
     private LogParameter throwableParam() {
         if (rawParams.isEmpty())
             return null;
@@ -88,7 +102,6 @@ class LogPointBuilder {
     }
 
     public LogPoint build() {
-        Logger logger = LoggerFactory.getLogger(loggerType());
         LogLevel level = resolveLevel();
         String message = parseMessage();
         boolean logResult = method.getReturnType() != void.class;
@@ -131,18 +144,6 @@ class LogPointBuilder {
         if (element instanceof Member)
             return ((Member) element).getDeclaringClass();
         return ((Class<?>) element).getEnclosingClass();
-    }
-
-    private Class<?> loggerType() {
-        Class<?> loggerType = logged.logger();
-        if (loggerType == void.class) {
-            // the method is declared in the target type, while context.getTarget() is the CDI proxy
-            loggerType = method.getDeclaringClass();
-            while (loggerType.getEnclosingClass() != null) {
-                loggerType = loggerType.getEnclosingClass();
-            }
-        }
-        return loggerType;
     }
 
     private String parseMessage() {
