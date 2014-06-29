@@ -43,13 +43,16 @@ class LogPointBuilder {
         this.logged = Annotations.on(method).getAnnotation(Logged.class);
         this.rawParams = rawParams();
 
-        this.logger = LoggerFactory.getLogger(loggerType());
+        this.logger = logger();
         this.level = resolveLevel();
         this.logParameters = buildParams();
         this.throwableParameter = throwableParam();
     }
 
-    private Class<?> loggerType() {
+    private Logger logger() {
+        String loggerString = logged.loggerString();
+        if (!USE_CLASS_LOGGER.equals(loggerString))
+            return LoggerFactory.getLogger(loggerString);
         Class<?> loggerType = logged.logger();
         if (loggerType == void.class) {
             // the method is declared in the target type, while context.getTarget() is the CDI proxy
@@ -58,7 +61,7 @@ class LogPointBuilder {
                 loggerType = loggerType.getEnclosingClass();
             }
         }
-        return loggerType;
+        return LoggerFactory.getLogger(loggerType);
     }
 
     private LogLevel resolveLevel() {

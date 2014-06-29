@@ -22,6 +22,7 @@ import javax.interceptor.InterceptorBinding;
 @Target({ METHOD, TYPE, ANNOTATION_TYPE, PACKAGE })
 @Retention(RUNTIME)
 public @interface Logged {
+    public static final String USE_CLASS_LOGGER = "###USE_CLASS_LOGGER###";
     public static final String CAMEL_CASE_METHOD_NAME = "###CAMEL_CASE_METHOD_NAME###";
 
     /**
@@ -38,9 +39,18 @@ public @interface Logged {
      * nested, inner, local, or anonymous classes are unwrapped).
      * 
      * @see Class#getEnclosingClass() the comment <i>in</i> <code>Class#getEnclosingClass</code>
+     * @see #loggerString()
      */
     @Nonbinding
     public Class<?> logger() default void.class;
+
+    /**
+     * The name of the logger, in case you don't want to use the name of a class. Defaults to {@link #logger()}.
+     * 
+     * @see #logger()
+     */
+    @Nonbinding
+    public String loggerString() default USE_CLASS_LOGGER;
 
     /**
      * The format of the message to log. Defaults to a camel-case-to-space-separated string of the method name with the

@@ -11,7 +11,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.*;
 
 @RunWith(Arquillian.class)
-public class LoggerClassTest extends AbstractLoggingInterceptorTests {
+public class LogLoggerTest extends AbstractLoggingInterceptorTests {
     private Logger logger(Class<?> type) {
         Logger logger = LoggerFactory.getLogger(type);
         givenLogLevel(DEBUG, logger);
@@ -94,7 +94,7 @@ public class LoggerClassTest extends AbstractLoggingInterceptorTests {
 
     @Test
     public void shouldDefaultToContainerOfNestedLoggerClass() {
-        Logger logger = logger(LoggerClassTest.class);
+        Logger logger = logger(LogLoggerTest.class);
 
         nested.implicit();
 
@@ -115,7 +115,7 @@ public class LoggerClassTest extends AbstractLoggingInterceptorTests {
 
     @Test
     public void shouldDefaultToDoubleContainerLoggerClass() {
-        Logger logger = logger(LoggerClassTest.class);
+        Logger logger = logger(LogLoggerTest.class);
 
         inner.foo();
 
@@ -137,6 +137,26 @@ public class LoggerClassTest extends AbstractLoggingInterceptorTests {
         Logger logger = logger(Dollar$Type.class);
 
         dollarLoggerClass.foo();
+
+        verify(logger).debug("foo", NO_ARGS);
+    }
+
+    // ----------------------------------------------------------------------------------
+
+    public static class StringLoggerNameClass {
+        @Logged(loggerString = "some.logger")
+        public void foo() {}
+    }
+
+    @Inject
+    StringLoggerNameClass stringLoggerNameClass;
+
+    @Test
+    public void shouldUseStringLoggerName() {
+        Logger logger = LoggerFactory.getLogger("some.logger");
+        givenLogLevel(DEBUG, logger);
+
+        stringLoggerNameClass.foo();
 
         verify(logger).debug("foo", NO_ARGS);
     }
