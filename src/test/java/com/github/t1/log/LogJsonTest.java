@@ -101,6 +101,14 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     }
 
     @Test
+    public void shouldLogJsonLevel() {
+        jsonLog.foo();
+
+        JsonObject json = json(captureMdc("json"));
+        assertEquals("debug", json.getString("level"));
+    }
+
+    @Test
     public void shouldLogJsonStringParameter() {
         jsonLog.foo("baz");
 

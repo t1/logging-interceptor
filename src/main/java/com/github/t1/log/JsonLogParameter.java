@@ -75,6 +75,7 @@ public class JsonLogParameter implements LogParameter {
     private final List<LogParameter> parameters;
     private final Converters converters;
     private final Logger logger;
+    private final LogLevel level;
 
     @Override
     public String name() {
@@ -88,6 +89,8 @@ public class JsonLogParameter implements LogParameter {
         out.set("timestamp", LocalDateTime.now());
         out.set("event", context.getMethod().getName());
         out.set("logger", logger.getName());
+        out.set("level", level.name().toLowerCase());
+
         addMdc(out);
         addMethodParams(context, out);
 

@@ -29,6 +29,7 @@ class LogPointBuilder {
     private final List<Parameter> rawParams;
 
     private final Logger logger;
+    private final LogLevel level;
     private final List<LogParameter> logParameters;
     private final LogParameter throwableParameter;
 
@@ -43,8 +44,38 @@ class LogPointBuilder {
         this.rawParams = rawParams();
 
         this.logger = LoggerFactory.getLogger(loggerType());
+        this.level = resolveLevel();
         this.logParameters = buildParams();
         this.throwableParameter = throwableParam();
+    }
+
+    private Class<?> loggerType() {
+        Class<?> loggerType = logged.logger();
+        if (loggerType == void.class) {
+            // the method is declared in the target type, while context.getTarget() is the CDI proxy
+            loggerType = method.getDeclaringClass();
+            while (loggerType.getEnclosingClass() != null) {
+                loggerType = loggerType.getEnclosingClass();
+            }
+        }
+        return loggerType;
+    }
+
+    private LogLevel resolveLevel() {
+        return resolveLevel(method);
+    }
+
+    private LogLevel resolveLevel(AnnotatedElement element) {
+        Logged logged = logged(element);
+        if (logged != null) {
+            LogLevel level = logged.level();
+            if (level != _DERIVED_)
+                return level;
+        }
+        Class<?> container = container(element);
+        if (container != null)
+            return resolveLevel(container);
+        return DEBUG;
     }
 
     private List<LogParameter> buildParams() {
@@ -63,7 +94,7 @@ class LogPointBuilder {
             }
         }
         if (logged.json()) {
-            result.add(new JsonLogParameter(result, converters, logger));
+            result.add(new JsonLogParameter(result, converters, logger, level));
         }
         return Collections.unmodifiableList(result);
     }
@@ -80,18 +111,6 @@ class LogPointBuilder {
         return unmodifiableList(list);
     }
 
-    private Class<?> loggerType() {
-        Class<?> loggerType = logged.logger();
-        if (loggerType == void.class) {
-            // the method is declared in the target type, while context.getTarget() is the CDI proxy
-            loggerType = method.getDeclaringClass();
-            while (loggerType.getEnclosingClass() != null) {
-                loggerType = loggerType.getEnclosingClass();
-            }
-        }
-        return loggerType;
-    }
-
     private LogParameter throwableParam() {
         if (rawParams.isEmpty())
             return null;
@@ -102,7 +121,6 @@ class LogPointBuilder {
     }
 
     public LogPoint build() {
-        LogLevel level = resolveLevel();
         String message = parseMessage();
         boolean logResult = method.getReturnType() != void.class;
 
@@ -111,23 +129,6 @@ class LogPointBuilder {
                     logResult, converters);
         }
         return new StandardLogPoint(logger, level, message, logParameters, variables, logResult, converters);
-    }
-
-    private LogLevel resolveLevel() {
-        return resolveLevel(method);
-    }
-
-    private LogLevel resolveLevel(AnnotatedElement element) {
-        Logged logged = logged(element);
-        if (logged != null) {
-            LogLevel level = logged.level();
-            if (level != _DERIVED_)
-                return level;
-        }
-        Class<?> container = container(element);
-        if (container != null)
-            return resolveLevel(container);
-        return DEBUG;
     }
 
     private Logged logged(AnnotatedElement element) {
