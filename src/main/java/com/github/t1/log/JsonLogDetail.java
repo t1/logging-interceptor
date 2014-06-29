@@ -12,6 +12,6 @@ public enum JsonLogDetail {
     PARAMETERS,
     /** log all MDC variables */
     CONTEXT,
-    /** pseudo detail for all other details */
+    /** pseudo detail for all other details, so you can log using json with the log pattern `${json}`. */
     ALL;
 }
