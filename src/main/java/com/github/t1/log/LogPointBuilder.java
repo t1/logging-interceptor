@@ -81,6 +81,22 @@ class LogPointBuilder {
         return DEBUG;
     }
 
+    private Logged logged(AnnotatedElement element) {
+        return annotations(element).getAnnotation(Logged.class);
+    }
+
+    private AnnotatedElement annotations(AnnotatedElement element) {
+        if (element instanceof Method)
+            return Annotations.on((Method) element);
+        return Annotations.on((Class<?>) element);
+    }
+
+    private Class<?> container(AnnotatedElement element) {
+        if (element instanceof Member)
+            return ((Member) element).getDeclaringClass();
+        return ((Class<?>) element).getEnclosingClass();
+    }
+
     private List<LogParameter> buildParams() {
         final List<LogParameter> result = new ArrayList<>();
         if (defaultLogMessage()) {
@@ -133,22 +149,6 @@ class LogPointBuilder {
                     logResult, converters);
         }
         return new StandardLogPoint(logger, level, message, logParameters, variables, logResult, converters);
-    }
-
-    private Logged logged(AnnotatedElement element) {
-        return annotations(element).getAnnotation(Logged.class);
-    }
-
-    private AnnotatedElement annotations(AnnotatedElement element) {
-        if (element instanceof Method)
-            return Annotations.on((Method) element);
-        return Annotations.on((Class<?>) element);
-    }
-
-    private Class<?> container(AnnotatedElement element) {
-        if (element instanceof Member)
-            return ((Member) element).getDeclaringClass();
-        return ((Class<?>) element).getEnclosingClass();
     }
 
     private String parseMessage() {
