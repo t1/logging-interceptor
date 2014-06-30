@@ -55,11 +55,11 @@ public @interface Logged {
     /**
      * The format of the message to log. Defaults to a camel-case-to-space-separated string of the method name with the
      * space separated arguments appended.
-     * <p/>
+     * <p>
      * If you do provide a format, you can either use the slf4j log message format placeholders <code>{}</code>. Or you
      * can use positional indexes (e.g. `{0}`) or parameter names (e.g. `{firstName}`; this requires jdk8 parameter meta
      * data or the normal debug info).
-     * <p/>
+     * <p>
      * And you can use simple expressions, like `person.address.zip`.
      */
     @Nonbinding
