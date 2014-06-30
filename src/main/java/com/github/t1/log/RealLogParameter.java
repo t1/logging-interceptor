@@ -8,9 +8,9 @@ import javax.interceptor.InvocationContext;
 
 class RealLogParameter implements LogParameter {
     private final String logContextVariableName;
+    private final Parameter parameter;
     private final Converters converters;
     private final String expression;
-    private final Parameter parameter;
 
     RealLogParameter(Parameter parameter, Converters converters, String expression) {
         this.parameter = parameter;
@@ -35,11 +35,7 @@ class RealLogParameter implements LogParameter {
     @Override
     public Object value(InvocationContext context) {
         Object object = context.getParameters()[parameter.index()];
-        if (expression != null) {
-            for (String propertyName : expression.split("\\.")) {
-                object = propertyValue(object, propertyName);
-            }
-        }
+        object = evaluateExpressionOn(object);
         return converters.convert(object);
     }
 
@@ -51,6 +47,15 @@ class RealLogParameter implements LogParameter {
                 mdc.put(logContextVariableName, value.toString());
             }
         }
+    }
+
+    protected Object evaluateExpressionOn(Object object) {
+        if (expression != null) {
+            for (String propertyName : expression.split("\\.")) {
+                object = propertyValue(object, propertyName);
+            }
+        }
+        return object;
     }
 
     private Object propertyValue(Object object, String propertyName) {

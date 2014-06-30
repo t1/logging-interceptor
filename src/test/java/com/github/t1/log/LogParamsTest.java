@@ -1,6 +1,7 @@
 package com.github.t1.log;
 
 import static org.mockito.Mockito.*;
+import static org.slf4j.impl.StaticMDCBinder.*;
 
 import javax.inject.Inject;
 
@@ -241,10 +242,11 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     ParamsWithNameClass paramsWithName;
 
     @Test
-    public void shouldNotLogParametersWithInvalidName() {
+    public void shouldNotLogParametersWithInvalidNameWhenNotAnMdc() {
         paramsWithName.withInvalidName("foo");
 
-        verify(log).debug("one={}", new Object[] { "invalid log parameter reference: invalid" });
+        verify(log).debug("one={}",
+                new Object[] { "unset mdc log parameter reference (and not a parameter name): invalid" });
     }
 
     @Test
@@ -280,5 +282,38 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
         paramsWithName.wrappedWithProperty(new Wrapper(new Pojo("foo", "bar")));
 
         verify(log).debug("wrapper.pojo.two={}", new Object[] { "bar" });
+    }
+
+    // ----------------------------------------------------------------------------------
+
+    @SuppressWarnings("unused")
+    public static class ParamsWithMdcNameClass {
+        @Logged("one={one} mdc={mdc-key}")
+        public void withMdcName(String one) {}
+
+        @Logged("mdc={mdc-key.invalid}")
+        public void withMdcNameAndExpression() {}
+    }
+
+    @Inject
+    ParamsWithMdcNameClass paramsWithMdcName;
+
+    @Test
+    public void shouldLogParametersWithNameAndMdcName() {
+        givenMdc("mdc-key", "mdc-value");
+
+        paramsWithMdcName.withMdcName("foo");
+
+        verify(log).debug("one={} mdc={}", new Object[] { "foo", "mdc-value" });
+    }
+
+    @Test
+    public void shouldNotLogMdcParameterWithExpression() {
+        givenMdc("mdc-key", "mdc-value");
+
+        paramsWithMdcName.withMdcNameAndExpression();
+
+        verify(log).debug("mdc={}",
+                new Object[] { "invalid log parameter expression [invalid] for reference [mdc-key]" });
     }
 }

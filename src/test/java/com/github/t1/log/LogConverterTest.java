@@ -68,7 +68,7 @@ public class LogConverterTest extends AbstractLoggingInterceptorTests {
     public static class PojoLogContextClass {
         @SuppressWarnings("unused")
         @Logged
-        public void foo(@LogContext(value = "var") Pojo pojo) {}
+        public void foo(@LogContext("var") Pojo pojo) {}
     }
 
     @Inject

@@ -209,7 +209,10 @@ class LogPointBuilder {
             return logParam(Integer.parseInt(paramRef), expression);
         if (isParameterName(paramRef))
             return logParam(parameterNameIndex(paramRef), expression);
-        return new StaticLogParameter("error", "invalid log parameter reference: " + paramRef);
+        if (expression != null)
+            return new StaticLogParameter("error", "invalid log parameter expression [" + expression
+                    + "] for reference [" + paramRef + "]");
+        return new MdcLogParameter(paramRef);
     }
 
     private LogParameter logParam(int index, String expression) {
