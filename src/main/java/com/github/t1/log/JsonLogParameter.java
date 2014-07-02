@@ -26,16 +26,11 @@ public class JsonLogParameter implements LogParameter {
         public String toString() {
             StringBuilder out = new StringBuilder();
             for (Map.Entry<String, Object> entry : map.entrySet()) {
-                if (out.length() == 0)
-                    out.append("{");
-                else
+                if (out.length() != 0)
                     out.append(",");
                 out.append("\"").append(entry.getKey()).append("\":");
                 appendJson(out, entry.getValue());
             }
-            if (out.length() == 0)
-                out.append("{");
-            out.append("}");
             return out.toString();
         }
 

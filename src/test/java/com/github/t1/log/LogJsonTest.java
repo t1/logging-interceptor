@@ -67,8 +67,9 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     @Inject
     JsonLoggedClass jsonLog;
 
-    private JsonObject json(String captureMdc) {
-        return Json.createReader(new StringReader(captureMdc)).readObject();
+    private JsonObject captureJsonMdc() {
+        String json = "{" + captureMdc("json") + "}";
+        return Json.createReader(new StringReader(json)).readObject();
     }
 
     @Test
@@ -79,7 +80,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
         Thread.sleep(3);
         LocalDateTime after = LocalDateTime.now();
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         LocalDateTime timestamp = LocalDateTime.parse(json.getString("timestamp"));
         assertTrue(timestamp.isAfter(before));
         assertTrue(timestamp.isBefore(after));
@@ -89,7 +90,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     public void shouldLogJsonEvent() {
         jsonLog.foo();
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertEquals("foo", json.getString("event"));
     }
 
@@ -99,7 +100,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
 
         jsonLog.foo();
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertEquals("logger-name", json.getString("logger"));
     }
 
@@ -107,7 +108,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     public void shouldLogJsonLevel() {
         jsonLog.foo();
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertEquals("debug", json.getString("level"));
     }
 
@@ -115,7 +116,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     public void shouldLogJsonStringParameter() {
         jsonLog.foo("baz");
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertEquals("baz", json.getString("bar"));
     }
 
@@ -123,7 +124,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     public void shouldLogJsonNullParameter() {
         jsonLog.foo((String) null);
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertNull(json.get("bar"));
     }
 
@@ -131,7 +132,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     public void shouldEscapeQuoteInJsonStringParameter() {
         jsonLog.foo("a\"b");
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertEquals("a\"b", json.getString("bar"));
     }
 
@@ -139,7 +140,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     public void shouldEscapeReturnInJsonStringParameter() {
         jsonLog.foo("a\rb");
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertEquals("a\rb", json.getString("bar"));
     }
 
@@ -147,7 +148,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     public void shouldEscapeNewlineInJsonStringParameter() {
         jsonLog.foo("a\nb");
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertEquals("a\nb", json.getString("bar"));
     }
 
@@ -155,7 +156,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     public void shouldEscapeBackslashInJsonStringParameter() {
         jsonLog.foo("a\\b");
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertEquals("a\\b", json.getString("bar"));
     }
 
@@ -163,7 +164,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     public void shouldLogJsonBooleanParameter() {
         jsonLog.foo(true);
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertTrue(json.getBoolean("bar"));
     }
 
@@ -171,7 +172,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     public void shouldLogJsonIntegerParameter() {
         jsonLog.foo(123);
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertEquals(123, json.getInt("bar"));
     }
 
@@ -179,7 +180,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     public void shouldLogJsonLongParameter() {
         jsonLog.foo(1235678901234567890L);
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertEquals(1235678901234567890L, json.getJsonNumber("bar").longValueExact());
     }
 
@@ -187,7 +188,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     public void shouldLogJsonDoubleParameter() {
         jsonLog.foo(1234.5678);
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertEquals(1234.5678, json.getJsonNumber("bar").doubleValue(), 0.0);
     }
 
@@ -195,7 +196,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     public void shouldLogJsonBigDecimalParameter() {
         jsonLog.foo(new BigDecimal("1234.56789"));
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertEquals(1234.56789, json.getJsonNumber("bar").doubleValue(), 0.0);
     }
 
@@ -203,7 +204,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     public void shouldLogJsonTwoStringParameters() {
         jsonLog.foo("1", "2");
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertEquals("1", json.getString("one"));
         assertEquals("2", json.getString("two"));
     }
@@ -212,7 +213,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     public void shouldLogJsonToStringPojoParameter() {
         jsonLog.foo(new Pojo("1", "2"));
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertEquals("LogJsonTest.Pojo(one=1, two=2)", json.getString("pojo"));
     }
 
@@ -220,7 +221,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     public void shouldLogJsonConvertablePojoParameter() {
         jsonLog.foo(new ConvertablePojo("1", "2"));
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertEquals("1#2", json.getString("pojo"));
     }
 
@@ -229,7 +230,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
         IllegalStateException exception = new IllegalStateException("bar");
         jsonLog.foo(exception);
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertEquals(exception.toString(), json.getString("exception"));
         assertEquals(Arrays.toString(exception.getStackTrace()), json.getString("exception-stacktrace"));
     }
@@ -240,7 +241,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
 
         jsonLog.foo();
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertEquals("bar", json.getString("foo"));
     }
 
@@ -250,7 +251,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
 
         jsonLog.foo("param-value");
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertEquals("param-value", json.getString("bar"));
     }
 
@@ -270,7 +271,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
 
         jsonEventLog.foo("baz");
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertNull(json.get("bar"));
         assertNull(json.get("mdc-var"));
 
@@ -296,7 +297,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
 
         jsonParamsLog.foo("baz");
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertEquals("baz", json.getString("bar"));
 
         assertNull(json.get("mdc-var"));
@@ -322,7 +323,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
 
         jsonContextLog.foo("baz");
 
-        JsonObject json = json(captureMdc("json"));
+        JsonObject json = captureJsonMdc();
         assertEquals("mdc-value", json.getString("mdc-var"));
 
         assertNull(json.get("bar"));
