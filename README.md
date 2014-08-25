@@ -1,5 +1,7 @@
 # CDI logging-interceptor #
 
+[![Dependency Status](https://www.versioneye.com/user/projects/53fadf7fe09da36f93000607/badge.svg?style=flat)](https://www.versioneye.com/user/projects/53fadf7fe09da36f93000607)
+
 CDI interceptor for logging to slf4j.
 ([Get Latest Version](https://bintray.com/t1/javaee-helpers/logging-interceptor/_latestVersion))
 
