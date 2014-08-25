@@ -1,9 +1,10 @@
 # CDI logging-interceptor #
 
+[ ![Download](https://api.bintray.com/packages/t1/javaee-helpers/logging-interceptor/images/download.png) ](https://bintray.com/t1/javaee-helpers/logging-interceptor/_latestVersion)
+
 [![Dependency Status](https://www.versioneye.com/user/projects/53fadf7fe09da36f93000607/badge.svg?style=flat)](https://www.versioneye.com/user/projects/53fadf7fe09da36f93000607)
 
 CDI interceptor for logging to slf4j.
-([Get Latest Version](https://bintray.com/t1/javaee-helpers/logging-interceptor/_latestVersion))
 
 Logging is the standard example for writing interceptors. Yet, I didn't find a good one, so I wrote my own (and it was fun :)
 
