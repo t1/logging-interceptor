@@ -6,7 +6,7 @@ Logging is the standard example for writing interceptors. Yet, I didn't find a g
 
 There are two main use-cases for logging interceptors:
 
-* Log calls to existing methods: instead of repeating the method name and arguments within the method, simply annotate it. Often called tracing (see [example](#basic-trace)). Note that interceptors are not triggered when you do local calls, so you may need to use the other, more classical logging:
+* Log calls to existing methods: instead of repeating the method name and arguments within the method, simply annotate it. Often called tracing (see [example](#basic-trace)). Note that interceptors are not triggered when you do local calls, so you may need to resort to the other, more classical logging use-case:
 * Instead of using the generic logging api, you can define a pojo that does nothing but log (with the same annotation as above). Makes mocking your unit tests very easy, in case you want to make sure about what logs are written. (see [example](#classic-logging))
 
 ## Features ##
