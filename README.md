@@ -2,7 +2,7 @@
 
 CDI interceptor for logging to slf4j.
 
-Logging is the standard example for writing interceptors. Yet, I didn't find a good one, so I wrote my own (and it was fun :)
+Logging is the standard example for writing interceptors. Yet, I didn't find a good one, so I wrote my own (and it was a lot of fun :)
 
 There are two main use-cases for logging interceptors:
 
