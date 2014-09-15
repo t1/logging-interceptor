@@ -133,7 +133,6 @@ public class JsonLogParameter implements LogParameter {
     }
 
     private void addMdc(JsonBuilder out) {
-        @SuppressWarnings("unchecked")
         Set<String> keys = MDC.getCopyOfContextMap().keySet();
         for (String key : keys) {
             out.set(key, MDC.get(key));
