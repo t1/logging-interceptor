@@ -17,9 +17,10 @@ abstract class LogPoint {
     static class StandardLogPoint extends LogPoint {
         private final String message;
 
-        public StandardLogPoint(Logger logger, LogLevel level, String message, List<LogParameter> parameters,
-                Instance<LogContextVariable> variables, boolean logResult, Converters converters) {
-            super(logger, level, parameters, variables, logResult, converters);
+        public StandardLogPoint(Logger logger, LogLevel level, RepeatController repeatController, String message,
+                List<LogParameter> parameters, Instance<LogContextVariable> variables, boolean logResult,
+                Converters converters) {
+            super(logger, level, repeatController, parameters, variables, logResult, converters);
             this.message = message;
         }
 
@@ -42,10 +43,10 @@ abstract class LogPoint {
         private final List<LogParameter> parameters;
         private final LogParameter throwableParameter;
 
-        public ThrowableLogPoint(Logger logger, LogLevel level, String message, List<LogParameter> parameters,
-                LogParameter throwableParameter, Instance<LogContextVariable> variables, boolean logResult,
-                Converters converters) {
-            super(logger, level, parameters, variables, logResult, converters);
+        public ThrowableLogPoint(Logger logger, LogLevel level, RepeatController repeatController, String message,
+                List<LogParameter> parameters, LogParameter throwableParameter, Instance<LogContextVariable> variables,
+                boolean logResult, Converters converters) {
+            super(logger, level, repeatController, parameters, variables, logResult, converters);
             this.message = message;
             this.parameters = parameters;
             this.throwableParameter = throwableParameter;
@@ -67,6 +68,7 @@ abstract class LogPoint {
 
     protected final Logger logger;
     protected final LogLevel level;
+    protected final RepeatController repeatController;
     protected final List<LogParameter> parameters;
 
     private final Instance<LogContextVariable> variables;
@@ -79,7 +81,7 @@ abstract class LogPoint {
         addParameterLogContexts(context);
         addLogContextVariables();
 
-        if (level.isEnabled(logger)) {
+        if (level.isEnabled(logger) && repeatController.shouldRepeat()) {
             incrementIndentLogContext();
             logCallDo(context);
         }

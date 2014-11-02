@@ -143,12 +143,14 @@ class LogPointBuilder {
     public LogPoint build() {
         String message = parseMessage();
         boolean logResult = method.getReturnType() != void.class;
+        RepeatController repeatController = RepeatController.createFor(logged.repeat());
 
         if (throwableParameter != null) {
-            return new ThrowableLogPoint(logger, level, message, logParameters, throwableParameter, variables,
-                    logResult, converters);
+            return new ThrowableLogPoint(logger, level, repeatController, message, logParameters, throwableParameter,
+                    variables, logResult, converters);
         }
-        return new StandardLogPoint(logger, level, message, logParameters, variables, logResult, converters);
+        return new StandardLogPoint(logger, level, repeatController, message, logParameters, variables, logResult,
+                converters);
     }
 
     private String parseMessage() {
