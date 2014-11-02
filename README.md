@@ -31,6 +31,7 @@ There are two main use-cases for logging interceptors:
   * `PARAMETERS`: the parameters of the method.
   * `CONTEXT`: all MDC variables (like `%X`, but with colons instead of `=` between keys and values).
   * `ALL`: for all of the above, so you can log using json with the log pattern `{%X{json}}`.
+* Set `@Logged#repeat` to limit the number of log repeats, e.g. `ONCE_PER_DAY` will not repeat any calls until 24 hours have passed since the previous call.
 
 ## Examples ##
 
