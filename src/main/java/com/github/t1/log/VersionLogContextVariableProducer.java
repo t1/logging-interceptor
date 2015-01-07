@@ -9,15 +9,14 @@ import java.util.regex.Matcher;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Produces;
-import javax.inject.*;
+import javax.inject.Singleton;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Singleton
 public class VersionLogContextVariableProducer {
-    @Inject
-    private ManifestFinder manifestFinder;
+    private final ManifestFinder manifestFinder = new ManifestFinder();
 
     private String version;
     private String app;
