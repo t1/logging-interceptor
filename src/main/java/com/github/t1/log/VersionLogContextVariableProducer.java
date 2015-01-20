@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @Singleton
 public class VersionLogContextVariableProducer {
     @Inject
+    // Injection is required for unit testing
     private ManifestFinder manifestFinder;
 
     private String version;
