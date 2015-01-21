@@ -1,22 +1,18 @@
 package org.slf4j.impl;
 
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.*;
 
-import org.mockito.*;
+import org.mockito.Mockito;
 import org.slf4j.spi.MDCAdapter;
 
 public class StaticMDCBinder {
     public static final StaticMDCBinder SINGLETON = new StaticMDCBinder();
 
-    public static String captureMdc(String key) {
+    public static void verifyMdc(String key, String value) {
+        verify(mdc()).put(key, value);
         verify(mdc()).remove(key);
-
-        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        verify(mdc()).put(eq(key), captor.capture());
-        return captor.getValue();
     }
 
     private static Map<String, String> map = new HashMap<>();

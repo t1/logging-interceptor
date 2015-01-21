@@ -11,8 +11,13 @@ import lombok.Value;
 import org.joda.time.LocalDateTime;
 import org.slf4j.*;
 
+/**
+ * Produces a JSON string, using other {@link LogArgument}s.
+ * 
+ * @see JsonLogDetail
+ */
 @Value
-public class JsonLogParameter implements LogParameter {
+public class JsonLogArgument implements LogArgument {
     private static class JsonBuilder {
         private final Map<String, Object> map = new HashMap<>();
 
@@ -72,7 +77,7 @@ public class JsonLogParameter implements LogParameter {
     }
 
     private final List<JsonLogDetail> jsonLogDetail;
-    private final List<LogParameter> parameters;
+    private final List<LogArgument> parameters;
     private final Converters converters;
     private final Logger logger;
     private final LogLevel level;
@@ -116,7 +121,7 @@ public class JsonLogParameter implements LogParameter {
     }
 
     private void addMethodParams(InvocationContext context, JsonBuilder out) {
-        for (LogParameter parameter : parameters) {
+        for (LogArgument parameter : parameters) {
             if (this == parameter)
                 continue;
             String name = parameter.name();

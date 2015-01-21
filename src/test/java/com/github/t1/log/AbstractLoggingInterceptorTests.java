@@ -33,6 +33,7 @@ public abstract class AbstractLoggingInterceptorTests {
     protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Before
+    @After
     public void resetMdc() {
         StaticMDCBinder.reset();
     }

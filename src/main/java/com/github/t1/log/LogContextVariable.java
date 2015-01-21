@@ -4,7 +4,7 @@ import lombok.Value;
 import lombok.experimental.Accessors;
 
 /**
- * A variable that can be added to the {@link org.slf4j.MDC}. If a producers returns <code>null</code>, nothing will be
+ * A variable that can be added to the {@link org.slf4j.MDC}. If a producer returns <code>null</code>, nothing will be
  * added.
  */
 @Value

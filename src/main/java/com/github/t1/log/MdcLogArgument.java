@@ -2,15 +2,14 @@ package com.github.t1.log;
 
 import javax.interceptor.InvocationContext;
 
+import lombok.RequiredArgsConstructor;
+
 import org.slf4j.MDC;
 
-public class MdcLogParameter implements LogParameter {
-
+/** Takes a value from the {@link org.slf4j.MDC MDC}. */
+@RequiredArgsConstructor
+public class MdcLogArgument implements LogArgument {
     private final String variableName;
-
-    public MdcLogParameter(String variableName) {
-        this.variableName = variableName;
-    }
 
     @Override
     public String name() {

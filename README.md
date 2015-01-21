@@ -23,7 +23,7 @@ There are two main use-cases for logging interceptors:
 * In addition to the slf4j log message format placeholders, you can use positional indexes (e.g. `{0}`) or parameter names (e.g. `{firstName}`; requires jdk8 parameter meta data or debug info). And you can use simple expressions, like `person.address.zip`.
 * Parameters annotated as `@DontLog` are not logged; very useful for, e.g., passwords.
 * Parameters annotated as `@LogContext` are added to the [MDC](http://slf4j.org/manual.html#mdc) (and cleaned up thereafter). Very handy to add, e.g., the main business reference key to all logs written below.
-* Define producers for `LogContextVariables` for other MDC variables; a producer for the `version` and `app` of the containing jar/ear/war is provided (requires the implementation or specification version in the manifest).
+* Define producers for `LogContextVariable`s for other MDC variables; a producer for the `version` and `app` of the containing jar/ear/war is provided (requires the implementation or specification version in the manifest). As a convenience, you also can just annotate a field as `@LogContext`, so you don't have to package the field into a `LogContextVariable`.
 * Add a MDC variable `indent` to your pattern to visualize the call hierarchy of logged statements.
 * Define converters, to e.g. extract the customer number from a customer object, by implementing `Converter` (see [example](#converter)). Converters for `javax.ws.rs.core.UriInfo` and `javax.ws.rs.core.Response` are provided.
 * Set `@Logged#json` to have some information put into an MDC variable `json`. It's a JSON map without the outer curlies; you'll have to add those to your pattern.

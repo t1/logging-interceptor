@@ -1,42 +1,53 @@
 package com.github.t1.log;
 
-import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.slf4j.impl.StaticMDCBinder.*;
 
-import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
 import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.InOrder;
 
 @RunWith(Arquillian.class)
 public class LogContextTest extends AbstractLoggingInterceptorTests {
-    // ----------------------------------------------------------------------------------
-
     public static class LogContextParameterClass {
         @Logged
         @SuppressWarnings("unused")
         public void methodWithLogContextParameter(@LogContext("var") String one, @Deprecated String two) {}
+
+        @Logged("[{two}]")
+        @SuppressWarnings("unused")
+        public void methodWithLogContextParameterNotInMessage(@LogContext String one, String two) {}
     }
 
     @Inject
     LogContextParameterClass logContextParameterClass;
 
     @Test
-    public void shouldLogContextParameter() {
+    public void shouldSetLogContextParameter() {
         logContextParameterClass.methodWithLogContextParameter("foo", "bar");
 
-        assertEquals("foo", captureMdc("var"));
+        verifyMdc("var", "foo");
+        verify(log).debug("method with log context parameter {} {}", new Object[] { "foo", "bar" });
     }
 
     @Test
-    public void shouldNotLogNullContextParameter() {
+    @Ignore("not yet implemented")
+    public void shouldSetLogContextParameterNotInMessage() {
+        logContextParameterClass.methodWithLogContextParameterNotInMessage("foo", "bar");
+
+        verifyMdc("one", "foo");
+        verify(log).debug("[{}]", new Object[] { "bar" });
+    }
+
+    @Test
+    public void shouldNotSetNullMdcParameter() {
         logContextParameterClass.methodWithLogContextParameter(null, "bar");
 
-        assertEquals("bar", captureMdc("foo"));
+        verify(mdc(), never()).put(eq("var"), anyString());
     }
 
     @Test
@@ -72,38 +83,8 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
     public void shouldLogTwoDifferentContextParameters() {
         twoContextVariables.methodWithLogContextParameter("foo", "bar");
 
-        assertEquals("foo", captureMdc("var1"));
-        assertEquals("bar", captureMdc("var2"));
-    }
-
-    // ----------------------------------------------------------------------------------
-
-    public static class SimpleClass {
-        @Logged
-        public void simple() {}
-    }
-
-    @Inject
-    SimpleClass simple;
-
-    @Produces
-    LogContextVariable fooBarVariable = new LogContextVariable("foo", "bar");
-
-    @Test
-    public void shouldAddLogContextVariable() {
-        simple.simple();
-
-        assertEquals("bar", captureMdc("foo"));
-    }
-
-    @Produces
-    LogContextVariable nullVariable = null;
-
-    @Test
-    public void shouldSkipNullLogContextVariable() {
-        simple.simple();
-
-        // verify not possible... just check that there's no exception
+        verifyMdc("var1", "foo");
+        verifyMdc("var2", "bar");
     }
 
     // ----------------------------------------------------------------------------------
@@ -121,6 +102,38 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
     public void shouldLogContextParameterWithName() {
         logContextParameterVariableClass.methodWithLogContextParameter("foo");
 
-        assertEquals("foo", captureMdc("one"));
+        verifyMdc("one", "foo");
+    }
+
+    // ----------------------------------------------------------------------------------
+
+    public static class LogContextFieldClass {
+        @LogContext
+        String one = "foo";
+
+        @Logged
+        public void methodWithLogContextField() {}
+
+        @Logged("[{one}]")
+        public void methodWithLogContextFieldInMessage() {}
+    }
+
+    @Inject
+    LogContextFieldClass logContextFieldClass;
+
+    @Test
+    public void shouldLogContextField() {
+        logContextFieldClass.methodWithLogContextField();
+
+        verifyMdc("one", "foo");
+    }
+
+    @Test
+    public void shouldLogContextFieldArgument() {
+        when(mdc().get("one")).thenReturn(null, "foo");
+        logContextFieldClass.methodWithLogContextFieldInMessage();
+
+        verifyMdc("one", "foo");
+        verify(log).debug("[{}]", new Object[] { "foo" });
     }
 }

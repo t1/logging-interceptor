@@ -2,36 +2,30 @@ package com.github.t1.log;
 
 import java.util.*;
 
-import javax.enterprise.inject.Instance;
 import javax.interceptor.InvocationContext;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Delegate;
 
-import org.slf4j.Logger;
 import org.slf4j.helpers.MessageFormatter;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 abstract class LogPoint {
     private static final String INDENT = "indent";
 
     static class StandardLogPoint extends LogPoint {
-        private final String message;
-
-        public StandardLogPoint(Logger logger, LogLevel level, RepeatController repeatController, String message,
-                List<LogParameter> parameters, Instance<LogContextVariable> variables, boolean logResult,
-                Converters converters) {
-            super(logger, level, repeatController, parameters, variables, logResult, converters);
-            this.message = message;
+        public StandardLogPoint(LogPointContext context) {
+            super(context);
         }
 
         @Override
         protected void logCallDo(InvocationContext context) {
-            level.log(logger, message, parameterValues(context));
+            level().log(logger(), message(), parameterValues(context));
         }
 
         private Object[] parameterValues(InvocationContext context) {
             List<Object> result = new ArrayList<>();
-            for (LogParameter parameter : parameters) {
+            for (LogArgument parameter : logArguments()) {
                 result.add(parameter.value(context));
             }
             return result.toArray();
@@ -39,67 +33,63 @@ abstract class LogPoint {
     }
 
     static class ThrowableLogPoint extends LogPoint {
-        private final String message;
-        private final List<LogParameter> parameters;
-        private final LogParameter throwableParameter;
+        private final LogArgument throwableParameter;
 
-        public ThrowableLogPoint(Logger logger, LogLevel level, RepeatController repeatController, String message,
-                List<LogParameter> parameters, LogParameter throwableParameter, Instance<LogContextVariable> variables,
-                boolean logResult, Converters converters) {
-            super(logger, level, repeatController, parameters, variables, logResult, converters);
-            this.message = message;
-            this.parameters = parameters;
+        public ThrowableLogPoint(LogPointContext context, LogArgument throwableParameter) {
+            super(context);
             this.throwableParameter = throwableParameter;
         }
 
         @Override
-        protected void logCallDo(InvocationContext context) {
-            level.log(logger, message(context), (Throwable) throwableParameter.value(context));
+        protected void logCallDo(InvocationContext invocation) {
+            level().log(logger(), message(invocation), (Throwable) throwableParameter.value(invocation));
         }
 
         private String message(InvocationContext context) {
             List<Object> result = new ArrayList<>();
-            for (LogParameter parameter : parameters) {
+            for (LogArgument parameter : logArguments()) {
                 result.add(parameter.value(context));
             }
-            return MessageFormatter.arrayFormat(message, result.toArray()).getMessage();
+            return MessageFormatter.arrayFormat(message(), result.toArray()).getMessage();
         }
     }
 
-    protected final Logger logger;
-    protected final LogLevel level;
-    protected final RepeatController repeatController;
-    protected final List<LogParameter> parameters;
-
-    private final Instance<LogContextVariable> variables;
-    private final boolean logResult;
-    private final Converters converters;
-
+    @Delegate
+    private final LogPointContext context;
     private final RestorableMdc mdc = new RestorableMdc();
 
-    public void logCall(InvocationContext context) {
-        addParameterLogContexts(context);
+    public void logCall(InvocationContext invocationContext) {
         addLogContextVariables();
+        addFieldLogContextVariables(invocationContext);
+        addParameterLogContexts(invocationContext);
 
-        if (level.isEnabled(logger) && repeatController.shouldRepeat()) {
+        if (level().isEnabled(logger()) && repeatController().shouldRepeat()) {
             incrementIndentLogContext();
-            logCallDo(context);
-        }
-    }
-
-    private void addParameterLogContexts(InvocationContext context) {
-        for (LogParameter parameter : parameters) {
-            parameter.set(mdc, context);
+            logCallDo(invocationContext);
         }
     }
 
     private void addLogContextVariables() {
-        for (LogContextVariable variable : variables) {
+        for (LogContextVariable variable : logContextVariablesProducer()) {
             if (variable == null) // producers are allowed to return null
                 continue;
             String key = variable.key();
             String value = variable.value();
             mdc.put(key, value);
+        }
+    }
+
+    private void addFieldLogContextVariables(InvocationContext invocationContext) {
+        for (FieldLogVariableProducer field : fieldLogContexts()) {
+            String name = field.name();
+            String value = field.value(invocationContext);
+            mdc.put(name, value);
+        }
+    }
+
+    private void addParameterLogContexts(InvocationContext context) {
+        for (LogArgument parameter : logArguments()) {
+            parameter.set(mdc, context);
         }
     }
 
@@ -120,13 +110,13 @@ abstract class LogPoint {
     protected abstract void logCallDo(InvocationContext context);
 
     public void logResult(Object result) {
-        if (logResult) {
-            level.log(logger, "return {}", converters.convert(result));
+        if (logResult()) {
+            level().log(logger(), "return {}", converters().convert(result));
         }
     }
 
     public void logException(Exception e) {
-        level.log(logger, "failed with {}", toString(e));
+        level().log(logger(), "failed with {}", toString(e));
     }
 
     private String toString(Exception e) {

@@ -97,7 +97,7 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     DontLogClass dontLogClass;
 
     @Test
-    public void shouldNotLogParametersAnnotatedAsDontLog() {
+    public void shouldNotLogArgumentsAnnotatedAsDontLog() {
         dontLogClass.foo("foo", "bar");
 
         verify(log).debug("foo {}", new Object[] { "bar" });
@@ -157,35 +157,35 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     ParamsWithIndexClass paramsWithIndex;
 
     @Test
-    public void shouldLogParametersWithIndex() {
+    public void shouldLogArgumentsWithIndex() {
         paramsWithIndex.withIndex("foo", "bar");
 
         verify(log).debug("one={}, two={}", new Object[] { "foo", "bar" });
     }
 
     @Test
-    public void shouldLogParametersWithInvertedIndex() {
+    public void shouldLogArgumentsWithInvertedIndex() {
         paramsWithIndex.withInvertedIndex("foo", "bar");
 
         verify(log).debug("two={}, one={}", new Object[] { "bar", "foo" });
     }
 
     @Test
-    public void shouldLogParametersWithRepeatedIndex() {
+    public void shouldLogArgumentsWithRepeatedIndex() {
         paramsWithIndex.withRepeatedIndex("foo", "bar");
 
         verify(log).debug("one={}, again={}", new Object[] { "foo", "foo" });
     }
 
     @Test
-    public void shouldFailToLogParametersWithInvalidIndex() {
+    public void shouldFailToLogArgumentsWithInvalidIndex() {
         paramsWithIndex.withInvalidIndex("foo", "bar");
 
         verify(log).debug("one={}", new Object[] { "invalid log parameter index: 2" });
     }
 
     @Test
-    public void shouldFailToLogParametersWithNegativeIndex() {
+    public void shouldFailToLogArgumentsWithNegativeIndex() {
         paramsWithIndex.withNegativeIndex("foo");
 
         verify(log).debug("one={}", new Object[] { "invalid log parameter index: -1" });
@@ -242,7 +242,7 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     ParamsWithNameClass paramsWithName;
 
     @Test
-    public void shouldNotLogParametersWithInvalidNameWhenNotAnMdc() {
+    public void shouldNotLogArgumentsWithInvalidNameWhenNotAnMdc() {
         paramsWithName.withInvalidName("foo");
 
         verify(log).debug("one={}",
@@ -250,7 +250,7 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     }
 
     @Test
-    public void shouldLogParametersWithValidName() {
+    public void shouldLogArgumentsWithValidName() {
         paramsWithName.withValidName("foo");
 
         verify(log).debug("one={}", new Object[] { "foo" });
@@ -299,7 +299,7 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     ParamsWithMdcNameClass paramsWithMdcName;
 
     @Test
-    public void shouldLogParametersWithNameAndMdcName() {
+    public void shouldLogArgumentsWithNameAndMdcName() {
         givenMdc("mdc-key", "mdc-value");
 
         paramsWithMdcName.withMdcName("foo");

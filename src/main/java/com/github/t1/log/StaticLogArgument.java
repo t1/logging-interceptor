@@ -5,8 +5,7 @@ import javax.interceptor.InvocationContext;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
-public class StaticLogParameter implements LogParameter {
-
+public class StaticLogArgument implements LogArgument {
     private final String name;
     private final String value;
 

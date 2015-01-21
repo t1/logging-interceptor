@@ -2,6 +2,7 @@ package com.github.t1.log;
 
 import static com.github.t1.log.JsonLogDetail.*;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.slf4j.impl.StaticMDCBinder.*;
 
@@ -18,6 +19,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.joda.time.LocalDateTime;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.slf4j.LoggerFactory;
 
 @RunWith(Arquillian.class)
@@ -70,6 +72,16 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     private JsonObject captureJsonMdc() {
         String json = "{" + captureMdc("json") + "}";
         return Json.createReader(new StringReader(json)).readObject();
+    }
+
+    private static String captureMdc(String key) {
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+        verify(mdc()).put(eq(key), captor.capture());
+        String value = captor.getValue();
+
+        verify(mdc()).remove(key);
+
+        return value;
     }
 
     @Test
@@ -246,7 +258,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     }
 
     @Test
-    public void shouldOverrideMdcVariableWithLogParameter() {
+    public void shouldOverrideMdcVariableWithLogArgument() {
         givenMdc("bar", "mdc-value");
 
         jsonLog.foo("param-value");

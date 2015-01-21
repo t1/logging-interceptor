@@ -6,13 +6,14 @@ import java.lang.reflect.Method;
 
 import javax.interceptor.InvocationContext;
 
-class RealLogParameter implements LogParameter {
+/** This is the normal case, reading the value from the method parameter. */
+class ParameterLogArgument implements LogArgument {
     private final String logContextVariableName;
     private final Parameter parameter;
     private final Converters converters;
     private final String expression;
 
-    RealLogParameter(Parameter parameter, Converters converters, String expression) {
+    ParameterLogArgument(Parameter parameter, Converters converters, String expression) {
         this.parameter = parameter;
         this.converters = converters;
         this.expression = expression;
