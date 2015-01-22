@@ -2,21 +2,19 @@ package com.github.t1.log;
 
 import static com.github.t1.log.LogContext.*;
 
-import java.lang.reflect.Method;
-
 import javax.interceptor.InvocationContext;
 
 /** This is the normal case, reading the value from the method parameter. */
-class ParameterLogArgument implements LogArgument {
+class ParameterLogArgument extends ExpressionLogArgument {
     private final String logContextVariableName;
     private final Parameter parameter;
     private final Converters converters;
-    private final String expression;
 
     ParameterLogArgument(Parameter parameter, Converters converters, String expression) {
+        super(expression);
+
         this.parameter = parameter;
         this.converters = converters;
-        this.expression = expression;
 
         this.logContextVariableName = logContextVariableName();
     }
@@ -48,28 +46,5 @@ class ParameterLogArgument implements LogArgument {
                 mdc.put(logContextVariableName, value.toString());
             }
         }
-    }
-
-    protected Object evaluateExpressionOn(Object object) {
-        if (expression != null) {
-            for (String propertyName : expression.split("\\.")) {
-                object = propertyValue(object, propertyName);
-            }
-        }
-        return object;
-    }
-
-    private Object propertyValue(Object object, String propertyName) {
-        String getterName = "get" + initCap(propertyName);
-        try {
-            Method method = object.getClass().getMethod(getterName);
-            return method.invoke(object);
-        } catch (ReflectiveOperationException e) {
-            return "can't get " + propertyName;
-        }
-    }
-
-    private String initCap(String string) {
-        return Character.toUpperCase(string.charAt(0)) + string.substring(1);
     }
 }
