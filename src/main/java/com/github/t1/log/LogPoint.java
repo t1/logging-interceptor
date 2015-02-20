@@ -13,6 +13,27 @@ import org.slf4j.helpers.MessageFormatter;
 abstract class LogPoint {
     private static final String INDENT = "indent";
 
+    static class NullLogPoint extends LogPoint {
+        public NullLogPoint(LogPointContext context) {
+            super(context);
+        }
+
+        @Override
+        protected void logCallDo(InvocationContext context) {}
+
+        @Override
+        public void logCall(InvocationContext invocationContext) {}
+
+        @Override
+        public void logResult(Object result) {}
+
+        @Override
+        public void logException(Exception e) {}
+
+        @Override
+        public void done() {}
+    }
+
     static class StandardLogPoint extends LogPoint {
         public StandardLogPoint(LogPointContext context) {
             super(context);

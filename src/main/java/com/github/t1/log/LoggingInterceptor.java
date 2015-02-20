@@ -12,6 +12,8 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.interceptor.*;
 
+import com.github.t1.stereotypes.Annotations;
+
 @Logged
 @Dependent
 @Interceptor
@@ -45,7 +47,13 @@ public class LoggingInterceptor {
     private LogPoint logPoint(Method method) {
         LogPoint logPoint = CACHE.get(method);
         if (logPoint == null) {
-            logPoint = new LogPointBuilder(method, variables, converters).build();
+            try {
+                Logged logged = Annotations.on(method).getAnnotation(Logged.class);
+                LogPointContext context = new LogPointContext(variables, converters);
+                logPoint = new LogPointBuilder(method, logged, context).build();
+            } catch (RuntimeException e) {
+                throw new RuntimeException("can't build log point for " + method, e);
+            }
             CACHE.put(method, logPoint);
         }
         return logPoint;

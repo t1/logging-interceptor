@@ -160,6 +160,34 @@ public class LogLoggerTest extends AbstractLoggingInterceptorTests {
 
         verify(logger).debug("foo", NO_ARGS);
     }
+
+    // ----------------------------------------------------------------------------------
+
+    public static class SuperNonLoggedClass {
+        public void foo() {}
+    }
+
+    @Logged
+    public static class SubLoggedClass extends SuperNonLoggedClass {
+        public void bar() {}
+    }
+
+    @Inject
+    SubLoggedClass subLoggedClass;
+
+    @Test
+    public void shouldLogInheritedMethod() {
+        Logger logger = logger(LogLoggerTest.class);
+        givenLogLevel(DEBUG, logger);
+
+        subLoggedClass.foo();
+
+        verify(logger, never()).debug("foo", NO_ARGS);
+
+        subLoggedClass.bar();
+
+        verify(logger).debug("bar", NO_ARGS);
+    }
 }
 
 class Dollar$Type {

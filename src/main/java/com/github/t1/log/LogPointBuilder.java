@@ -9,12 +9,11 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.regex.*;
 
-import javax.enterprise.inject.Instance;
-
 import lombok.experimental.Delegate;
 
 import org.slf4j.*;
 
+import com.github.t1.log.LogPoint.NullLogPoint;
 import com.github.t1.log.LogPoint.StandardLogPoint;
 import com.github.t1.log.LogPoint.ThrowableLogPoint;
 import com.github.t1.stereotypes.Annotations;
@@ -25,19 +24,26 @@ class LogPointBuilder {
 
     private final Method method;
     private final Logged logged;
-    private final List<Parameter> rawParams;
 
     @Delegate
     private final LogPointContext context;
-    private final LogArgument throwableParameter;
+
+    private LogArgument throwableParameter;
+    private List<Parameter> rawParams;
 
     private int defaultIndex = 0;
 
-    public LogPointBuilder(Method method, Instance<LogContextVariable> logContextVariableProducer, Converters converters) {
+    public LogPointBuilder(Method method, Logged logged, LogPointContext context) {
         this.method = method;
-        this.logged = Annotations.on(method).getAnnotation(Logged.class);
+        this.logged = logged;
+        this.context = context;
+    }
+
+    public LogPoint build() {
+        if (logged == null)
+            return new NullLogPoint(context);
+
         this.rawParams = rawParams();
-        this.context = new LogPointContext(logContextVariableProducer, converters);
         this.throwableParameter = throwableParam();
 
         this.context //
@@ -49,6 +55,10 @@ class LogPointBuilder {
                 .logResult(method.getReturnType() != void.class) //
                 .repeatController(RepeatController.createFor(logged.repeat())) //
         ;
+
+        if (throwableParameter != null)
+            return new ThrowableLogPoint(context, throwableParameter);
+        return new StandardLogPoint(context);
     }
 
     private List<Parameter> rawParams() {
@@ -246,11 +256,5 @@ class LogPointBuilder {
         }
         matcher.appendTail(out);
         return out.toString();
-    }
-
-    public LogPoint build() {
-        if (throwableParameter != null)
-            return new ThrowableLogPoint(context, throwableParameter);
-        return new StandardLogPoint(context);
     }
 }
