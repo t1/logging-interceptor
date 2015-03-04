@@ -152,12 +152,6 @@ Enabling interceptors from a library jar is a bit tricky in CDI 1.0. If you'd ju
 						<type>jar</type>
 						<targetPath>WEB-INF/classes</targetPath>
 					</overlay>
-					<overlay>
-						<groupId>com.github.t1</groupId>
-						<artifactId>stereotype-helper</artifactId>
-						<type>jar</type>
-						<targetPath>WEB-INF/classes</targetPath>
-					</overlay>
 				</overlays>
 			</configuration>
 		</plugin>
@@ -168,11 +162,6 @@ Enabling interceptors from a library jar is a bit tricky in CDI 1.0. If you'd ju
 	<dependency>
 		<groupId>com.github.t1</groupId>
 		<artifactId>logging-interceptor</artifactId>
-		<optional>true</optional>
-	</dependency>
-	<dependency>
-		<groupId>com.github.t1</groupId>
-		<artifactId>stereotype-helper</artifactId>
 		<optional>true</optional>
 	</dependency>
 </dependencies>
