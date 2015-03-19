@@ -119,7 +119,7 @@ public class ResponseLogConverter implements Converter {
 
 ## Download ##
 
-Add [Bintray](https://bintray.com/t1/javaee-helpers/logging-interceptor) to your `settings.xml` (see the `Set me up!` buton) and this Maven dependency to your `pom.xml`:
+Add [Bintray](https://bintray.com/t1/javaee-helpers/logging-interceptor) to your `settings.xml` (see the `Set me up!` button) and this Maven dependency to your `pom.xml`:
 
 ```
 <dependency>
@@ -167,7 +167,7 @@ Enabling interceptors from a library jar is a bit tricky in CDI 1.0. If you'd ju
 </dependencies>
 ```
 
-Then you can activate the interceptor in the application's `breans.xml`:
+Then you can activate the interceptor in the application's `beans.xml`:
 
 ```xml
 <beans xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
