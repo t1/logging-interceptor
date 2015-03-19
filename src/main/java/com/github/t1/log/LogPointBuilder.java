@@ -52,7 +52,7 @@ class LogPointBuilder {
                 .fieldLogContexts(buildFieldLogContextVariables()) //
                 .logArguments(buildLogArguments()) //
                 .message(parseMessage()) //
-                .logResult(method.getReturnType() != void.class) //
+                .shouldLogResult(method.getReturnType() != void.class) //
                 .repeatController(RepeatController.createFor(logged.repeat())) //
         ;
 

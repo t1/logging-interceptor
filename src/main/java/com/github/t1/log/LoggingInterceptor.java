@@ -33,8 +33,15 @@ public class LoggingInterceptor {
         logPoint.logCall(context);
 
         try {
-            Object result = context.proceed();
-            logPoint.logResult(result);
+            Object result;
+            long t0 = System.currentTimeMillis();
+            long t1;
+            try {
+                result = context.proceed();
+            } finally {
+                t1 = System.currentTimeMillis();
+            }
+            logPoint.logResult(result, t1 - t0);
             return result;
         } catch (Exception e) {
             logPoint.logException(e);

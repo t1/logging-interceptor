@@ -16,8 +16,6 @@ import javax.interceptor.InterceptorBinding;
  * {@link #value() message}.
  * <p>
  * Note that an interceptor is not called, when you call a method locally (not to mention calling a private method)
- * <p>
- * TODO find out and document how to call through the interceptor stack on self
  */
 @InterceptorBinding
 @Target({ METHOD, TYPE, ANNOTATION_TYPE, PACKAGE })

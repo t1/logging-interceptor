@@ -1,5 +1,6 @@
 package com.github.t1.log;
 
+import static com.github.t1.log.LogMethodTest.*;
 import static org.mockito.Mockito.*;
 import static org.slf4j.impl.StaticMDCBinder.*;
 
@@ -61,7 +62,9 @@ public class LogConverterTest extends AbstractLoggingInterceptorTests {
     public void shouldConvertReturnValue() {
         pojoReturn.foo();
 
-        verify(log).debug("return {}", new Object[] { "foo#bar" });
+        verify(log).debug("foo", new Object[] {}); // consume for better mockito error messages
+
+        verifyLoggedResult(log, "return {} [time:{}]", "foo#bar");
     }
 
     // ----------------------------------------------------------------------------------

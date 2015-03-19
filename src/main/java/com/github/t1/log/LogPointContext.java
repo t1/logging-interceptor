@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 class LogPointContext {
-    private final Instance<LogContextVariable> logContextVariablesProducer;
+    private final Instance<LogContextVariable> logContextVariables;
     private final Converters converters;
 
     private Logger logger;
@@ -23,6 +23,6 @@ class LogPointContext {
     private List<LogArgument> logArguments;
     private List<FieldLogVariableProducer> fieldLogContexts;
 
-    private boolean logResult;
+    private boolean shouldLogResult;
     private RepeatController repeatController;
 }

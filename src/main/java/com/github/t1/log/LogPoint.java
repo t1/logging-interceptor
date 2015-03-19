@@ -25,7 +25,7 @@ abstract class LogPoint {
         public void logCall(InvocationContext invocationContext) {}
 
         @Override
-        public void logResult(Object result) {}
+        public void logResult(Object result, long time) {}
 
         @Override
         public void logException(Exception e) {}
@@ -91,7 +91,7 @@ abstract class LogPoint {
     }
 
     private void addLogContextVariables() {
-        for (LogContextVariable variable : logContextVariablesProducer()) {
+        for (LogContextVariable variable : logContextVariables()) {
             if (variable == null) // producers are allowed to return null
                 continue;
             String key = variable.key();
@@ -130,9 +130,9 @@ abstract class LogPoint {
 
     protected abstract void logCallDo(InvocationContext context);
 
-    public void logResult(Object result) {
-        if (logResult()) {
-            level().log(logger(), "return {}", converters().convert(result));
+    public void logResult(Object result, long time) {
+        if (shouldLogResult()) {
+            level().log(logger(), "return {} [time:{}]", converters().convert(result), time);
         }
     }
 
