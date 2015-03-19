@@ -28,7 +28,7 @@ abstract class LogPoint {
         public void logResult(Object result, long time) {}
 
         @Override
-        public void logException(Exception e) {}
+        public void logException(Exception e, long time) {}
 
         @Override
         public void done() {}
@@ -136,8 +136,8 @@ abstract class LogPoint {
         }
     }
 
-    public void logException(Exception e) {
-        level().log(logger(), "failed with {}", toString(e));
+    public void logException(Exception e, long time) {
+        level().log(logger(), "failed with {} [time:{}]", toString(e), time);
     }
 
     private String toString(Exception e) {

@@ -1,6 +1,7 @@
 package com.github.t1.log;
 
 import static com.github.t1.log.LogLevel.*;
+import static com.github.t1.log.LogMethodTest.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -37,6 +38,10 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
     @Inject
     ThrowingClass throwing;
 
+    private void verifyFailureLogged(String exceptionName) {
+        verifyLoggedResult(log, "failed with {} [time:{}]", exceptionName);
+    }
+
     @Test
     public void shouldLogThrownExeptionWithoutMessage() {
         try {
@@ -45,7 +50,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
         } catch (RuntimeException e) {}
 
         verify(log).debug("throw runtime exeption without message", NO_ARGS);
-        verify(log).debug("failed with {}", new Object[] { "RuntimeException" });
+        verifyFailureLogged("RuntimeException");
     }
 
     @Test
@@ -56,7 +61,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
         } catch (RuntimeException e) {}
 
         verify(log).debug("throw runtime exeption with message", NO_ARGS);
-        verify(log).debug("failed with {}", new Object[] { "RuntimeException(bar)" });
+        verifyFailureLogged("RuntimeException(bar)");
     }
 
     @Test
@@ -67,7 +72,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
         } catch (RuntimeException e) {}
 
         verify(log).debug("throw runtime exeption with causing npe", NO_ARGS);
-        verify(log).debug("failed with {}", new Object[] { "RuntimeException(foo) -> NullPointerException(bar)" });
+        verifyFailureLogged("RuntimeException(foo) -> NullPointerException(bar)");
     }
 
     @Test
@@ -78,9 +83,9 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
         } catch (RuntimeException e) {}
 
         verify(log).debug("throw runtime exeption with causing illegal argument and causing npe", NO_ARGS);
-        verify(log).debug("failed with {}", new Object[] { "RuntimeException(foo)" //
+        verifyFailureLogged("RuntimeException(foo)" //
                 + " -> IllegalArgumentException(bar)" //
-                + " -> NullPointerException(baz)" });
+                + " -> NullPointerException(baz)");
     }
 
     // ----------------------------------------------------------------------------------

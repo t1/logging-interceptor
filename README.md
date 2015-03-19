@@ -12,7 +12,7 @@ There are two main use-cases for logging interceptors:
 ## Features ##
 
 * Logs to [slf4j](http://slf4j.org) (and you can go to any logging framework from there).
-* Annotate methods as `@Logged` to log the call and eventually return value or exceptions thrown.
+* Annotate methods as `@Logged` to log the call and eventually return value or exceptions thrown (both including time).
 * Annotate a class to have all managed methods within logged (see [examples](#examples)).
 * Annotate a CDI `@Stereotype` and have all managed methods logged.
 * Define the log level in the `@Logged` annotation; if you don't specify one, it's derived from the recursively containing type or package (i.e. you can annotate your `package-info.java` and inherit the log level from there; this doesn't work for the interception itself, as CDI doesn't support that) or finally `DEBUG`.
