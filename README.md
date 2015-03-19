@@ -177,3 +177,7 @@ Then you can activate the interceptor in the application's `breans.xml`:
 	</interceptors>
 </beans>
 ```
+
+# License
+
+Licensed under [Apache License 2.0](http://www.spdx.org/licenses/Apache-2.0)
