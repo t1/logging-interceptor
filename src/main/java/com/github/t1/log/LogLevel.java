@@ -10,14 +10,10 @@ public enum LogLevel {
         }
 
         @Override
-        public void log(Logger logger, String message, Object... args) {
-            throw new UnsupportedOperationException();
-        }
+        public void log(Logger logger, String message, Object... args) {}
 
         @Override
-        public void log(Logger logger, String message, Throwable throwable) {
-            throw new UnsupportedOperationException();
-        }
+        public void log(Logger logger, String message, Throwable throwable) {}
     },
     TRACE {
         @Override
