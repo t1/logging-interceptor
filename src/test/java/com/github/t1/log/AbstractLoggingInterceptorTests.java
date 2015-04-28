@@ -57,6 +57,7 @@ public abstract class AbstractLoggingInterceptorTests {
         switch (level) {
             case _DERIVED_:
                 throw new IllegalArgumentException("unsupported log level");
+            case ALL:
             case TRACE:
                 when(log.isTraceEnabled()).thenReturn(true);
             case DEBUG:

@@ -3,17 +3,22 @@ package com.github.t1.log;
 import org.slf4j.Logger;
 
 public enum LogLevel {
-    OFF {
+    /** effectively a synonym for {@link #TRACE} */
+    ALL {
         @Override
         public boolean isEnabled(Logger logger) {
-            return false;
+            return true;
         }
 
         @Override
-        public void log(Logger logger, String message, Object... args) {}
+        public void log(Logger logger, String message, Object... args) {
+            logger.trace(message, args);
+        }
 
         @Override
-        public void log(Logger logger, String message, Throwable throwable) {}
+        public void log(Logger logger, String message, Throwable throwable) {
+            logger.trace(message, throwable);
+        }
     },
     TRACE {
         @Override
@@ -94,6 +99,18 @@ public enum LogLevel {
         public void log(Logger logger, String message, Throwable throwable) {
             logger.error(message, throwable);
         }
+    },
+    OFF {
+        @Override
+        public boolean isEnabled(Logger logger) {
+            return false;
+        }
+
+        @Override
+        public void log(Logger logger, String message, Object... args) {}
+
+        @Override
+        public void log(Logger logger, String message, Throwable throwable) {}
     },
     /** This log level is only for the default of Logged#level(). The actual default is {@link #DEBUG}. */
     _DERIVED_ {

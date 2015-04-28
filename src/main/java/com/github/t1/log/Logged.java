@@ -1,7 +1,6 @@
 package com.github.t1.log;
 
 import static com.github.t1.log.LogLevel.*;
-import static com.github.t1.log.LogRepeatLimit.*;
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
 
@@ -76,5 +75,5 @@ public @interface Logged {
      * Some log messages don't have to be repeated over and over again. E.g. some warnings are only interesting once.
      */
     @Nonbinding
-    public LogRepeatLimit repeat() default ALL;
+    public LogRepeatLimit repeat() default LogRepeatLimit.ALL;
 }
