@@ -16,18 +16,15 @@ public abstract class AbstractLoggingInterceptorTests {
 
     private static final String BEANS_XML = "" //
             + "<beans>\n" //
-            + "    <interceptors>\n" //
-            + "        <class>com.github.t1.log.LoggingInterceptor</class>\n" //
-            + "    </interceptors>\n" //
             + "</beans>" //
-    ;
+            ;
 
     @Deployment
     public static JavaArchive loggingInterceptorDeployment() {
         return ShrinkWrap.create(JavaArchive.class) //
                 .addPackage(LoggingInterceptor.class.getPackage()) //
                 .addAsManifestResource(new StringAsset(BEANS_XML), "beans.xml") //
-        ;
+                ;
     }
 
     protected final Logger log = LoggerFactory.getLogger(this.getClass());

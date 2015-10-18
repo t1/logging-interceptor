@@ -2,14 +2,14 @@ package com.github.t1.log;
 
 import static com.github.t1.log.JsonLogDetail.*;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 import javax.interceptor.InvocationContext;
 
-import lombok.Value;
-
-import org.joda.time.LocalDateTime;
 import org.slf4j.*;
+
+import lombok.Value;
 
 /**
  * Produces a JSON string, using other {@link LogArgument}s.

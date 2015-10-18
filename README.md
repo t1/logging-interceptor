@@ -1,4 +1,4 @@
-# CDI logging-interceptor [ ![Download](https://api.bintray.com/packages/t1/javaee-helpers/logging-interceptor/images/download.png) ](https://bintray.com/t1/javaee-helpers/logging-interceptor/_latestVersion) [![Dependency Status](https://www.versioneye.com/user/projects/53fadf7fe09da36f93000607/badge.svg?style=flat)](https://www.versioneye.com/user/projects/53fadf7fe09da36f93000607)
+# CDI logging-interceptor [ ![Download](https://api.bintray.com/packages/t1/javaee-helpers/logging-interceptor/images/download.png) ](https://bintray.com/t1/javaee-helpers/logging-interceptor/_latestVersion)
 
 [![Join the chat at https://gitter.im/t1/logging-interceptor](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/t1/logging-interceptor?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
@@ -10,6 +10,15 @@ There are two main use-cases for logging interceptors:
 
 * Log calls to existing methods: instead of repeating the method name and arguments within the method, simply annotate it. Often called tracing (see [example](#basic-trace)). Note that interceptors are not triggered when you do local calls, so you may need to resort to the other, more classical logging use-case:
 * Instead of using the generic logging api, you can define a pojo that does nothing but log (with the same annotation as above). Makes mocking your unit tests very easy, in case you want to make sure about what logs are written. (see [example](#classic-logging))
+
+## News ##
+
+### Version 3.0.0 ###
+
+We use [semantic versioning](http://semver.org). tl;dr: versions consist of three parts with a semantic: The Bad (major, breaking changes), the Good (minor, new features), the Ugly (micro/patch, bugfixes).
+
+So going to 3.0.0 is Bad, as it may break existing applications. But sometimes Bad things are necessary. Here we need it to get to Java 8 and replace esp. Joda-Date (BTW: big cudos to that project).
+
 
 ## Features ##
 

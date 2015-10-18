@@ -8,19 +8,19 @@ import static org.slf4j.impl.StaticMDCBinder.*;
 
 import java.io.StringReader;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 
 import javax.inject.Inject;
 import javax.json.*;
 
-import lombok.Value;
-
 import org.jboss.arquillian.junit.Arquillian;
-import org.joda.time.LocalDateTime;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.slf4j.LoggerFactory;
+
+import lombok.Value;
 
 @RunWith(Arquillian.class)
 public class LogJsonTest extends AbstractLoggingInterceptorTests {

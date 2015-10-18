@@ -131,6 +131,7 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
     @Test
     public void shouldLogContextFieldArgument() {
         when(mdc().get("one")).thenReturn(null, "foo");
+
         logContextFieldClass.methodWithLogContextFieldInMessage();
 
         verifyMdc("one", "foo");
