@@ -7,22 +7,9 @@ import javassist.*;
 import javassist.bytecode.*;
 import lombok.extern.slf4j.Slf4j;
 
-/** a precursor to JDK 1.8 java.lang.Parameter */
+/** provide parameter information from {@link java.lang.Parameter jdk8} or debug information. */
 @Slf4j
 class Parameter {
-    private static final Method isNamePresent = jdk8ParameterMethod("isNamePresent");
-    private static final Method getName = jdk8ParameterMethod("getName");
-
-    private static Method jdk8ParameterMethod(String name) {
-        try {
-            Class<?> parameterClass = Class.forName("java.lang.reflect.Parameter");
-            return parameterClass.getMethod(name);
-        } catch (ClassNotFoundException | NoSuchMethodException e) {
-            log.debug("can't access jdk8 Parameter class: " + e);
-            return null;
-        }
-    }
-
     private final Method method;
     private final int index;
 
@@ -70,11 +57,9 @@ class Parameter {
     }
 
     private void initName() {
-        if (isJdk8()) {
-            log.debug("is jdk8; try to get parameter info");
-            name = getJdk8ParameterName();
-            log.debug("got parameter info: {}", name);
-        }
+        name = getJdk8ParameterName();
+        log.debug("got jdk8 parameter name: {}", name);
+
         if (name == null) {
             log.debug("try to get debug info");
             name = getDebugInfoParameterName();
@@ -86,28 +71,13 @@ class Parameter {
         }
     }
 
-    private boolean isJdk8() {
-        return isNamePresent != null;
-    }
-
     private String getJdk8ParameterName() {
-        try {
-            Object parameter = parameter();
-            if (!((boolean) isNamePresent.invoke(parameter))) {
-                log.debug("jdk8 parameter name not present on {}; you can compile with the '-parameters' option",
-                        method);
-                return null;
-            }
-            return (String) getName.invoke(parameter);
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
+        java.lang.reflect.Parameter parameter = method.getParameters()[index];
+        if (!parameter.isNamePresent()) {
+            log.debug("jdk8 parameter name not present on {}; you can compile with the '-parameters' option", method);
+            return null;
         }
-    }
-
-    private Object parameter() throws ReflectiveOperationException {
-        Method getParameters = Method.class.getMethod("getParameters");
-        Object[] parameters = (Object[]) getParameters.invoke(method);
-        return parameters[index];
+        return parameter.getName();
     }
 
     private String getDebugInfoParameterName() {
@@ -129,9 +99,11 @@ class Parameter {
 
         CtMethod ctMethod = ctClass.getDeclaredMethod(method.getName(), classPool.get(classNames(method)));
         CodeAttribute code = (CodeAttribute) ctMethod.getMethodInfo().getAttribute("Code");
-        // TODO if it's not an interface: log a warning: missing debug information; once per jar only!
-        if (code == null)
+        if (code == null) {
+            if (!method.getDeclaringClass().isInterface())
+                log.debug("no debug information available for {}", method);
             return null;
+        }
         return (LocalVariableAttribute) code.getAttribute("LocalVariableTable");
     }
 
