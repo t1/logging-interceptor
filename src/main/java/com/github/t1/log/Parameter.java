@@ -58,13 +58,8 @@ class Parameter {
 
     private void initName() {
         name = getJdk8ParameterName();
-        log.debug("got jdk8 parameter name: {}", name);
-
-        if (name == null) {
-            log.debug("try to get debug info");
+        if (name == null)
             name = getDebugInfoParameterName();
-            log.debug("got debug info: {}", name);
-        }
         if (name == null) {
             name = "arg" + index;
             log.debug("fall back to {}", name);
@@ -77,15 +72,19 @@ class Parameter {
             log.debug("jdk8 parameter name not present on {}; you can compile with the '-parameters' option", method);
             return null;
         }
+        log.debug("got jdk8 parameter name: {}", name);
         return parameter.getName();
     }
 
     private String getDebugInfoParameterName() {
         try {
+            log.debug("try to get debug info");
             LocalVariableAttribute localVariables = getLocalVariableTable(method);
             if (localVariables == null)
                 return null;
-            return localVariables.variableName(index + thisOffset(method));
+            String name = localVariables.variableName(index + thisOffset(method));
+            log.debug("got debug info: {}", name);
+            return name;
         } catch (NotFoundException e) {
             log.debug("can't load debug info for parameter", e);
             return null;
