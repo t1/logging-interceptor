@@ -13,7 +13,7 @@ There are two main use-cases for logging interceptors:
 
 ### Version 3.0.0 ###
 
-We use [semantic versioning](http://semver.org). tl;dr: versions consist of three parts with a semantic: The Bad (major, breaking changes), the Good (minor, new features), and the Ugly (micro/patch, bugfixes).
+We use [semantic versioning](http://semver.org). tl;dr: versions consist of three parts with a semantic: The Bad (major = breaking changes), the Good (minor = new features), and the Ugly (micro/patch = bugfixes).
 
 So going to 3.0.0 is Bad, as it may break existing applications. But sometimes Bad things are necessary. Here we need it to get to Java 8 and replace esp. Joda-Date (BTW: big cudos to Stephen for that project).
 
