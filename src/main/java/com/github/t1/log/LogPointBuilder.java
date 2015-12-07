@@ -9,14 +9,12 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.regex.*;
 
-import lombok.experimental.Delegate;
-
 import org.slf4j.*;
 
-import com.github.t1.log.LogPoint.NullLogPoint;
-import com.github.t1.log.LogPoint.StandardLogPoint;
-import com.github.t1.log.LogPoint.ThrowableLogPoint;
+import com.github.t1.log.LogPoint.*;
 import com.github.t1.stereotypes.Annotations;
+
+import lombok.experimental.Delegate;
 
 class LogPointBuilder {
     private static final Pattern VAR = Pattern.compile("\\{(?<expression>[^}]*)\\}");
@@ -53,8 +51,9 @@ class LogPointBuilder {
                 .logArguments(buildLogArguments()) //
                 .message(parseMessage()) //
                 .shouldLogResult(method.getReturnType() != void.class) //
+                .shouldLogResultValue(resolveShouldLogResultValue()) //
                 .repeatController(RepeatController.createFor(logged.repeat())) //
-        ;
+                ;
 
         if (throwableParameter != null)
             return new ThrowableLogPoint(context, throwableParameter);
@@ -175,8 +174,8 @@ class LogPointBuilder {
         if (isParameterName(paramRef))
             return logParam(parameterNameIndex(paramRef), expression);
         if (expression != null)
-            return new StaticLogArgument("error", "invalid log parameter expression [" + expression
-                    + "] for reference [" + paramRef + "]");
+            return new StaticLogArgument("error",
+                    "invalid log parameter expression [" + expression + "] for reference [" + paramRef + "]");
         return new MdcLogArgument(paramRef);
     }
 
@@ -256,5 +255,13 @@ class LogPointBuilder {
         }
         matcher.appendTail(out);
         return out.toString();
+    }
+
+    private boolean resolveShouldLogResultValue() {
+        Logged logged = loggedAnnotationOn(method);
+        if (logged != null) {
+            return logged.shouldLogResultValue();
+        }
+        return false;
     }
 }

@@ -4,10 +4,10 @@ import java.util.List;
 
 import javax.enterprise.inject.Instance;
 
+import org.slf4j.Logger;
+
 import lombok.*;
 import lombok.experimental.Accessors;
-
-import org.slf4j.Logger;
 
 @Data
 @Accessors(fluent = true)
@@ -24,5 +24,6 @@ class LogPointContext {
     private List<FieldLogVariableProducer> fieldLogContexts;
 
     private boolean shouldLogResult;
+    private boolean shouldLogResultValue;
     private RepeatController repeatController;
 }

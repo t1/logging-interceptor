@@ -17,16 +17,30 @@ import org.slf4j.Logger;
 
 @RunWith(Arquillian.class)
 public class LogMethodTest extends AbstractLoggingInterceptorTests {
-    static void verifyLoggedResult(Logger log, String message, String resultString) {
+
+    static void verifyLoggedResult(Logger log, String message, String... resultMessageArguments) {
         ArgumentCaptor<Object[]> captor = ArgumentCaptor.forClass(Object[].class);
         verify(log).debug(eq(message), captor.capture());
         // this seems to be a bug in Mockito: doesn't work with object[]
         @SuppressWarnings("unchecked")
         List<Object> args = (List<Object>) (Object) captor.getAllValues();
-        assertEquals(2, args.size());
-        assertEquals(resultString, args.get(0));
-        assertTrue(((Long) args.get(1)) >= 0);
+
+        verifyResultMessageArguments(resultMessageArguments, args);
+        verifyTime(resultMessageArguments, args);
     }
+
+    private static void verifyTime(String[] resultMessageArguments, List<Object> args) {
+        assertTrue(((Long) args.get(resultMessageArguments.length)) >= 0);
+    }
+
+    private static void verifyResultMessageArguments(String[] resultMessageArguments, List<Object> args) {
+        assertEquals(resultMessageArguments.length, args.size() - 1);
+        for (int i = 0; i < resultMessageArguments.length - 1; i++) {
+            String resultString = resultMessageArguments[i];
+            assertEquals(resultString, args.get(i));
+        }
+    }
+
 
     // ----------------------------------------------------------------------------------
 
@@ -146,5 +160,22 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
         returnValueClass.foo();
 
         verifyLoggedResult(log, "return {} [time:{}]", "bar");
+    }
+
+    public static class AnnotatedReturnValueClass {
+        @Logged(shouldLogResultValue = false)
+        public String foo() {
+            return "bar";
+        }
+    }
+
+    @Inject
+    AnnotatedReturnValueClass annotatedReturnValueClass;
+
+    @Test
+    public void shouldHideReturnValue() {
+        annotatedReturnValueClass.foo();
+
+        verifyLoggedResult(log, "returned [time:{}]");
     }
 }

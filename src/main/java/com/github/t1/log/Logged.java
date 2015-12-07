@@ -76,4 +76,13 @@ public @interface Logged {
      */
     @Nonbinding
     public LogRepeatLimit repeat() default LogRepeatLimit.ALL;
+
+    /**
+     * whether to log the result value in a return log statement. As default the return value is logged.
+     *
+     * Set this to hide the return value in your log file, e.g. for protection of data privacy.
+     * 
+     */
+    @Nonbinding
+    public boolean shouldLogResultValue() default true;
 }
