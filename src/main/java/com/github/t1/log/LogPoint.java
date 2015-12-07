@@ -4,10 +4,10 @@ import java.util.*;
 
 import javax.interceptor.InvocationContext;
 
+import org.slf4j.helpers.MessageFormatter;
+
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
-
-import org.slf4j.helpers.MessageFormatter;
 
 @RequiredArgsConstructor
 abstract class LogPoint {
@@ -132,7 +132,10 @@ abstract class LogPoint {
 
     public void logResult(Object result, long time) {
         if (shouldLogResult()) {
-            level().log(logger(), "return {} [time:{}]", converters().convert(result), time);
+            if (shouldLogResultValue())
+                level().log(logger(), "return {} [time:{}]", converters().convert(result), time);
+            else
+                level().log(logger(), "returned [time:{}]", time);
         }
     }
 
