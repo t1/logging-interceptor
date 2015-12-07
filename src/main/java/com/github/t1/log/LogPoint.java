@@ -132,6 +132,7 @@ abstract class LogPoint {
 
     public void logResult(Object result, long time) {
         if (shouldLogResult()) {
+            mdc.put("run-time", String.valueOf(time));
             if (shouldLogResultValue())
                 level().log(logger(), "return {} [time:{}]", converters().convert(result), time);
             else
