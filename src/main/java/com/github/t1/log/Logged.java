@@ -26,7 +26,7 @@ public @interface Logged {
     /**
      * The level of detail to log at. If none is specified, it's derived from the recursively enclosing type's
      * <code>level</code> or finally {@link LogLevel#DEBUG}.
-     * 
+     *
      * @see org.slf4j.Logger the logging methods for those levels
      */
     @Nonbinding
@@ -35,7 +35,7 @@ public @interface Logged {
     /**
      * The class used to create the logger. Defaults to the top level class containing the method being logged (i.e.
      * nested, inner, local, or anonymous classes are unwrapped).
-     * 
+     *
      * @see Class#getEnclosingClass() the comment <i>in</i> <code>Class#getEnclosingClass</code>
      * @see #loggerString()
      */
@@ -44,7 +44,7 @@ public @interface Logged {
 
     /**
      * The name of the logger, in case you don't want to use the name of a class. Defaults to {@link #logger()}.
-     * 
+     *
      * @see #logger()
      */
     @Nonbinding
@@ -65,7 +65,7 @@ public @interface Logged {
 
     /**
      * Set this to have information added to an MDC variable <code>json</code>.
-     * 
+     *
      * @see JsonLogDetail
      */
     @Nonbinding

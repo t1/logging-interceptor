@@ -54,7 +54,7 @@ class LogPointBuilder {
                 .message(parseMessage()) //
                 .shouldLogResult(method.getReturnType() != void.class) //
                 .repeatController(RepeatController.createFor(logged.repeat())) //
-        ;
+                ;
 
         if (throwableParameter != null)
             return new ThrowableLogPoint(context, throwableParameter);
@@ -175,8 +175,8 @@ class LogPointBuilder {
         if (isParameterName(paramRef))
             return logParam(parameterNameIndex(paramRef), expression);
         if (expression != null)
-            return new StaticLogArgument("error", "invalid log parameter expression [" + expression
-                    + "] for reference [" + paramRef + "]");
+            return new StaticLogArgument("error",
+                    "invalid log parameter expression [" + expression + "] for reference [" + paramRef + "]");
         return new MdcLogArgument(paramRef);
     }
 

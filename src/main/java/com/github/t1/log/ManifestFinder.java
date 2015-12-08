@@ -6,8 +6,8 @@ import java.util.*;
 import java.util.regex.*;
 
 public class ManifestFinder {
-    private static final Pattern MAIN_MANIFEST = Pattern
-            .compile("vfs:/content/(?<path>.*)\\.(?<type>war|jar|ear)/META-INF/MANIFEST.MF");
+    private static final Pattern MAIN_MANIFEST =
+            Pattern.compile("vfs:/content/(?<path>.*)\\.(?<type>war|jar|ear)/META-INF/MANIFEST.MF");
 
     public Iterable<URL> manifests() throws IOException {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
