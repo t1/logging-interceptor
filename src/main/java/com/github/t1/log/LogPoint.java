@@ -4,10 +4,10 @@ import java.util.*;
 
 import javax.interceptor.InvocationContext;
 
+import org.slf4j.helpers.MessageFormatter;
+
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
-
-import org.slf4j.helpers.MessageFormatter;
 
 @RequiredArgsConstructor
 abstract class LogPoint {
@@ -132,8 +132,17 @@ abstract class LogPoint {
 
     public void logResult(Object result, long time) {
         if (shouldLogResult()) {
-            level().log(logger(), "return {} [time:{}]", converters().convert(result), time);
+            mdc.put("time", String.valueOf(time));
+            level().log(logger(), returnMessage(result, time));
         }
+    }
+
+    private String returnMessage(Object result, long time) {
+        String message = context.returnFormat();
+        // simplistic implementation; order is important
+        message = message.replace("{time}", String.valueOf(time));
+        message = message.replace("{returnValue}", Objects.toString(converters().convert(result)));
+        return message;
     }
 
     public void logException(Exception e, long time) {

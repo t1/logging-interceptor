@@ -15,17 +15,17 @@ public class StaticMDCBinder {
         verify(mdc()).remove(key);
     }
 
-    private static Map<String, String> map = new HashMap<>();
+    private static Map<String, String> mdc = new HashMap<>();
 
     public static void givenMdc(String key, String value) {
-        map.put(key, value);
-        when(mdc().getCopyOfContextMap()).thenReturn(map);
+        mdc.put(key, value);
+        when(mdc().getCopyOfContextMap()).thenReturn(mdc);
         when(mdc().get(key)).thenReturn(value);
     }
 
     public static void reset() {
         Mockito.reset(mdc());
-        map.clear();
+        mdc.clear();
     }
 
     public static MDCAdapter mdc() {

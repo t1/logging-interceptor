@@ -1,16 +1,16 @@
 package com.github.t1.log;
 
-import static com.github.t1.log.LogMethodTest.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.slf4j.impl.StaticMDCBinder.*;
 
 import javax.inject.Inject;
 
-import lombok.Value;
-
 import org.jboss.arquillian.junit.Arquillian;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import lombok.Value;
 
 @RunWith(Arquillian.class)
 public class LogConverterTest extends AbstractLoggingInterceptorTests {
@@ -64,7 +64,9 @@ public class LogConverterTest extends AbstractLoggingInterceptorTests {
 
         verify(log).debug("foo", new Object[] {}); // consume for better mockito error messages
 
-        verifyLoggedResult(log, "return {} [time:{}]", "foo#bar");
+        String message = captureMessage();
+
+        assertThat(message).startsWith("return foo#bar [time:");
     }
 
     // ----------------------------------------------------------------------------------

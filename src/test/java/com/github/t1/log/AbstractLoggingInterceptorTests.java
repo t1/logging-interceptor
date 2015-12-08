@@ -8,11 +8,21 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.*;
+import org.mockito.ArgumentCaptor;
 import org.slf4j.*;
 import org.slf4j.impl.StaticMDCBinder;
 
 public abstract class AbstractLoggingInterceptorTests {
     protected static final Object[] NO_ARGS = new Object[0];
+
+    protected String captureMessage() {
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Object[]> ocaptor = ArgumentCaptor.forClass(Object[].class);
+
+        verify(log, atLeastOnce()).debug(captor.capture(), ocaptor.capture());
+
+        return captor.getValue();
+    }
 
     private static final String BEANS_XML = "" //
             + "<beans>\n" //

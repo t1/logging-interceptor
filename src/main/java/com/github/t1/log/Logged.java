@@ -76,4 +76,11 @@ public @interface Logged {
      */
     @Nonbinding
     public LogRepeatLimit repeat() default LogRepeatLimit.ALL;
+
+    /**
+     * The format for the message logged when the invocation returns.
+     * Supported fields: <code>returnValue</code> and <code>time</code>
+     */
+    @Nonbinding
+    public String returnFormat() default "return {returnValue} [time:{time}]";
 }

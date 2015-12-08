@@ -1,15 +1,20 @@
 package com.github.t1.log;
 
 import static com.github.t1.log.LogLevel.*;
-import static com.github.t1.log.LogMethodTest.*;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
+
+import java.util.List;
 
 import javax.inject.Inject;
 
 import org.jboss.arquillian.junit.Arquillian;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.slf4j.Logger;
 
 @RunWith(Arquillian.class)
 public class LogExceptionTest extends AbstractLoggingInterceptorTests {
@@ -39,7 +44,20 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
     ThrowingClass throwing;
 
     private void verifyFailureLogged(String exceptionName) {
-        verifyLoggedResult(log, "failed with {} [time:{}]", exceptionName);
+        List<Object> event = captureLogEvent(log, "failed with {} [time:{}]");
+
+        assertThat(event.size()).isEqualTo(2);
+        assertThat(event.get(0)).isEqualTo(exceptionName);
+        assertThat((Long) event.get(1)).isBetween(0L, 20L);
+    }
+
+    private List<Object> captureLogEvent(Logger log, String message) {
+        ArgumentCaptor<Object[]> captor = ArgumentCaptor.forClass(Object[].class);
+        verify(log).debug(eq(message), captor.capture());
+        // this seems to be a bug in Mockito: doesn't work with object[]
+        @SuppressWarnings("unchecked")
+        List<Object> args = (List<Object>) (Object) captor.getAllValues();
+        return args;
     }
 
     @Test
