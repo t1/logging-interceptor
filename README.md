@@ -190,3 +190,10 @@ Then you can activate the interceptor in the application's `beans.xml`:
 # License
 
 Licensed under [Apache License 2.0](http://www.spdx.org/licenses/Apache-2.0)
+
+<script>
+  ((window.gitter = {}).chat = {}).options = {
+    room: 't1/logging-interceptor'
+  };
+</script>
+<script src="https://sidecar.gitter.im/dist/sidecar.v1.js" async defer></script>
