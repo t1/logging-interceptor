@@ -254,7 +254,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
 
         exceptionLogger.foo(runtimeException);
 
-        verify(log).debug("message with " + runtimeException, runtimeException);
+        verify(log).debug("message with {}", runtimeException);
     }
 
     @Test
@@ -272,6 +272,6 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
 
         exceptionLogger.fooWithTwo("message", runtimeException);
 
-        verify(log).debug("message with message and " + runtimeException, runtimeException);
+        verify(log).debug("message with message and {}", runtimeException);
     }
 }
