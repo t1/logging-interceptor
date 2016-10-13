@@ -1,41 +1,36 @@
 package com.github.t1.log;
 
-import static com.github.t1.log.LogLevel.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
-
-import java.util.List;
-
-import javax.inject.Inject;
-
 import org.jboss.arquillian.junit.Arquillian;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.slf4j.Logger;
 
+import javax.inject.Inject;
+import java.util.List;
+
+import static com.github.t1.log.LogLevel.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.*;
+
+@SuppressWarnings("WeakerAccess")
 @RunWith(Arquillian.class)
 public class LogExceptionTest extends AbstractLoggingInterceptorTests {
     public static class ThrowingClass {
-        @Logged
-        public String throwRuntimeExeptionWithoutMessage() {
+        @Logged public String throwRuntimeExceptionWithoutMessage() {
             throw new RuntimeException();
         }
 
-        @Logged
-        public String throwRuntimeExeptionWithMessage() {
+        @Logged public String throwRuntimeExceptionWithMessage() {
             throw new RuntimeException("bar");
         }
 
-        @Logged
-        public String throwRuntimeExeptionWithCausingNpe() {
+        @Logged public String throwRuntimeExceptionWithCausingNpe() {
             throw new RuntimeException("foo", new NullPointerException("bar"));
         }
 
-        @Logged
-        public String throwRuntimeExeptionWithCausingIllegalArgumentAndCausingNpe() {
+        @Logged public String throwRuntimeExceptionWithCausingIllegalArgumentAndCausingNpe() {
             throw new RuntimeException("foo", new IllegalArgumentException("bar", new NullPointerException("baz")));
         }
     }
@@ -55,52 +50,52 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
         ArgumentCaptor<Object[]> captor = ArgumentCaptor.forClass(Object[].class);
         verify(log).debug(eq(message), captor.capture());
         // this seems to be a bug in Mockito: doesn't work with object[]
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({ "unchecked", "RedundantCast" })
         List<Object> args = (List<Object>) (Object) captor.getAllValues();
         return args;
     }
 
     @Test
-    public void shouldLogThrownExeptionWithoutMessage() {
+    public void shouldLogThrownExceptionWithoutMessage() {
         try {
-            throwing.throwRuntimeExeptionWithoutMessage();
+            throwing.throwRuntimeExceptionWithoutMessage();
             fail("expected RuntimeException");
-        } catch (RuntimeException e) {}
+        } catch (RuntimeException ignored) {}
 
-        verify(log).debug("throw runtime exeption without message", NO_ARGS);
+        verify(log).debug("throw runtime exception without message", NO_ARGS);
         verifyFailureLogged("RuntimeException");
     }
 
     @Test
-    public void shouldLogThrownExeptionWithMessage() {
+    public void shouldLogThrownExceptionWithMessage() {
         try {
-            throwing.throwRuntimeExeptionWithMessage();
+            throwing.throwRuntimeExceptionWithMessage();
             fail("expected RuntimeException");
-        } catch (RuntimeException e) {}
+        } catch (RuntimeException ignored) {}
 
-        verify(log).debug("throw runtime exeption with message", NO_ARGS);
+        verify(log).debug("throw runtime exception with message", NO_ARGS);
         verifyFailureLogged("RuntimeException(bar)");
     }
 
     @Test
-    public void shouldLogThrownExeptionWithCausingNpe() {
+    public void shouldLogThrownExceptionWithCausingNpe() {
         try {
-            throwing.throwRuntimeExeptionWithCausingNpe();
+            throwing.throwRuntimeExceptionWithCausingNpe();
             fail("expected RuntimeException");
-        } catch (RuntimeException e) {}
+        } catch (RuntimeException ignored) {}
 
-        verify(log).debug("throw runtime exeption with causing npe", NO_ARGS);
+        verify(log).debug("throw runtime exception with causing npe", NO_ARGS);
         verifyFailureLogged("RuntimeException(foo) -> NullPointerException(bar)");
     }
 
     @Test
-    public void shouldLogThrownExeptionWithCausingNpeAndCausingIllegalArgument() {
+    public void shouldLogThrownExceptionWithCausingNpeAndCausingIllegalArgument() {
         try {
-            throwing.throwRuntimeExeptionWithCausingIllegalArgumentAndCausingNpe();
+            throwing.throwRuntimeExceptionWithCausingIllegalArgumentAndCausingNpe();
             fail("expected RuntimeException");
-        } catch (RuntimeException e) {}
+        } catch (RuntimeException ignored) {}
 
-        verify(log).debug("throw runtime exeption with causing illegal argument and causing npe", NO_ARGS);
+        verify(log).debug("throw runtime exception with causing illegal argument and causing npe", NO_ARGS);
         verifyFailureLogged("RuntimeException(foo)" //
                 + " -> IllegalArgumentException(bar)" //
                 + " -> NullPointerException(baz)");

@@ -1,22 +1,21 @@
 package com.github.t1.log;
 
-import static java.util.Arrays.*;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import org.junit.*;
+import org.junit.runner.RunWith;
+import org.mockito.*;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
+import org.slf4j.*;
 
 import java.io.IOException;
 import java.net.*;
 import java.util.regex.*;
 
-import org.junit.*;
-import org.junit.runner.RunWith;
-import org.mockito.*;
-import org.mockito.internal.util.MockUtil;
-import org.mockito.invocation.*;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
-import org.slf4j.*;
+import static java.util.Arrays.*;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+import static org.mockito.internal.util.MockUtil.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class VersionLogContextVariableProducerTest {
@@ -32,9 +31,7 @@ public class VersionLogContextVariableProducerTest {
 
     @After
     public void printLogs() {
-        for (Invocation invocation : new MockUtil().getMockHandler(log).getInvocationContainer().getInvocations()) {
-            System.out.println(invocation);
-        }
+        getMockHandler(log).getInvocationContainer().getInvocations().forEach(System.out::println);
     }
 
     @Mock

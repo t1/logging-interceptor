@@ -1,26 +1,23 @@
 package com.github.t1.log;
 
-import static com.github.t1.log.JsonLogDetail.*;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
-import static org.slf4j.impl.StaticMDCBinder.*;
-
-import java.io.StringReader;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-
-import javax.inject.Inject;
-import javax.json.*;
-
+import lombok.Value;
 import org.jboss.arquillian.junit.Arquillian;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.slf4j.LoggerFactory;
 
-import lombok.Value;
+import javax.inject.Inject;
+import javax.json.*;
+import java.io.StringReader;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+
+import static com.github.t1.log.JsonLogDetail.*;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+import static org.slf4j.impl.StaticMDCBinder.*;
 
 @RunWith(Arquillian.class)
 public class LogJsonTest extends AbstractLoggingInterceptorTests {
@@ -30,12 +27,12 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     }
 
     @Value
-    class ConvertablePojo {
+    class ConvertiblePojo {
         String one, two;
     }
 
     public static class PojoConverter implements Converter {
-        public String convert(ConvertablePojo pojo) {
+        @SuppressWarnings("unused") public String convert(ConvertiblePojo pojo) {
             return pojo.one + "#" + pojo.two;
         }
     }
@@ -61,7 +58,7 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
 
         public void foo(Pojo pojo) {}
 
-        public void foo(ConvertablePojo pojo) {}
+        public void foo(ConvertiblePojo pojo) {}
 
         public void foo(RuntimeException exception) {}
     }
@@ -230,8 +227,8 @@ public class LogJsonTest extends AbstractLoggingInterceptorTests {
     }
 
     @Test
-    public void shouldLogJsonConvertablePojoParameter() {
-        jsonLog.foo(new ConvertablePojo("1", "2"));
+    public void shouldLogJsonConvertiblePojoParameter() {
+        jsonLog.foo(new ConvertiblePojo("1", "2"));
 
         JsonObject json = captureJsonMdc();
         assertEquals("1#2", json.getString("pojo"));

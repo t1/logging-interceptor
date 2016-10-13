@@ -1,8 +1,5 @@
 package com.github.t1.log;
 
-import static com.github.t1.log.LogLevel.*;
-import static org.mockito.Mockito.*;
-
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -12,16 +9,19 @@ import org.mockito.ArgumentCaptor;
 import org.slf4j.*;
 import org.slf4j.impl.StaticMDCBinder;
 
+import static com.github.t1.log.LogLevel.*;
+import static org.mockito.Mockito.*;
+
 public abstract class AbstractLoggingInterceptorTests {
-    protected static final Object[] NO_ARGS = new Object[0];
+    static final Object[] NO_ARGS = new Object[0];
 
-    protected String captureMessage() {
-        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<Object[]> ocaptor = ArgumentCaptor.forClass(Object[].class);
+    String captureMessage() {
+        ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Object[]> objectCaptor = ArgumentCaptor.forClass(Object[].class);
 
-        verify(log, atLeastOnce()).debug(captor.capture(), ocaptor.capture());
+        verify(log, atLeastOnce()).debug(messageCaptor.capture(), objectCaptor.capture());
 
-        return captor.getValue();
+        return messageCaptor.getValue();
     }
 
     private static final String BEANS_XML = "" //
@@ -55,11 +55,11 @@ public abstract class AbstractLoggingInterceptorTests {
         LoggingInterceptor.CACHE.clear();
     }
 
-    protected void givenLogLevel(LogLevel level) {
+    void givenLogLevel(LogLevel level) {
         givenLogLevel(level, log);
     }
 
-    protected void givenLogLevel(LogLevel level, Logger log) {
+    void givenLogLevel(LogLevel level, Logger log) {
         reset(log);
         switch (level) {
             case _DERIVED_:

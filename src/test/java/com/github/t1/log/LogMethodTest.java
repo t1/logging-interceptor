@@ -1,17 +1,18 @@
 package com.github.t1.log;
 
+import org.jboss.arquillian.junit.Arquillian;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import javax.inject.Inject;
+
 import static com.github.t1.log.LogLevel.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.slf4j.impl.StaticMDCBinder.*;
 
-import javax.inject.Inject;
-
-import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
+@SuppressWarnings("WeakerAccess")
 @RunWith(Arquillian.class)
 public class LogMethodTest extends AbstractLoggingInterceptorTests {
     // ----------------------------------------------------------------------------------
@@ -140,9 +141,7 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
 
     public static class ReturnFormatClass {
         @Logged(returnFormat = "my-{returnValue} in: {time}")
-        public String foo(String result) {
-            return result;
-        }
+        public String foo(String result) { return result; }
     }
 
     @Inject
@@ -167,7 +166,7 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
     }
 
     @Test
-    public void shouldLogNullReturnFormat() {
+    public void shouldFormatNullReturnValue() {
         returnFormatClass.foo(null);
 
         String message = captureMessage();

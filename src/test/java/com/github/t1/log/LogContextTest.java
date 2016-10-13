@@ -1,16 +1,16 @@
 package com.github.t1.log;
 
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
-import static org.slf4j.impl.StaticMDCBinder.*;
-
-import javax.inject.Inject;
-
 import org.jboss.arquillian.junit.Arquillian;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.InOrder;
 
+import javax.inject.Inject;
+
+import static org.mockito.Mockito.*;
+import static org.slf4j.impl.StaticMDCBinder.*;
+
+@SuppressWarnings("WeakerAccess")
 @RunWith(Arquillian.class)
 public class LogContextTest extends AbstractLoggingInterceptorTests {
     public static class LogContextParameterClass {
@@ -52,18 +52,18 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
 
     @Test
     public void shouldRestoreMdcValue() {
-        when(mdc().get("var")).thenReturn("oldvalue");
+        when(mdc().get("var")).thenReturn("oldValue");
 
-        logContextParameterClass.methodWithLogContextParameter("newvalue", "bar");
+        logContextParameterClass.methodWithLogContextParameter("newValue", "bar");
 
         InOrder inOrder = inOrder(mdc());
-        inOrder.verify(mdc()).put("var", "newvalue");
-        inOrder.verify(mdc()).put("var", "oldvalue");
+        inOrder.verify(mdc()).put("var", "newValue");
+        inOrder.verify(mdc()).put("var", "oldValue");
     }
 
     @Test
     public void shouldRestoreNullMdcValue() {
-        logContextParameterClass.methodWithLogContextParameter("newvalue", "bar");
+        logContextParameterClass.methodWithLogContextParameter("newValue", "bar");
 
         verify(mdc()).remove("var");
     }
@@ -108,6 +108,7 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
     // ----------------------------------------------------------------------------------
 
     public static class LogContextFieldClass {
+        @SuppressWarnings("unused")
         @LogContext
         String one = "foo";
 

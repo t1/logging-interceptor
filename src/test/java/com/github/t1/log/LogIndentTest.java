@@ -1,15 +1,14 @@
 package com.github.t1.log;
 
-import static com.github.t1.log.LogLevel.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
-import static org.slf4j.impl.StaticMDCBinder.*;
-
-import javax.inject.Inject;
-
 import org.jboss.arquillian.junit.Arquillian;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import javax.inject.Inject;
+
+import static com.github.t1.log.LogLevel.*;
+import static org.mockito.Mockito.*;
+import static org.slf4j.impl.StaticMDCBinder.*;
 
 @RunWith(Arquillian.class)
 public class LogIndentTest extends AbstractLoggingInterceptorTests {
