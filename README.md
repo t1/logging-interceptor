@@ -1,4 +1,4 @@
-# CDI logging-interceptor [![Download](https://api.bintray.com/packages/t1/javaee-helpers/logging-interceptor/images/download.svg) ](https://bintray.com/t1/javaee-helpers/logging-interceptor/_latestVersion) [![Join the chat at https://gitter.im/t1/logging-interceptor](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/t1/logging-interceptor?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+# CDI logging-interceptor [![Download](https://api.bintray.com/packages/t1/javaee-helpers/logging-interceptor/images/download.svg) ](https://bintray.com/t1/javaee-helpers/logging-interceptor/_latestVersion) [![Join the chat at https://gitter.im/t1/logging-interceptor](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/t1/logging-interceptor?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Dependency Status](https://www.versioneye.com/user/projects/53fadf7fe09da36f93000607/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/53fadf7fe09da36f93000607)
 
 CDI interceptor for logging to slf4j.
 
@@ -50,11 +50,11 @@ So going to 3.0.0 is Bad, as it may break existing applications. But sometimes B
 @Path("/customers")
 @Logged(level = INFO)
 public class CustomersResource {
-	@GET
-	@Path("/{customer-id}")
-	public Customer getCustomer(@PathParam("customer-id") String customerId) {
-		return ...
-	}
+    @GET
+    @Path("/{customer-id}")
+    public Customer getCustomer(@PathParam("customer-id") String customerId) {
+        return ...
+    }
 }
 ```
 
@@ -69,8 +69,8 @@ return Customer(id=1234, firstName="Joe", ...)
 
 ```java
 static class CustomersResourceLogger {
-	@Logged("found {} for id {}")
-	void foundCustomerForId(Customer customer, String customerId) {}
+    @Logged("found {} for id {}")
+    void foundCustomerForId(Customer customer, String customerId) {}
 }
 
 @Inject CustomersResourceLogger log;
@@ -90,8 +90,8 @@ found Customer(id=1234, firstName="Joe", ...) for id 1234
 
 ```java
 static class ExceptionLogger {
-	@Logged(level = ERROR)
-	void failed(String operation, RuntimeException e) {}
+    @Logged(level = ERROR)
+    void failed(String operation, RuntimeException e) {}
 }
 
 @Inject
@@ -99,9 +99,9 @@ ExceptionLogger exceptionLogger;
 
 ...
 try {
-	...
+    ...
 } catch (RuntimeException e) {
-	exceptionLogger.failed("my operation", e);
+    exceptionLogger.failed("my operation", e);
 }
 ...
 ```
@@ -148,31 +148,31 @@ Enabling interceptors from a library jar is a bit tricky in CDI 1.0. If you'd ju
 
 ```xml
 <build>
-	<plugins>
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-war-plugin</artifactId>
-			<version>2.4</version>
-			<configuration>
-				<overlays>
-					<overlay>
-						<groupId>com.github.t1</groupId>
-						<artifactId>logging-interceptor</artifactId>
-						<type>jar</type>
-						<targetPath>WEB-INF/classes</targetPath>
-					</overlay>
-				</overlays>
-			</configuration>
-		</plugin>
-	</plugins>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-war-plugin</artifactId>
+            <version>2.4</version>
+            <configuration>
+                <overlays>
+                    <overlay>
+                        <groupId>com.github.t1</groupId>
+                        <artifactId>logging-interceptor</artifactId>
+                        <type>jar</type>
+                        <targetPath>WEB-INF/classes</targetPath>
+                    </overlay>
+                </overlays>
+            </configuration>
+        </plugin>
+    </plugins>
 </build>
 
 <dependencies>
-	<dependency>
-		<groupId>com.github.t1</groupId>
-		<artifactId>logging-interceptor</artifactId>
-		<optional>true</optional>
-	</dependency>
+    <dependency>
+        <groupId>com.github.t1</groupId>
+        <artifactId>logging-interceptor</artifactId>
+        <optional>true</optional>
+    </dependency>
 </dependencies>
 ```
 
@@ -180,10 +180,10 @@ Then you can activate the interceptor in the application's `beans.xml`:
 
 ```xml
 <beans xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/beans_1_0.xsd">
-	<interceptors>
-		<class>com.github.t1.log.LoggingInterceptor</class>
-	</interceptors>
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/beans_1_0.xsd">
+    <interceptors>
+        <class>com.github.t1.log.LoggingInterceptor</class>
+    </interceptors>
 </beans>
 ```
 
