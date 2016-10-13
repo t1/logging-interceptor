@@ -11,11 +11,11 @@ There are two main use-cases for logging interceptors:
 
 ## News ##
 
-### Version 3.0.0 ###
+### Version 3.x ###
 
 We use [semantic versioning](http://semver.org). tl;dr: versions consist of three parts with a semantic: The Bad (major = breaking changes), the Good (minor = new features), and the Ugly (micro/patch = bugfixes).
 
-So going to 3.0.0 is Bad, as it may break existing applications. But sometimes Bad things are necessary. Here we need it to get to Java 8 and replace esp. Joda-Date (BTW: big cudos to Stephen for that project).
+So going to 3.0.0 was Bad, as it may break existing applications. But sometimes Bad things are necessary. Here we need it to get to Java 8 and replace esp. Joda-Date (BTW: big kudos to Stephen for that project).
 
 
 ## Features ##
@@ -29,6 +29,8 @@ So going to 3.0.0 is Bad, as it may break existing applications. But sometimes B
 * If the last parameter is a `Throwable`, it's passed to slf4j, so the stack trace is printed out; i.e. the logging-interceptor formats the message without the `Throwable` before it passes it on (that's an addition to the slf4j api). (see [example](#log-stack-trace))
 * The default logger is the top level class containing the method being logged; you can explicitly set it in the `@Logged` annotation.
 * The default log message is the name of the method, with camel case converted to spaces (e.g. "getNextCustomer" -> "get next customer") and parameters appended; you can explicitly set it in the `@Logged` annotation.
+* Define a `returnFormat` to control what's being logged when the message returns. Defaults to `return {returnValue} [time:{time}]`, or nothing for void methods.
+* And empty log message format or return format won't be logged at all, so you can have either or.
 * In addition to the slf4j log message format placeholders, you can use positional indexes (e.g. `{0}`) or parameter names (e.g. `{firstName}`; requires jdk8 parameter meta data or debug info). And you can use simple expressions, like `person.address.zip`.
 * Parameters annotated as `@DontLog` are not logged; very useful for, e.g., passwords.
 * Parameters annotated as `@LogContext` are added to the [MDC](http://slf4j.org/manual.html#mdc) (and cleaned up thereafter). Very handy to add, e.g., the main business reference key to all logs written below.

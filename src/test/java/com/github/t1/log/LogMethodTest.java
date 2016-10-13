@@ -66,8 +66,7 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
     // ----------------------------------------------------------------------------------
 
     public static class CamelCaseClass {
-        @Logged
-        public void camelCaseMethod() {}
+        @Logged public void camelCaseMethod() {}
     }
 
     @Inject
@@ -83,8 +82,9 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
     // ----------------------------------------------------------------------------------
 
     public static class LogMessageClass {
-        @Logged("log message")
-        public void foo() {}
+        @Logged("log message") public void foo() {}
+
+        @Logged("") public void empty() {}
     }
 
     @Inject
@@ -97,11 +97,18 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
         verify(log).debug("log message", NO_ARGS);
     }
 
+    @Test
+    public void shouldNotLogEmptyMessage() {
+        logMessageClass.empty();
+
+        verify(log, atLeast(0)).isDebugEnabled();
+        verifyNoMoreInteractions(log);
+    }
+
     // ----------------------------------------------------------------------------------
 
     public static class ReturnVoidClass {
-        @Logged
-        public void foo() {}
+        @Logged public void foo() {}
     }
 
     @Inject
@@ -119,8 +126,7 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
     // ----------------------------------------------------------------------------------
 
     public static class ReturnValueClass {
-        @Logged
-        public String foo() {
+        @Logged public String foo() {
             return "bar";
         }
     }
@@ -142,6 +148,8 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
     public static class ReturnFormatClass {
         @Logged(returnFormat = "my-{returnValue} in: {time}")
         public String foo(String result) { return result; }
+
+        @Logged(returnFormat = "") public String bar(String result) { return result; }
     }
 
     @Inject
@@ -172,6 +180,15 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
         String message = captureMessage();
 
         assertThat(message).startsWith("my-null in: ");
+    }
+
+    @Test
+    public void shouldNotLogEmptyReturnFormat() {
+        returnFormatClass.bar("baz");
+
+        verify(log).debug("bar {}", new Object[] { "baz" });
+        verify(log, atLeast(0)).isDebugEnabled();
+        verifyNoMoreInteractions(log);
     }
 
     // TODO inherit returnFormat from class/package

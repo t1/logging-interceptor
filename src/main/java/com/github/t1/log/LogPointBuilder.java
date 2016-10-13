@@ -1,20 +1,18 @@
 package com.github.t1.log;
 
-import static com.github.t1.log.LogLevel.*;
-import static com.github.t1.log.Logged.*;
-import static java.lang.Character.*;
-import static java.util.Collections.*;
+import com.github.t1.log.LogPoint.*;
+import com.github.t1.stereotypes.Annotations;
+import lombok.experimental.Delegate;
+import org.slf4j.*;
 
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.regex.*;
 
-import org.slf4j.*;
-
-import com.github.t1.log.LogPoint.*;
-import com.github.t1.stereotypes.Annotations;
-
-import lombok.experimental.Delegate;
+import static com.github.t1.log.LogLevel.*;
+import static com.github.t1.log.Logged.*;
+import static java.lang.Character.*;
+import static java.util.Collections.*;
 
 class LogPointBuilder {
     private static final Pattern VAR = Pattern.compile("\\{(?<expression>[^}]*)\\}");
@@ -49,8 +47,8 @@ class LogPointBuilder {
                 .level(resolveLevel()) //
                 .fieldLogContexts(buildFieldLogContextVariables()) //
                 .logArguments(buildLogArguments()) //
-                .message(parseMessage()) //
-                .shouldLogResult(method.getReturnType() != void.class) //
+                .messageFormat(parseMessage()) //
+                .voidMethod(method.getReturnType() == void.class) //
                 .returnFormat(loggedAnnotationOn(method).returnFormat()) //
                 .repeatController(RepeatController.createFor(logged.repeat())) //
                 ;

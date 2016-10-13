@@ -1,13 +1,11 @@
 package com.github.t1.log;
 
-import java.util.List;
-
-import javax.enterprise.inject.Instance;
-
-import org.slf4j.Logger;
-
 import lombok.*;
 import lombok.experimental.Accessors;
+import org.slf4j.Logger;
+
+import javax.enterprise.inject.Instance;
+import java.util.List;
 
 @Data
 @Accessors(fluent = true)
@@ -18,12 +16,12 @@ class LogPointContext {
 
     private Logger logger;
     private LogLevel level;
-    private String message;
+    private String messageFormat;
 
     private List<LogArgument> logArguments;
     private List<FieldLogVariableProducer> fieldLogContexts;
 
-    private boolean shouldLogResult;
+    private boolean voidMethod;
     private String returnFormat;
     private RepeatController repeatController;
 }

@@ -1,20 +1,18 @@
 package com.github.t1.log;
 
-import java.util.*;
-
-import javax.interceptor.InvocationContext;
-
-import org.slf4j.helpers.MessageFormatter;
-
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
+import org.slf4j.helpers.MessageFormatter;
+
+import javax.interceptor.InvocationContext;
+import java.util.*;
 
 @RequiredArgsConstructor
 abstract class LogPoint {
     private static final String INDENT = "indent";
 
     static class NullLogPoint extends LogPoint {
-        public NullLogPoint(LogPointContext context) {
+        NullLogPoint(LogPointContext context) {
             super(context);
         }
 
@@ -35,13 +33,13 @@ abstract class LogPoint {
     }
 
     static class StandardLogPoint extends LogPoint {
-        public StandardLogPoint(LogPointContext context) {
+        StandardLogPoint(LogPointContext context) {
             super(context);
         }
 
         @Override
         protected void logCallDo(InvocationContext context) {
-            level().log(logger(), message(), parameterValues(context));
+            level().log(logger(), messageFormat(), parameterValues(context));
         }
 
         private Object[] parameterValues(InvocationContext context) {
@@ -56,22 +54,22 @@ abstract class LogPoint {
     static class ThrowableLogPoint extends LogPoint {
         private final LogArgument throwableParameter;
 
-        public ThrowableLogPoint(LogPointContext context, LogArgument throwableParameter) {
+        ThrowableLogPoint(LogPointContext context, LogArgument throwableParameter) {
             super(context);
             this.throwableParameter = throwableParameter;
         }
 
         @Override
         protected void logCallDo(InvocationContext invocation) {
-            level().log(logger(), message(invocation), (Throwable) throwableParameter.value(invocation));
+            level().log(logger(), messageFormat(invocation), (Throwable) throwableParameter.value(invocation));
         }
 
-        private String message(InvocationContext context) {
+        private String messageFormat(InvocationContext context) {
             List<Object> result = new ArrayList<>();
             for (LogArgument parameter : logArguments()) {
                 result.add(parameter.value(context));
             }
-            return MessageFormatter.arrayFormat(message(), result.toArray()).getMessage();
+            return MessageFormatter.arrayFormat(messageFormat(), result.toArray()).getMessage();
         }
     }
 
@@ -84,7 +82,7 @@ abstract class LogPoint {
         addFieldLogContextVariables(invocationContext);
         addParameterLogContexts(invocationContext);
 
-        if (level().isEnabled(logger()) && repeatController().shouldRepeat()) {
+        if (!messageFormat().isEmpty() && level().isEnabled(logger()) && repeatController().shouldRepeat()) {
             incrementIndentLogContext();
             logCallDo(invocationContext);
         }
@@ -131,7 +129,7 @@ abstract class LogPoint {
     protected abstract void logCallDo(InvocationContext context);
 
     public void logResult(Object result, long time) {
-        if (shouldLogResult()) {
+        if (!voidMethod() && !returnFormat().isEmpty()) {
             mdc.put("time", String.valueOf(time));
             level().log(logger(), returnMessage(result, time));
         }
