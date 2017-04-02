@@ -1,20 +1,18 @@
 package com.github.t1.log;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-
-import java.io.Serializable;
-import java.util.*;
-
-import javax.enterprise.inject.Instance;
-
 import lombok.Value;
-
 import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import javax.enterprise.inject.Instance;
+import java.io.Serializable;
+
+import static java.util.Arrays.*;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 @SuppressWarnings("unused")
@@ -28,12 +26,7 @@ public class ConvertersTest {
     public final ExpectedException expectedException = ExpectedException.none();
 
     private void givenConverters(Converter... converterList) {
-        List<Converter> list = new ArrayList<>();
-        for (Converter converter : converterList) {
-            Converter c = converter;
-            list.add(c);
-        }
-        when(converterInstances.iterator()).thenReturn(list.iterator());
+        when(converterInstances.iterator()).thenReturn(asList(converterList).iterator());
 
         converters.loadConverters();
     }

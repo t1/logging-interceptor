@@ -3,17 +3,16 @@ package com.github.t1.log;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.*;
 
 import java.io.IOException;
 import java.net.*;
-import java.util.regex.*;
+import java.util.regex.Pattern;
 
 import static java.util.Arrays.*;
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.MockUtil.*;
 
@@ -41,12 +40,9 @@ public class VersionLogContextVariableProducerTest {
     private VersionLogContextVariableProducer producer;
 
     private void givenManifestsAt(URL... urls) throws IOException {
-        when(finder.matcher(anyString())).thenAnswer(new Answer<Matcher>() {
-            @Override
-            public Matcher answer(InvocationOnMock invocation) {
-                String string = (String) invocation.getArguments()[0];
-                return Pattern.compile("file:.*/(?<path>.*).(?<type>war|jar|ear)/META-INF/MANIFEST.MF").matcher(string);
-            }
+        when(finder.matcher(anyString())).thenAnswer(invocation -> {
+            String string = (String) invocation.getArguments()[0];
+            return Pattern.compile("file:.*/(?<path>.*).(?<type>war|jar|ear)/META-INF/MANIFEST.MF").matcher(string);
         });
         when(finder.manifests()).thenReturn(asList(urls));
     }
