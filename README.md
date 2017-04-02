@@ -15,7 +15,7 @@ There are two main use-cases for logging interceptors:
 
 We use [semantic versioning](http://semver.org). tl;dr: versions consist of three parts with a semantic: The Bad (major = breaking changes), the Good (minor = new features), and the Ugly (micro/patch = bugfixes).
 
-So going to 3.0.0 was Bad, as it may break existing applications. But sometimes Bad things are necessary. Here we need it to get to Java 8 and replace esp. Joda-Date (BTW: big kudos to Stephen for that project).
+So going to 3.0.0 was Bad, as it may break existing applications. But sometimes Bad things are necessary. Here we need it to get to Java 8 and replace esp. Joda-Date (BTW: big kudos to Stephen for that project and for making it obsolete by moving it to Java 8).
 
 
 ## Features ##
@@ -43,6 +43,7 @@ So going to 3.0.0 was Bad, as it may break existing applications. But sometimes 
   * `CONTEXT`: all MDC variables (like `%X`, but with colons instead of `=` between keys and values).
   * `ALL`: for all of the above, so you can log using json with the log pattern `{%X{json}}`.
 * Set `@Logged#repeat` to limit the number of log repeats, e.g. `ONCE_PER_DAY` will not repeat any calls until 24 hours have passed since the previous call.
+* Also works `@AroundTimeout`, e.g. when a EJB `@Schedule` fires... although we can't test it automatically in our Weld container.
 
 ## Examples ##
 

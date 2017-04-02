@@ -1,18 +1,17 @@
 package com.github.t1.log;
 
-import static javax.interceptor.Interceptor.Priority.*;
-
-import java.lang.reflect.Method;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import com.github.t1.stereotypes.Annotations;
 
 import javax.annotation.Priority;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.interceptor.*;
+import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import com.github.t1.stereotypes.Annotations;
+import static javax.interceptor.Interceptor.Priority.*;
 
 @Logged
 @Dependent
@@ -28,6 +27,15 @@ public class LoggingInterceptor {
 
     @AroundInvoke
     Object aroundInvoke(InvocationContext context) throws Exception {
+        return around(context);
+    }
+
+    @AroundTimeout
+    Object aroundTimeout(InvocationContext context) throws Exception {
+        return around(context);
+    }
+
+    private Object around(InvocationContext context) throws Exception {
         LogPoint logPoint = logPoint(context.getMethod());
 
         logPoint.logCall(context);
