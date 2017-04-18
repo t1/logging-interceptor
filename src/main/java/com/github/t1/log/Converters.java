@@ -1,14 +1,13 @@
 package com.github.t1.log;
 
-import java.lang.reflect.Method;
-import java.util.*;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.inject.Instance;
 import javax.inject.*;
-
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.lang.reflect.Method;
+import java.util.*;
 
 /** Collects all implementations of {@link Converter}s and delegates {@link #convert(Object)}. */
 @Slf4j
@@ -25,6 +24,11 @@ public class Converters {
             } catch (ReflectiveOperationException e) {
                 throw new RuntimeException("can't convert", e);
             }
+        }
+
+        @Override public String toString() {
+            return method.getDeclaringClass().getName()
+                    + "#" + method.getName() + "(" + method.getParameterTypes()[0] + ")";
         }
     }
 
@@ -47,7 +51,7 @@ public class Converters {
                     ConverterMethod converterMethod = new ConverterMethod(converterInstance, method);
                     ConverterMethod old = converters.put(type, converterMethod);
                     if (old != null)
-                        log.error("ambiguous converters for {}: {} and {}", converterType, converterMethod, old);
+                        log.error("ambiguous converters for {}: {} and {}", type, converterMethod, old);
                     count++;
                 }
             }

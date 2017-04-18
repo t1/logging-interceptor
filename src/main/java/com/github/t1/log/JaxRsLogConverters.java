@@ -1,13 +1,12 @@
 package com.github.t1.log;
 
-import java.util.List;
-
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.StatusType;
+import java.util.List;
 
 public class JaxRsLogConverters implements Converter {
     public String convert(UriInfo info) {
-        return info.getRequestUri().toASCIIString();
+        return info.getRequestUri().toString();
     }
 
     public String convert(Response response) {

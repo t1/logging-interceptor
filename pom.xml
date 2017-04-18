@@ -151,16 +151,18 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- compile scope (will be shaded) -->
+        <!-- shaded scope (compile-scope, but optional) -->
         <dependency>
             <groupId>com.github.t1</groupId>
             <artifactId>stereotype-helper</artifactId>
             <version>1.0.3</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.javassist</groupId>
             <artifactId>javassist</artifactId>
             <version>3.21.0-GA</version>
+            <optional>true</optional>
         </dependency>
 
         <!-- test scope -->

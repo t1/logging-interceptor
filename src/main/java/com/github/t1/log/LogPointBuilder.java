@@ -43,15 +43,15 @@ class LogPointBuilder {
         this.throwableParameter = throwableParam();
 
         this.context //
-                .logger(buildLogger()) //
-                .level(resolveLevel()) //
-                .fieldLogContexts(buildFieldLogContextVariables()) //
-                .logArguments(buildLogArguments()) //
-                .messageFormat(parseMessage()) //
-                .voidMethod(method.getReturnType() == void.class) //
-                .returnFormat(loggedAnnotationOn(method).returnFormat()) //
-                .repeatController(RepeatController.createFor(logged.repeat())) //
-                ;
+                     .logger(buildLogger()) //
+                     .level(resolveLevel()) //
+                     .fieldLogContexts(buildFieldLogContextVariables()) //
+                     .logArguments(buildLogArguments()) //
+                     .messageFormat(parseMessage()) //
+                     .voidMethod(method.getReturnType() == void.class) //
+                     .returnFormat(loggedAnnotationOn(method).returnFormat()) //
+                     .repeatController(RepeatController.createFor(logged.repeat())) //
+        ;
 
         if (throwableParameter != null)
             return new ThrowableLogPoint(context, throwableParameter);
@@ -134,7 +134,7 @@ class LogPointBuilder {
             LogContext logContext = Annotations.on(field).getAnnotation(LogContext.class);
             if (logContext == null)
                 continue;
-            result.add(new FieldLogVariableProducer(field));
+            result.add(new FieldLogVariableProducer(field, converters()));
         }
         return result;
     }
