@@ -18,4 +18,4 @@ We try to fix bugs as quickly as possible, so you don't really have to check if 
 
 First look at the [apropriate Issues](https://github.com/t1/logging-interceptor/issues?utf8=✓&q=type%3Aissue+-label%3Abug+-label%3Aquestion)... this includes the _closed issues_. If it's already there, it may be enough to just add a thumbs-up. Or you can ask a specific question.
 
-If your idea is new, create an issue... and maybe after some discussion you may want to create a pull request.
+If your idea is new, create an issue... and maybe after some discussion you may want to create a pull request. Before we can accept any contributions, you'll need to agree to a Contributor License Agreement (CLA), but it's very simple, so it shouldn't be a problem.
