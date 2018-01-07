@@ -3,33 +3,27 @@
           xmlns='http://maven.apache.org/SETTINGS/1.0.0' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
     <profiles>
         <profile>
-            <id>bintray</id>
             <repositories>
                 <repository>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
                     <id>central</id>
-                    <name>central</name>
-                    <url>https://repo1.maven.org/maven2/</url>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                </repository>
-                <repository>
-                    <id>bintray</id>
                     <name>bintray</name>
-                    <url>https://jcenter.bintray.com</url>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                </repository>
-                <repository>
-                    <id>javaee-helpers</id>
-                    <name>javaee-helpers</name>
-                    <url>https://bintray.com/t1/javaee-helpers</url>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
+                    <url>http://jcenter.bintray.com</url>
                 </repository>
             </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <id>central</id>
+                    <name>bintray-plugins</name>
+                    <url>http://jcenter.bintray.com</url>
+                </pluginRepository>
+            </pluginRepositories>
+            <id>bintray</id>
         </profile>
     </profiles>
     <activeProfiles>
