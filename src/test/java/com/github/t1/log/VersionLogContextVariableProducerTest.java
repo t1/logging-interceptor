@@ -3,6 +3,7 @@ package com.github.t1.log;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.*;
+import org.mockito.internal.stubbing.InvocationContainerImpl;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.*;
 
@@ -30,7 +31,7 @@ public class VersionLogContextVariableProducerTest {
 
     @After
     public void printLogs() {
-        getMockHandler(log).getInvocationContainer().getInvocations().forEach(System.out::println);
+        ((InvocationContainerImpl) getMockHandler(log).getInvocationContainer()).getInvocations().forEach(System.out::println);
     }
 
     @Mock
