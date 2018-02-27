@@ -35,7 +35,7 @@ public class Converters {
     @Inject
     private Instance<Converter> converterInstances;
 
-    Map<Class<?>, ConverterMethod> converters = new HashMap<>();
+    private Map<Class<?>, ConverterMethod> converters = new HashMap<>();
 
     @PostConstruct
     void loadConverters() {
