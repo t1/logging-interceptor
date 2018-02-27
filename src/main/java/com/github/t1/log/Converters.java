@@ -55,6 +55,7 @@ public class Converters {
                     count++;
                 }
             }
+            converterInstances.destroy(converterInstance);
             log.debug("  registered {} converter methods in {}", count, converterType);
         }
         log.debug("converters loaded");
