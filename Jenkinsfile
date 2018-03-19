@@ -9,5 +9,10 @@ pipeline {
         
       }
     }
+    stage('Notify') {
+      steps {
+        slackSend(message: 'Message from Jenkins Pipeline', color: 'good')
+      }
+    }
   }
 }
