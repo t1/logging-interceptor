@@ -1,4 +1,11 @@
 language: java
 jdk:
-  - openjdk8
-install: mvn install -DskipTests=true -Dmaven.javadoc.skip=true --batch-mode --show-version --settings .travis.settings.xml
+- openjdk8
+- openjdk11
+
+cache:
+  directories:
+  - $HOME/.m2
+
+install: echo nothing to install
+script: mvn verify --batch-mode --show-version --settings .travis.settings.xml
