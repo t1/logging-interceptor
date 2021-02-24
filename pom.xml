@@ -7,6 +7,7 @@
 
     <name>Logging-Interceptor</name>
     <description>CDI interceptor for logging to slf4j</description>
+    <url>https://github.com/t1/logging-interceptor</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -14,29 +15,28 @@
     </properties>
 
     <scm>
-        <developerConnection>scm:git:https://github.com/t1/logging-interceptor</developerConnection>
+        <developerConnection>scm:git:https://github.com/t1/logging-interceptor.git</developerConnection>
         <tag>HEAD</tag>
+        <url>https://github.com/t1/logging-interceptor.git</url>
     </scm>
     <distributionManagement>
         <repository>
-            <id>bintray-t1-javaee-helpers</id>
+            <id>ossrh</id>
             <name>t1-javaee-helpers</name>
-            <url>https://api.bintray.com/maven/t1/javaee-helpers/${project.artifactId}/;publish=1</url>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
     </distributionManagement>
     <licenses>
         <license>
             <name>Apache License 2.0</name>
-            <url>http://www.spdx.org/licenses/Apache-2.0</url>
+            <url>http://choosealicense.com/licenses/apache-2.0/</url>
+            <distribution>repo</distribution>
         </license>
     </licenses>
-
-    <repositories>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
-    </repositories>
 
     <build>
         <finalName>${project.artifactId}</finalName>
@@ -115,9 +115,24 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.8</version>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+            <plugin>
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.5.3</version>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <tagNameFormat>@{project.version}</tagNameFormat>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <releaseProfiles>release</releaseProfiles>
+                </configuration>
             </plugin>
         </plugins>
     </build>
