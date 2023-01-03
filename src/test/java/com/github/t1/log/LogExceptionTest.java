@@ -7,16 +7,23 @@ import org.mockito.ArgumentCaptor;
 import org.slf4j.Logger;
 
 import javax.inject.Inject;
+import java.util.Arrays;
 import java.util.List;
 
-import static com.github.t1.log.LogLevel.*;
+import static com.github.t1.log.LogLevel.DEBUG;
+import static com.github.t1.log.LogLevel.ERROR;
+import static com.github.t1.log.LogLevel.INFO;
+import static com.github.t1.log.LogLevel.TRACE;
+import static com.github.t1.log.LogLevel.WARN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.verify;
 
 @SuppressWarnings("WeakerAccess")
 @RunWith(Arquillian.class)
 public class LogExceptionTest extends AbstractLoggingInterceptorTests {
+    @SuppressWarnings("UnusedReturnValue")
     public static class ThrowingClass {
         @Logged public String throwRuntimeExceptionWithoutMessage() {
             throw new RuntimeException();
@@ -46,13 +53,12 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
         assertThat((Long) event.get(1)).isBetween(0L, 20L);
     }
 
-    private List<Object> captureLogEvent(Logger log, String message) {
+    private List<Object> captureLogEvent(Logger log, @SuppressWarnings("SameParameterValue") String message) {
         ArgumentCaptor<Object[]> captor = ArgumentCaptor.forClass(Object[].class);
         verify(log).debug(eq(message), captor.capture());
-        // this seems to be a bug in Mockito: doesn't work with object[]
-        @SuppressWarnings({ "unchecked", "RedundantCast" })
-        List<Object> args = (List<Object>) (Object) captor.getAllValues();
-        return args;
+        List<Object[]> args = captor.getAllValues();
+        assertThat(args).hasSize(1);
+        return Arrays.asList(args.get(0));
     }
 
     @Test
@@ -142,6 +148,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
 
         throwableLogger.notThrowing(exception, "bar");
 
+        //noinspection RedundantArrayCreation
         verify(log).debug("not throwing {} {}", new Object[] { exception, "bar" });
     }
 
@@ -216,7 +223,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "SameParameterValue"})
     static class ExceptionLogger {
         @Logged(level = ERROR)
         void failed(String operation, RuntimeException e) {}
@@ -249,6 +256,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
 
         exceptionLogger.foo(runtimeException);
 
+        //noinspection PlaceholderCountMatchesArgumentCount
         verify(log).debug("message with {}", runtimeException);
     }
 
@@ -267,6 +275,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
 
         exceptionLogger.fooWithTwo("message", runtimeException);
 
+        //noinspection PlaceholderCountMatchesArgumentCount
         verify(log).debug("message with message and {}", runtimeException);
     }
 }
