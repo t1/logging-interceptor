@@ -1,21 +1,34 @@
 package com.github.t1.log;
 
-import com.github.t1.log.LogPoint.*;
+import com.github.t1.log.LogPoint.NullLogPoint;
+import com.github.t1.log.LogPoint.StandardLogPoint;
+import com.github.t1.log.LogPoint.ThrowableLogPoint;
 import com.github.t1.stereotypes.Annotations;
 import lombok.experimental.Delegate;
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.*;
-import java.util.*;
-import java.util.regex.*;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Field;
+import java.lang.reflect.Member;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import static com.github.t1.log.LogLevel.*;
-import static com.github.t1.log.Logged.*;
-import static java.lang.Character.*;
-import static java.util.Collections.*;
+import static com.github.t1.log.LogLevel.DEBUG;
+import static com.github.t1.log.LogLevel._DERIVED_;
+import static com.github.t1.log.Logged.CAMEL_CASE_METHOD_NAME;
+import static com.github.t1.log.Logged.USE_CLASS_LOGGER;
+import static java.lang.Character.isUpperCase;
+import static java.lang.Character.toLowerCase;
+import static java.util.Collections.unmodifiableList;
 
 class LogPointBuilder {
-    private static final Pattern VAR = Pattern.compile("\\{(?<expression>[^}]*)\\}");
+    private static final Pattern VAR = Pattern.compile("\\{(?<expression>[^}]*)}");
     private static final Pattern NUMERIC = Pattern.compile("(\\+|-|)\\d+");
 
     private final Method method;
@@ -43,14 +56,14 @@ class LogPointBuilder {
         this.throwableParameter = throwableParam();
 
         this.context //
-                     .logger(buildLogger()) //
-                     .level(resolveLevel()) //
-                     .fieldLogContexts(buildFieldLogContextVariables()) //
-                     .logArguments(buildLogArguments()) //
-                     .messageFormat(parseMessage()) //
-                     .voidMethod(method.getReturnType() == void.class) //
-                     .returnFormat(loggedAnnotationOn(method).returnFormat()) //
-                     .repeatController(RepeatController.createFor(logged.repeat())) //
+            .logger(buildLogger()) //
+            .level(resolveLevel()) //
+            .fieldLogContexts(buildFieldLogContextVariables()) //
+            .logArguments(buildLogArguments()) //
+            .messageFormat(parseMessage()) //
+            .voidMethod(method.getReturnType() == void.class) //
+            .returnFormat(loggedAnnotationOn(method).returnFormat()) //
+            .repeatController(RepeatController.createFor(logged.repeat())) //
         ;
 
         if (throwableParameter != null)
@@ -173,7 +186,7 @@ class LogPointBuilder {
             return logParam(parameterNameIndex(paramRef), expression);
         if (expression != null)
             return new StaticLogArgument("error",
-                    "invalid log parameter expression [" + expression + "] for reference [" + paramRef + "]");
+                "invalid log parameter expression [" + expression + "] for reference [" + paramRef + "]");
         return new MdcLogArgument(paramRef);
     }
 
@@ -239,14 +252,12 @@ class LogPointBuilder {
         int n = logArguments().size();
         if (throwableParameter != null)
             --n;
-        for (int i = 0; i < n; i++) {
-            out.append(" {}");
-        }
+        out.append(" {}".repeat(Math.max(0, n)));
         return out.toString();
     }
 
     private String stripPlaceholderBodies(String message) {
-        StringBuffer out = new StringBuffer();
+        StringBuilder out = new StringBuilder();
         Matcher matcher = VAR.matcher(message);
         while (matcher.find()) {
             matcher.appendReplacement(out, "{}");

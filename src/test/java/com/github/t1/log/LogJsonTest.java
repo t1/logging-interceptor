@@ -7,8 +7,8 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.json.*;
+import jakarta.inject.Inject;
+import jakarta.json.*;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

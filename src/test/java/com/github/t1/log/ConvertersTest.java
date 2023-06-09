@@ -1,22 +1,28 @@
 package com.github.t1.log;
 
-import lombok.*;
-import org.junit.*;
+import jakarta.enterprise.inject.Instance;
+import jakarta.ws.rs.core.UriInfo;
+import lombok.SneakyThrows;
+import lombok.Value;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import javax.enterprise.inject.Instance;
-import javax.ws.rs.core.UriInfo;
 import java.io.Serializable;
 import java.lang.reflect.Proxy;
 import java.net.URI;
 import java.util.concurrent.Callable;
 
-import static java.util.Arrays.*;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 @SuppressWarnings("unused")
@@ -59,7 +65,7 @@ public class ConvertersTest {
     @Test
     public void shouldConvertPojo() {
         class Pojo {
-            String value = "x";
+            final String value = "x";
         }
 
         class PojoConverter implements Converter {
@@ -180,7 +186,7 @@ public class ConvertersTest {
     @Test
     public void shouldConvertSuperClass() {
         class SuperPojo {
-            String value = "x";
+            final String value = "x";
         }
         class SubPojo extends SuperPojo {}
 
@@ -231,7 +237,7 @@ public class ConvertersTest {
         Pojo pojo = new Pojo();
         Object converted = converters.convert(pojo);
 
-        assertTrue(pojo == converted);
+        assertSame(pojo, converted);
     }
 
     @Test
@@ -249,7 +255,7 @@ public class ConvertersTest {
         Pojo pojo = new Pojo();
         Object converted = converters.convert(pojo);
 
-        assertTrue(pojo == converted);
+        assertSame(pojo, converted);
     }
 
     @Test
@@ -267,36 +273,36 @@ public class ConvertersTest {
         Pojo pojo = new Pojo();
         Object converted = converters.convert(pojo);
 
-        assertTrue(pojo == converted);
+        assertSame(pojo, converted);
     }
 
     @Test
-    public void shouldConvertCallableProxy() throws Exception {
+    public void shouldConvertCallableProxy() {
         Callable<String> callable = () -> "x";
 
         class CallableConverter implements Converter {
             @SneakyThrows(Exception.class)
-            public String convert(Callable callable) { return callable.call() + "#"; }
+            public String convert(Callable<?> callable) {return callable.call() + "#";}
         }
 
         givenConverters(new CallableConverter());
 
-        Object proxy = Proxy.newProxyInstance(ConvertersTest.class.getClassLoader(), new Class<?>[] { Callable.class },
-                (target, method, args) -> method.invoke(callable, args) + "!");
+        Object proxy = Proxy.newProxyInstance(ConvertersTest.class.getClassLoader(), new Class<?>[]{Callable.class},
+            (target, method, args) -> method.invoke(callable, args) + "!");
         Object converted = converters.convert(proxy);
 
         assertEquals("x!#", converted);
     }
 
     @Test
-    public void shouldConvertUriInfoProxy() throws Exception {
+    public void shouldConvertUriInfoProxy() {
         URI uri = URI.create("http://example.org?test");
         UriInfo uriInfo = mock(UriInfo.class);
         when(uriInfo.getRequestUri()).thenReturn(uri);
         givenConverters(new JaxRsLogConverters());
 
-        Object proxy = Proxy.newProxyInstance(ConvertersTest.class.getClassLoader(), new Class<?>[] { UriInfo.class },
-                (proxy1, method, args) -> method.invoke(uriInfo, args));
+        Object proxy = Proxy.newProxyInstance(ConvertersTest.class.getClassLoader(), new Class<?>[]{UriInfo.class},
+            (proxy1, method, args) -> method.invoke(uriInfo, args));
         Object converted = converters.convert(proxy);
 
         assertEquals(uri.toString(), converted);

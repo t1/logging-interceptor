@@ -1,16 +1,20 @@
 package com.github.t1.log;
 
+import jakarta.inject.Inject;
 import org.jboss.arquillian.junit.Arquillian;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.inject.Inject;
-
-import static com.github.t1.log.LogLevel.*;
+import static com.github.t1.log.LogLevel.INFO;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-import static org.slf4j.impl.StaticMDCBinder.*;
+import static org.assertj.core.api.BDDAssertions.then;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.slf4j.impl.StaticMDCBinder.verifyMdc;
 
 @SuppressWarnings("WeakerAccess")
 @RunWith(Arquillian.class)
@@ -147,9 +151,9 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
 
     public static class ReturnFormatClass {
         @Logged(returnFormat = "my-{returnValue} in: {time}")
-        public String foo(String result) { return result; }
+        public String foo(String result) {return result;}
 
-        @Logged(returnFormat = "") public String bar(String result) { return result; }
+        @Logged(returnFormat = "") public String bar(String result) {return result;}
     }
 
     @Inject
@@ -184,9 +188,10 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
 
     @Test
     public void shouldNotLogEmptyReturnFormat() {
-        returnFormatClass.bar("baz");
+        var baz = returnFormatClass.bar("baz");
 
-        verify(log).debug("bar {}", new Object[] { "baz" });
+        then(baz).isEqualTo("baz");
+        verify(log).debug("bar {}", "baz");
         verify(log, atLeast(0)).isDebugEnabled();
         verifyNoMoreInteractions(log);
     }

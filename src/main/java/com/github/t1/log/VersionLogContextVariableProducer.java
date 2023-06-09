@@ -7,9 +7,9 @@ import java.net.URL;
 import java.util.jar.*;
 import java.util.regex.Matcher;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.inject.Produces;
-import javax.inject.*;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.*;
 
 import lombok.extern.slf4j.Slf4j;
 

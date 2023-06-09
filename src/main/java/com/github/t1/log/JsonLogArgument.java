@@ -1,19 +1,25 @@
 package com.github.t1.log;
 
-import static com.github.t1.log.JsonLogDetail.*;
+import jakarta.interceptor.InvocationContext;
+import lombok.Value;
+import org.slf4j.Logger;
+import org.slf4j.MDC;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import javax.interceptor.InvocationContext;
-
-import org.slf4j.*;
-
-import lombok.Value;
+import static com.github.t1.log.JsonLogDetail.ALL;
+import static com.github.t1.log.JsonLogDetail.CONTEXT;
+import static com.github.t1.log.JsonLogDetail.EVENT;
+import static com.github.t1.log.JsonLogDetail.PARAMETERS;
 
 /**
  * Produces a JSON string, using other {@link LogArgument}s.
- * 
+ *
  * @see JsonLogDetail
  */
 @Value
@@ -76,11 +82,11 @@ public class JsonLogArgument implements LogArgument {
         }
     }
 
-    private final List<JsonLogDetail> jsonLogDetail;
-    private final List<LogArgument> parameters;
-    private final Converters converters;
-    private final Logger logger;
-    private final LogLevel level;
+    List<JsonLogDetail> jsonLogDetail;
+    List<LogArgument> parameters;
+    Converters converters;
+    Logger logger;
+    LogLevel level;
 
     @Override
     public String name() {

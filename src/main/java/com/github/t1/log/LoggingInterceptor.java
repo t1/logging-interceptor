@@ -2,16 +2,16 @@ package com.github.t1.log;
 
 import com.github.t1.stereotypes.Annotations;
 
-import javax.annotation.Priority;
-import javax.enterprise.context.Dependent;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-import javax.interceptor.*;
+import jakarta.annotation.Priority;
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+import jakarta.interceptor.*;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static javax.interceptor.Interceptor.Priority.*;
+import static jakarta.interceptor.Interceptor.Priority.*;
 
 @Logged
 @Dependent

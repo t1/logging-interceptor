@@ -1,14 +1,20 @@
 package com.github.t1.log;
 
+import jakarta.inject.Inject;
 import org.jboss.arquillian.junit.Arquillian;
-import org.junit.*;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InOrder;
 
-import javax.inject.Inject;
-
-import static org.mockito.Mockito.*;
-import static org.slf4j.impl.StaticMDCBinder.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.slf4j.impl.StaticMDCBinder.mdc;
+import static org.slf4j.impl.StaticMDCBinder.verifyMdc;
 
 @SuppressWarnings("WeakerAccess")
 @RunWith(Arquillian.class)
@@ -31,7 +37,7 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
         logContextParameterClass.methodWithLogContextParameter("foo", "bar");
 
         verifyMdc("var", "foo");
-        verify(log).debug("method with log context parameter {} {}", new Object[] { "foo", "bar" });
+        verify(log).debug("method with log context parameter {} {}", "foo", "bar");
     }
 
     @Test
@@ -40,7 +46,7 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
         logContextParameterClass.methodWithLogContextParameterNotInMessage("foo", "bar");
 
         verifyMdc("one", "foo");
-        verify(log).debug("[{}]", new Object[] { "bar" });
+        verify(log).debug("[{}]", "bar");
     }
 
     @Test
@@ -136,6 +142,6 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
         logContextFieldClass.methodWithLogContextFieldInMessage();
 
         verifyMdc("one", "foo");
-        verify(log).debug("[{}]", new Object[] { "foo" });
+        verify(log).debug("[{}]", "foo");
     }
 }

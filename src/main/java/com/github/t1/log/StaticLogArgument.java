@@ -1,6 +1,6 @@
 package com.github.t1.log;
 
-import javax.interceptor.InvocationContext;
+import jakarta.interceptor.InvocationContext;
 
 import lombok.AllArgsConstructor;
 

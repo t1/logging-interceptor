@@ -1,15 +1,14 @@
 package com.github.t1.log;
 
+import jakarta.inject.Inject;
 import lombok.Value;
 import org.jboss.arquillian.junit.Arquillian;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.inject.Inject;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static org.slf4j.impl.StaticMDCBinder.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.slf4j.impl.StaticMDCBinder.mdc;
 
 @RunWith(Arquillian.class)
 public class LogConverterTest extends AbstractLoggingInterceptorTests {
@@ -43,7 +42,7 @@ public class LogConverterTest extends AbstractLoggingInterceptorTests {
     public void shouldConvertParameter() {
         pojoParam.pojoParamMethod(POJO);
 
-        verify(log).debug("pojo param method {}", new Object[] { "foo#bar" });
+        verify(log).debug("pojo param method {}", "foo#bar");
     }
 
     // ----------------------------------------------------------------------------------
@@ -61,7 +60,7 @@ public class LogConverterTest extends AbstractLoggingInterceptorTests {
     public void shouldConvertReturnValue() {
         pojoReturn.foo();
 
-        verify(log).debug("foo", new Object[] {}); // consume for better mockito error messages
+        verify(log).debug("foo"); // consume for better mockito error messages
 
         String message = captureMessage();
 

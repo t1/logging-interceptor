@@ -3,7 +3,7 @@ package com.github.t1.log;
 import static com.github.t1.log.LogLevel.*;
 import static org.mockito.Mockito.*;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.jboss.arquillian.junit.Arquillian;
 import org.junit.Test;

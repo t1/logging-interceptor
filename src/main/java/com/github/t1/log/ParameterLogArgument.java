@@ -2,7 +2,7 @@ package com.github.t1.log;
 
 import static com.github.t1.log.LogContext.*;
 
-import javax.interceptor.InvocationContext;
+import jakarta.interceptor.InvocationContext;
 
 /** This is the normal case, reading the value from the method parameter. */
 class ParameterLogArgument extends ExpressionLogArgument {

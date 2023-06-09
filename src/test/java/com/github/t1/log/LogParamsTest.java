@@ -1,15 +1,13 @@
 package com.github.t1.log;
 
-import static org.mockito.Mockito.*;
-import static org.slf4j.impl.StaticMDCBinder.*;
-
-import javax.inject.Inject;
-
+import jakarta.inject.Inject;
 import lombok.Value;
-
 import org.jboss.arquillian.junit.Arquillian;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.mockito.Mockito.verify;
+import static org.slf4j.impl.StaticMDCBinder.givenMdc;
 
 @RunWith(Arquillian.class)
 public class LogParamsTest extends AbstractLoggingInterceptorTests {
@@ -28,7 +26,7 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     public void shouldLogBooleanParam() {
         booleanParamClass.foo(true);
 
-        verify(log).debug("foo {}", new Object[] { true });
+        verify(log).debug("foo {}", true);
     }
 
     // ----------------------------------------------------------------------------------
@@ -46,7 +44,7 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     public void shouldLogIntParam() {
         intParamClass.foo(3);
 
-        verify(log).debug("foo {}", new Object[] { 3 });
+        verify(log).debug("foo {}", 3);
     }
 
     // ----------------------------------------------------------------------------------
@@ -64,7 +62,7 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     public void shouldLogIntegerParam() {
         integerParamClass.foo(3);
 
-        verify(log).debug("foo {}", new Object[] { 3 });
+        verify(log).debug("foo {}", 3);
     }
 
     // ----------------------------------------------------------------------------------
@@ -82,7 +80,7 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     public void shouldLogStringParam() {
         stringParamClass.foo("bar");
 
-        verify(log).debug("foo {}", new Object[] { "bar" });
+        verify(log).debug("foo {}", "bar");
     }
 
     // ----------------------------------------------------------------------------------
@@ -100,7 +98,7 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     public void shouldNotLogArgumentsAnnotatedAsDontLog() {
         dontLogClass.foo("foo", "bar");
 
-        verify(log).debug("foo {}", new Object[] { "bar" });
+        verify(log).debug("foo {}", "bar");
     }
 
     // ----------------------------------------------------------------------------------
@@ -118,7 +116,7 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     public void shouldLogTwoParameters() {
         twoParamsClass.foo("foo", "bar");
 
-        verify(log).debug("foo {} {}", new Object[] { "foo", "bar" });
+        verify(log).debug("foo {} {}", "foo", "bar");
     }
 
     // ----------------------------------------------------------------------------------
@@ -160,49 +158,49 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     public void shouldLogArgumentsWithIndex() {
         paramsWithIndex.withIndex("foo", "bar");
 
-        verify(log).debug("one={}, two={}", new Object[] { "foo", "bar" });
+        verify(log).debug("one={}, two={}", "foo", "bar");
     }
 
     @Test
     public void shouldLogArgumentsWithInvertedIndex() {
         paramsWithIndex.withInvertedIndex("foo", "bar");
 
-        verify(log).debug("two={}, one={}", new Object[] { "bar", "foo" });
+        verify(log).debug("two={}, one={}", "bar", "foo");
     }
 
     @Test
     public void shouldLogArgumentsWithRepeatedIndex() {
         paramsWithIndex.withRepeatedIndex("foo", "bar");
 
-        verify(log).debug("one={}, again={}", new Object[] { "foo", "foo" });
+        verify(log).debug("one={}, again={}", "foo", "foo");
     }
 
     @Test
     public void shouldFailToLogArgumentsWithInvalidIndex() {
         paramsWithIndex.withInvalidIndex("foo", "bar");
 
-        verify(log).debug("one={}", new Object[] { "invalid log parameter index: 2" });
+        verify(log).debug("one={}", "invalid log parameter index: 2");
     }
 
     @Test
     public void shouldFailToLogArgumentsWithNegativeIndex() {
         paramsWithIndex.withNegativeIndex("foo");
 
-        verify(log).debug("one={}", new Object[] { "invalid log parameter index: -1" });
+        verify(log).debug("one={}", "invalid log parameter index: -1");
     }
 
     @Test
     public void shouldLogMixedParameters() {
         paramsWithIndex.withMixedIndex("foo", "bar");
 
-        verify(log).debug("one={}, two={}", new Object[] { "foo", "bar" });
+        verify(log).debug("one={}, two={}", "foo", "bar");
     }
 
     @Test
     public void shouldLogMixedParameters2() {
         paramsWithIndex.withMixedIndex2("foo", "bar");
 
-        verify(log).debug("one={}, again={}, two={}", new Object[] { "foo", "foo", "bar" });
+        verify(log).debug("one={}, again={}, two={}", "foo", "foo", "bar");
     }
 
     // ----------------------------------------------------------------------------------
@@ -246,42 +244,42 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
         paramsWithName.withInvalidName("foo");
 
         verify(log).debug("one={}",
-                new Object[] { "unset mdc log parameter reference (and not a parameter name): invalid" });
+            "unset mdc log parameter reference (and not a parameter name): invalid");
     }
 
     @Test
     public void shouldLogArgumentsWithValidName() {
         paramsWithName.withValidName("foo");
 
-        verify(log).debug("one={}", new Object[] { "foo" });
+        verify(log).debug("one={}", "foo");
     }
 
     @Test
     public void shouldLogWithProperty() {
         paramsWithName.withProperty(new Pojo("foo", "bar"));
 
-        verify(log).debug(".one={}", new Object[] { "foo" });
+        verify(log).debug(".one={}", "foo");
     }
 
     @Test
     public void shouldLogIndexedWithProperty() {
         paramsWithName.indexedWithProperty(new Pojo("foo", "bar"));
 
-        verify(log).debug("0.one={}", new Object[] { "foo" });
+        verify(log).debug("0.one={}", "foo");
     }
 
     @Test
     public void shouldLogNamedWithProperty() {
         paramsWithName.namedWithProperty(new Pojo("foo", "bar"));
 
-        verify(log).debug("p.one={}", new Object[] { "foo" });
+        verify(log).debug("p.one={}", "foo");
     }
 
     @Test
     public void shouldLogWrappedProperty() {
         paramsWithName.wrappedWithProperty(new Wrapper(new Pojo("foo", "bar")));
 
-        verify(log).debug("wrapper.pojo.two={}", new Object[] { "bar" });
+        verify(log).debug("wrapper.pojo.two={}", "bar");
     }
 
     // ----------------------------------------------------------------------------------
@@ -304,7 +302,7 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
 
         paramsWithMdcName.withMdcName("foo");
 
-        verify(log).debug("one={} mdc={}", new Object[] { "foo", "mdc-value" });
+        verify(log).debug("one={} mdc={}", "foo", "mdc-value");
     }
 
     @Test
@@ -314,6 +312,6 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
         paramsWithMdcName.withMdcNameAndExpression();
 
         verify(log).debug("mdc={}",
-                new Object[] { "invalid log parameter expression [invalid] for reference [mdc-key]" });
+            "invalid log parameter expression [invalid] for reference [mdc-key]");
     }
 }

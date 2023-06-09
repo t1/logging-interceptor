@@ -1,7 +1,7 @@
 package com.github.t1.log;
 
-import javax.ws.rs.core.*;
-import javax.ws.rs.core.Response.StatusType;
+import jakarta.ws.rs.core.*;
+import jakarta.ws.rs.core.Response.StatusType;
 import java.util.List;
 
 public class JaxRsLogConverters implements Converter {

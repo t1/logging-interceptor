@@ -17,6 +17,10 @@ We use [semantic versioning](http://semver.org). tl;dr: versions consist of thre
 
 So going to 3.0.0 was Bad, as it may break existing applications. But sometimes Bad things are necessary. Here we need it to get to Java 8 and replace esp. Joda-Date (BTW: big kudos to Stephen for that project and for making it obsolete by moving it to Java 8).
 
+### Version 4.x ###
+
+Go to Jakarta 9+ package names, i.e. `import javax.inject.Inject;` -> `import jakarta.inject.Inject;`.
+
 
 ## Features ##
 

@@ -4,7 +4,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import static com.github.t1.log.LogLevel.*;
 import static org.mockito.Mockito.*;

@@ -4,7 +4,7 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import org.slf4j.Logger;
 
-import javax.enterprise.inject.Instance;
+import jakarta.enterprise.inject.Instance;
 import java.util.List;
 
 @Data

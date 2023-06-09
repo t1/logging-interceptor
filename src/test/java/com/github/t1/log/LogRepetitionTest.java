@@ -1,13 +1,16 @@
 package com.github.t1.log;
 
-import static com.github.t1.log.LogRepeatLimit.*;
-import static org.mockito.Mockito.*;
-
-import javax.inject.Inject;
-
+import jakarta.inject.Inject;
 import org.jboss.arquillian.junit.Arquillian;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static com.github.t1.log.LogRepeatLimit.ALL;
+import static com.github.t1.log.LogRepeatLimit.ONCE;
+import static com.github.t1.log.LogRepeatLimit.ONCE_PER_SECOND;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @RunWith(Arquillian.class)
 public class LogRepetitionTest extends AbstractLoggingInterceptorTests {
@@ -50,9 +53,9 @@ public class LogRepetitionTest extends AbstractLoggingInterceptorTests {
         repeatLog.repeatOncePerSecond(3);
         repeatLog.repeatOncePerSecond(4);
 
-        verify(log).debug("repeat once per second {}", new Object[] { 1 });
-        verify(log, never()).debug("repeat once per second {}", new Object[] { 2 });
-        verify(log).debug("repeat once per second {}", new Object[] { 3 });
-        verify(log, never()).debug("repeat once per second {}", new Object[] { 4 });
+        verify(log).debug("repeat once per second {}", 1);
+        verify(log, never()).debug("repeat once per second {}", 2);
+        verify(log).debug("repeat once per second {}", 3);
+        verify(log, never()).debug("repeat once per second {}", 4);
     }
 }

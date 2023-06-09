@@ -1,13 +1,19 @@
 package com.github.t1.log;
 
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtMethod;
+import javassist.LoaderClassPath;
+import javassist.Modifier;
+import javassist.NotFoundException;
+import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.LocalVariableAttribute;
+import lombok.extern.slf4j.Slf4j;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
-import javassist.*;
-import javassist.bytecode.*;
-import lombok.extern.slf4j.Slf4j;
-
-/** provide parameter information from {@link java.lang.Parameter jdk8} or debug information. */
+/** provide parameter information from {@link java.lang.reflect.Parameter jdk8} or debug information. */
 @Slf4j
 class Parameter {
     private final Method method;
@@ -20,6 +26,7 @@ class Parameter {
         this.index = index;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public <T extends Annotation> boolean isAnnotationPresent(Class<T> annotationType) {
         return getAnnotation(annotationType) != null;
     }

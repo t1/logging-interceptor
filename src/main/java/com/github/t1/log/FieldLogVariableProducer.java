@@ -3,7 +3,7 @@ package com.github.t1.log;
 import com.github.t1.stereotypes.Annotations;
 import lombok.RequiredArgsConstructor;
 
-import javax.interceptor.InvocationContext;
+import jakarta.interceptor.InvocationContext;
 import java.lang.reflect.Field;
 
 import static com.github.t1.log.LogContext.*;

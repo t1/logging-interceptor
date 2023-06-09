@@ -1,9 +1,11 @@
 package com.github.t1.log;
 
-import static java.lang.annotation.ElementType.*;
-import static java.lang.annotation.RetentionPolicy.*;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-import java.lang.annotation.*;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Parameters of {@link Logged} <b>methods</b> annotated as {@link LogContext} are placed into the {@link org.slf4j.MDC
@@ -17,10 +19,10 @@ import java.lang.annotation.*;
  * <p>
  * Note that the MDC is set even if the log level is not enabled!
  */
-@Target({ PARAMETER, FIELD })
+@Target({PARAMETER, FIELD})
 @Retention(RUNTIME)
 public @interface LogContext {
-    public static final String VARIABLE_NAME = "###VARIABLE_NAME###";
+    String VARIABLE_NAME = "###VARIABLE_NAME###";
 
     /** The name of the MDC variable to put. */
     String value() default VARIABLE_NAME;

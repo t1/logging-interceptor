@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
 import org.slf4j.helpers.MessageFormatter;
 
-import javax.interceptor.InvocationContext;
+import jakarta.interceptor.InvocationContext;
 import java.util.*;
 
 @RequiredArgsConstructor

@@ -2,7 +2,7 @@ package com.github.t1.log;
 
 /**
  * The list of types of information added to the <code>json</code> MDC variable.
- * 
+ *
  * @see Logged#json()
  */
 public enum JsonLogDetail {
@@ -13,5 +13,5 @@ public enum JsonLogDetail {
     /** log all MDC variables */
     CONTEXT,
     /** pseudo detail for all other details, so you can log using json with the log pattern `${json}`. */
-    ALL;
+    ALL
 }

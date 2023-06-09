@@ -10,5 +10,5 @@ import lombok.experimental.Accessors;
 @Value
 @Accessors(fluent = true)
 public class LogContextVariable {
-    private final String key, value;
+    String key, value;
 }

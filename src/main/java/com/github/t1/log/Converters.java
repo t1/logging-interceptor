@@ -1,13 +1,15 @@
 package com.github.t1.log;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.inject.Instance;
-import javax.inject.*;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /** Collects all implementations of {@link Converter}s and delegates {@link #convert(Object)}. */
 @Slf4j
@@ -28,14 +30,14 @@ public class Converters {
 
         @Override public String toString() {
             return method.getDeclaringClass().getName()
-                    + "#" + method.getName() + "(" + method.getParameterTypes()[0] + ")";
+                   + "#" + method.getName() + "(" + method.getParameterTypes()[0] + ")";
         }
     }
 
     @Inject
     private Instance<Converter> converterInstances;
 
-    private Map<Class<?>, ConverterMethod> converters = new HashMap<>();
+    private final Map<Class<?>, ConverterMethod> converters = new HashMap<>();
 
     @PostConstruct
     void loadConverters() {
@@ -63,7 +65,7 @@ public class Converters {
 
     private boolean isConverterMethod(Method method) {
         return "convert".equals(method.getName()) && method.getReturnType() != void.class
-                && method.getParameterTypes().length == 1;
+               && method.getParameterTypes().length == 1;
     }
 
     public Object convert(Object value) {
