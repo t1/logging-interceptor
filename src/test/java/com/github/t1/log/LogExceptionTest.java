@@ -1,29 +1,24 @@
 package com.github.t1.log;
 
-import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Inject;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.slf4j.Logger;
 
-import jakarta.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.github.t1.log.LogLevel.DEBUG;
-import static com.github.t1.log.LogLevel.ERROR;
-import static com.github.t1.log.LogLevel.INFO;
-import static com.github.t1.log.LogLevel.TRACE;
-import static com.github.t1.log.LogLevel.WARN;
+import static com.github.t1.log.LogLevel.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Fail.fail;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 
 @SuppressWarnings("WeakerAccess")
-@RunWith(Arquillian.class)
-public class LogExceptionTest extends AbstractLoggingInterceptorTests {
+class LogExceptionTest extends AbstractLoggingInterceptorTests {
     @SuppressWarnings("UnusedReturnValue")
+    @Dependent
     public static class ThrowingClass {
         @Logged public String throwRuntimeExceptionWithoutMessage() {
             throw new RuntimeException();
@@ -61,8 +56,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
         return Arrays.asList(args.get(0));
     }
 
-    @Test
-    public void shouldLogThrownExceptionWithoutMessage() {
+    @Test void shouldLogThrownExceptionWithoutMessage() {
         try {
             throwing.throwRuntimeExceptionWithoutMessage();
             fail("expected RuntimeException");
@@ -72,8 +66,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
         verifyFailureLogged("RuntimeException");
     }
 
-    @Test
-    public void shouldLogThrownExceptionWithMessage() {
+    @Test void shouldLogThrownExceptionWithMessage() {
         try {
             throwing.throwRuntimeExceptionWithMessage();
             fail("expected RuntimeException");
@@ -83,8 +76,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
         verifyFailureLogged("RuntimeException(bar)");
     }
 
-    @Test
-    public void shouldLogThrownExceptionWithCausingNpe() {
+    @Test void shouldLogThrownExceptionWithCausingNpe() {
         try {
             throwing.throwRuntimeExceptionWithCausingNpe();
             fail("expected RuntimeException");
@@ -94,8 +86,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
         verifyFailureLogged("RuntimeException(foo) -> NullPointerException(bar)");
     }
 
-    @Test
-    public void shouldLogThrownExceptionWithCausingNpeAndCausingIllegalArgument() {
+    @Test void shouldLogThrownExceptionWithCausingNpeAndCausingIllegalArgument() {
         try {
             throwing.throwRuntimeExceptionWithCausingIllegalArgumentAndCausingNpe();
             fail("expected RuntimeException");
@@ -110,6 +101,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
     // ----------------------------------------------------------------------------------
 
     @SuppressWarnings("unused")
+    @Dependent
     public static class ThrowableLogger {
         @Logged
         public void throwing(RuntimeException t) {}
@@ -124,8 +116,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
     @Inject
     ThrowableLogger throwableLogger;
 
-    @Test
-    public void shouldLogRuntimeExceptionParamAsThrowable() {
+    @Test void shouldLogRuntimeExceptionParamAsThrowable() {
         IllegalArgumentException exception = new IllegalArgumentException("foo");
 
         throwableLogger.throwing(exception);
@@ -133,8 +124,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
         verify(log).debug("throwing", exception);
     }
 
-    @Test
-    public void shouldLogRuntimeExceptionParamAsThrowableWithFormattedMessage() {
+    @Test void shouldLogRuntimeExceptionParamAsThrowableWithFormattedMessage() {
         IllegalArgumentException exception = new IllegalArgumentException("foo");
 
         throwableLogger.throwing("foo", exception);
@@ -142,19 +132,19 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
         verify(log).debug("throwing foo", exception);
     }
 
-    @Test
-    public void shouldLogRuntimeExceptionParamNormallyWhenNotLast() {
+    @Test void shouldLogRuntimeExceptionParamNormallyWhenNotLast() {
         IllegalArgumentException exception = new IllegalArgumentException("foo");
 
         throwableLogger.notThrowing(exception, "bar");
 
         //noinspection RedundantArrayCreation
-        verify(log).debug("not throwing {} {}", new Object[] { exception, "bar" });
+        verify(log).debug("not throwing {} {}", new Object[]{exception, "bar"});
     }
 
     // ----------------------------------------------------------------------------------
 
     @SuppressWarnings("unused")
+    @Dependent
     static class ExceptionLevelLogger {
         @Logged(level = ERROR)
         void error(RuntimeException e) {}
@@ -175,8 +165,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
     @Inject
     ExceptionLevelLogger exceptionLevelLogger;
 
-    @Test
-    public void shouldLogExceptionAtErrorLevel() {
+    @Test void shouldLogExceptionAtErrorLevel() {
         RuntimeException exception = new RuntimeException();
 
         exceptionLevelLogger.error(exception);
@@ -184,8 +173,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
         verify(log).error("error", exception);
     }
 
-    @Test
-    public void shouldLogExceptionAtWarnLevel() {
+    @Test void shouldLogExceptionAtWarnLevel() {
         RuntimeException exception = new RuntimeException();
 
         exceptionLevelLogger.warn(exception);
@@ -193,8 +181,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
         verify(log).warn("warn", exception);
     }
 
-    @Test
-    public void shouldLogExceptionAtInfoLevel() {
+    @Test void shouldLogExceptionAtInfoLevel() {
         RuntimeException exception = new RuntimeException();
 
         exceptionLevelLogger.info(exception);
@@ -202,8 +189,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
         verify(log).info("info", exception);
     }
 
-    @Test
-    public void shouldLogExceptionAtDebugLevel() {
+    @Test void shouldLogExceptionAtDebugLevel() {
         RuntimeException exception = new RuntimeException();
 
         exceptionLevelLogger.debug(exception);
@@ -211,8 +197,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
         verify(log).debug("debug", exception);
     }
 
-    @Test
-    public void shouldLogExceptionAtTraceLevel() {
+    @Test void shouldLogExceptionAtTraceLevel() {
         givenLogLevel(TRACE);
         RuntimeException exception = new RuntimeException();
 
@@ -224,6 +209,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
     // ----------------------------------------------------------------------------------
 
     @SuppressWarnings({"unused", "SameParameterValue"})
+    @Dependent
     static class ExceptionLogger {
         @Logged(level = ERROR)
         void failed(String operation, RuntimeException e) {}
@@ -241,8 +227,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
     @Inject
     ExceptionLogger exceptionLogger;
 
-    @Test
-    public void shouldFormatDefaultMessageBeforeException() {
+    @Test void shouldFormatDefaultMessageBeforeException() {
         RuntimeException runtimeException = new RuntimeException();
 
         exceptionLogger.failed("my operation", runtimeException);
@@ -250,8 +235,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
         verify(log).error("failed my operation", runtimeException);
     }
 
-    @Test
-    public void shouldFormatExplicitMessageUsingException() {
+    @Test void shouldFormatExplicitMessageUsingException() {
         RuntimeException runtimeException = new RuntimeException("foo");
 
         exceptionLogger.foo(runtimeException);
@@ -260,8 +244,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
         verify(log).debug("message with {}", runtimeException);
     }
 
-    @Test
-    public void shouldFormatExplicitMessageBeforeException() {
+    @Test void shouldFormatExplicitMessageBeforeException() {
         RuntimeException runtimeException = new RuntimeException();
 
         exceptionLogger.foo("message", runtimeException);
@@ -269,8 +252,7 @@ public class LogExceptionTest extends AbstractLoggingInterceptorTests {
         verify(log).debug("message with message", runtimeException);
     }
 
-    @Test
-    public void shouldFormatExplicitMessageAndException() {
+    @Test void shouldFormatExplicitMessageAndException() {
         RuntimeException runtimeException = new RuntimeException();
 
         exceptionLogger.fooWithTwo("message", runtimeException);

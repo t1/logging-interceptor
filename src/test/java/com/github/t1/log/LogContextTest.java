@@ -1,24 +1,19 @@
 package com.github.t1.log;
 
+import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
-import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.slf4j.impl.StaticMDCBinder.mdc;
-import static org.slf4j.impl.StaticMDCBinder.verifyMdc;
+import static mock.logging.MockLoggerProvider.array;
+import static mock.logging.MockMDC.mdc;
+import static mock.logging.MockMDC.verifyMdc;
+import static org.mockito.Mockito.*;
 
 @SuppressWarnings("WeakerAccess")
-@RunWith(Arquillian.class)
-public class LogContextTest extends AbstractLoggingInterceptorTests {
+class LogContextTest extends AbstractLoggingInterceptorTests {
+    @Dependent
     public static class LogContextParameterClass {
         @Logged
         @SuppressWarnings("unused")
@@ -32,32 +27,28 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
     @Inject
     LogContextParameterClass logContextParameterClass;
 
-    @Test
-    public void shouldSetLogContextParameter() {
+    @Test void shouldSetLogContextParameter() {
         logContextParameterClass.methodWithLogContextParameter("foo", "bar");
 
         verifyMdc("var", "foo");
-        verify(log).debug("method with log context parameter {} {}", "foo", "bar");
+        verify(log).debug("method with log context parameter {} {}", array("foo", "bar"));
     }
 
-    @Test
-    @Ignore("not yet implemented")
-    public void shouldSetLogContextParameterNotInMessage() {
+    @Disabled("not yet implemented")
+    @Test void shouldSetLogContextParameterNotInMessage() {
         logContextParameterClass.methodWithLogContextParameterNotInMessage("foo", "bar");
 
         verifyMdc("one", "foo");
         verify(log).debug("[{}]", "bar");
     }
 
-    @Test
-    public void shouldNotSetNullMdcParameter() {
+    @Test void shouldNotSetNullMdcParameter() {
         logContextParameterClass.methodWithLogContextParameter(null, "bar");
 
         verify(mdc(), never()).put(eq("var"), anyString());
     }
 
-    @Test
-    public void shouldRestoreMdcValue() {
+    @Test void shouldRestoreMdcValue() {
         when(mdc().get("var")).thenReturn("oldValue");
 
         logContextParameterClass.methodWithLogContextParameter("newValue", "bar");
@@ -67,8 +58,7 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
         inOrder.verify(mdc()).put("var", "oldValue");
     }
 
-    @Test
-    public void shouldRestoreNullMdcValue() {
+    @Test void shouldRestoreNullMdcValue() {
         logContextParameterClass.methodWithLogContextParameter("newValue", "bar");
 
         verify(mdc()).remove("var");
@@ -76,6 +66,7 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class TwoContextVariables {
         @Logged
         @SuppressWarnings("unused")
@@ -85,8 +76,7 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
     @Inject
     TwoContextVariables twoContextVariables;
 
-    @Test
-    public void shouldLogTwoDifferentContextParameters() {
+    @Test void shouldLogTwoDifferentContextParameters() {
         twoContextVariables.methodWithLogContextParameter("foo", "bar");
 
         verifyMdc("var1", "foo");
@@ -95,6 +85,7 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class LogContextParameterVariableClass {
         @Logged
         @SuppressWarnings("unused")
@@ -104,8 +95,7 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
     @Inject
     LogContextParameterVariableClass logContextParameterVariableClass;
 
-    @Test
-    public void shouldLogContextParameterWithName() {
+    @Test void shouldLogContextParameterWithName() {
         logContextParameterVariableClass.methodWithLogContextParameter("foo");
 
         verifyMdc("one", "foo");
@@ -113,6 +103,7 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class LogContextFieldClass {
         @SuppressWarnings("unused")
         @LogContext
@@ -128,20 +119,18 @@ public class LogContextTest extends AbstractLoggingInterceptorTests {
     @Inject
     LogContextFieldClass logContextFieldClass;
 
-    @Test
-    public void shouldLogContextField() {
+    @Test void shouldLogContextField() {
         logContextFieldClass.methodWithLogContextField();
 
         verifyMdc("one", "foo");
     }
 
-    @Test
-    public void shouldLogContextFieldArgument() {
+    @Test void shouldLogContextFieldArgument() {
         when(mdc().get("one")).thenReturn(null, "foo");
 
         logContextFieldClass.methodWithLogContextFieldInMessage();
 
         verifyMdc("one", "foo");
-        verify(log).debug("[{}]", "foo");
+        verify(log).debug("[{}]", array("foo"));
     }
 }

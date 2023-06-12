@@ -1,20 +1,16 @@
 package com.github.t1.log;
 
+import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
-import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
-import static com.github.t1.log.LogRepeatLimit.ALL;
-import static com.github.t1.log.LogRepeatLimit.ONCE;
-import static com.github.t1.log.LogRepeatLimit.ONCE_PER_SECOND;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static com.github.t1.log.LogRepeatLimit.*;
+import static mock.logging.MockLoggerProvider.array;
+import static org.mockito.Mockito.*;
 
-@RunWith(Arquillian.class)
-public class LogRepetitionTest extends AbstractLoggingInterceptorTests {
+class LogRepetitionTest extends AbstractLoggingInterceptorTests {
     @SuppressWarnings("unused")
+    @Dependent
     public static class RepeatedLogClass {
         @Logged(repeat = ALL)
         public void repeatAll() {}
@@ -29,33 +25,30 @@ public class LogRepetitionTest extends AbstractLoggingInterceptorTests {
     @Inject
     RepeatedLogClass repeatLog;
 
-    @Test
-    public void shouldRepeatAll() {
+    @Test void shouldRepeatAll() {
         repeatLog.repeatAll();
         repeatLog.repeatAll();
 
         verify(log, times(2)).debug("repeat all", NO_ARGS);
     }
 
-    @Test
-    public void shouldRepeatOnce() {
+    @Test void shouldRepeatOnce() {
         repeatLog.repeatOnce();
         repeatLog.repeatOnce();
 
         verify(log, times(1)).debug("repeat once", NO_ARGS);
     }
 
-    @Test
-    public void shouldRepeatOncePerSecond() throws Exception {
+    @Test void shouldRepeatOncePerSecond() throws Exception {
         repeatLog.repeatOncePerSecond(1);
         repeatLog.repeatOncePerSecond(2);
         Thread.sleep(1_020);
         repeatLog.repeatOncePerSecond(3);
         repeatLog.repeatOncePerSecond(4);
 
-        verify(log).debug("repeat once per second {}", 1);
-        verify(log, never()).debug("repeat once per second {}", 2);
-        verify(log).debug("repeat once per second {}", 3);
-        verify(log, never()).debug("repeat once per second {}", 4);
+        verify(log).debug("repeat once per second {}", array(1));
+        verify(log, never()).debug("repeat once per second {}", array(2));
+        verify(log).debug("repeat once per second {}", array(3));
+        verify(log, never()).debug("repeat once per second {}", array(4));
     }
 }

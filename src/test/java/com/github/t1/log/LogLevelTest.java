@@ -1,24 +1,20 @@
 package com.github.t1.log;
 
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Inject;
+import org.junit.jupiter.api.Test;
+
 import static com.github.t1.log.LogLevel.*;
 import static org.mockito.Mockito.*;
 
-import jakarta.inject.Inject;
-
-import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-@RunWith(Arquillian.class)
 @Logged(level = WARN)
-public class LogLevelTest extends AbstractLoggingInterceptorTests {
+class LogLevelTest extends AbstractLoggingInterceptorTests {
     // ----------------------------------------------------------------------------------
 
     @Inject
     SimpleLoggedClass simpleLoggedClass;
 
-    @Test
-    public void shouldNotLogWhenLevelIsNotEnabled() {
+    @Test void shouldNotLogWhenLevelIsNotEnabled() {
         givenLogLevel(INFO);
 
         simpleLoggedClass.foo();
@@ -29,6 +25,7 @@ public class LogLevelTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class OffClass {
         @Logged(level = OFF)
         public void foo() {}
@@ -37,8 +34,7 @@ public class LogLevelTest extends AbstractLoggingInterceptorTests {
     @Inject
     OffClass offClass;
 
-    @Test
-    public void shouldNotLogWhenOff() {
+    @Test void shouldNotLogWhenOff() {
         givenLogLevel(TRACE);
 
         offClass.foo();
@@ -48,6 +44,7 @@ public class LogLevelTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class TraceClass {
         @Logged(level = TRACE)
         public void foo() {}
@@ -56,8 +53,7 @@ public class LogLevelTest extends AbstractLoggingInterceptorTests {
     @Inject
     TraceClass traceClass;
 
-    @Test
-    public void shouldLogAtTraceLevelIfTraceIsEnabled() {
+    @Test void shouldLogAtTraceLevelIfTraceIsEnabled() {
         givenLogLevel(TRACE);
 
         traceClass.foo();
@@ -67,8 +63,7 @@ public class LogLevelTest extends AbstractLoggingInterceptorTests {
         verifyNoMoreInteractions(log);
     }
 
-    @Test
-    public void shouldNotLogAtTraceLevelIfOnlyDebugIsEnabled() {
+    @Test void shouldNotLogAtTraceLevelIfOnlyDebugIsEnabled() {
         givenLogLevel(DEBUG);
 
         traceClass.foo();
@@ -79,6 +74,7 @@ public class LogLevelTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class DebugClass {
         @Logged(level = DEBUG)
         public void foo() {}
@@ -87,8 +83,7 @@ public class LogLevelTest extends AbstractLoggingInterceptorTests {
     @Inject
     DebugClass debugClass;
 
-    @Test
-    public void shouldLogAtDebugLevelIfDebugIsEnabled() {
+    @Test void shouldLogAtDebugLevelIfDebugIsEnabled() {
         givenLogLevel(DEBUG);
 
         debugClass.foo();
@@ -98,8 +93,7 @@ public class LogLevelTest extends AbstractLoggingInterceptorTests {
         verifyNoMoreInteractions(log);
     }
 
-    @Test
-    public void shouldNotLogAtDebugLevelIfOnlyInfoIsEnabled() {
+    @Test void shouldNotLogAtDebugLevelIfOnlyInfoIsEnabled() {
         givenLogLevel(INFO);
 
         debugClass.foo();
@@ -110,6 +104,7 @@ public class LogLevelTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class InfoClass {
         @Logged(level = INFO)
         public void foo() {}
@@ -118,8 +113,7 @@ public class LogLevelTest extends AbstractLoggingInterceptorTests {
     @Inject
     InfoClass infoClass;
 
-    @Test
-    public void shouldLogAtInfoLevelIfInfoIsEnabled() {
+    @Test void shouldLogAtInfoLevelIfInfoIsEnabled() {
         givenLogLevel(INFO);
 
         infoClass.foo();
@@ -129,8 +123,7 @@ public class LogLevelTest extends AbstractLoggingInterceptorTests {
         verifyNoMoreInteractions(log);
     }
 
-    @Test
-    public void shouldNotLogAtInfoLevelIfOnlyWarnIsEnabled() {
+    @Test void shouldNotLogAtInfoLevelIfOnlyWarnIsEnabled() {
         givenLogLevel(WARN);
 
         infoClass.foo();
@@ -141,6 +134,7 @@ public class LogLevelTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class WarnClass {
         @Logged(level = WARN)
         public void foo() {}
@@ -149,8 +143,7 @@ public class LogLevelTest extends AbstractLoggingInterceptorTests {
     @Inject
     WarnClass warnClass;
 
-    @Test
-    public void shouldLogAtWarnLevelIfWarnIsEnabled() {
+    @Test void shouldLogAtWarnLevelIfWarnIsEnabled() {
         givenLogLevel(WARN);
 
         warnClass.foo();
@@ -160,8 +153,7 @@ public class LogLevelTest extends AbstractLoggingInterceptorTests {
         verifyNoMoreInteractions(log);
     }
 
-    @Test
-    public void shouldNotLogAtWarnLevelIfOnlyErrorIsEnabled() {
+    @Test void shouldNotLogAtWarnLevelIfOnlyErrorIsEnabled() {
         givenLogLevel(ERROR);
 
         warnClass.foo();
@@ -172,6 +164,7 @@ public class LogLevelTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class ErrorClass {
         @Logged(level = ERROR)
         public void foo() {}
@@ -180,8 +173,7 @@ public class LogLevelTest extends AbstractLoggingInterceptorTests {
     @Inject
     ErrorClass errorClass;
 
-    @Test
-    public void shouldLogAtErrorLevelIfErrorIsEnabled() {
+    @Test void shouldLogAtErrorLevelIfErrorIsEnabled() {
         givenLogLevel(ERROR);
 
         errorClass.foo();
@@ -191,8 +183,7 @@ public class LogLevelTest extends AbstractLoggingInterceptorTests {
         verifyNoMoreInteractions(log);
     }
 
-    @Test
-    public void shouldNotLogAtErrorLevelIfOff() {
+    @Test void shouldNotLogAtErrorLevelIfOff() {
         givenLogLevel(OFF);
 
         errorClass.foo();
@@ -204,6 +195,7 @@ public class LogLevelTest extends AbstractLoggingInterceptorTests {
     // ----------------------------------------------------------------------------------
 
     @Logged(level = INFO)
+    @Dependent
     public static class InheritLogLevelClass {
         @Logged
         public void foo() {}
@@ -212,8 +204,7 @@ public class LogLevelTest extends AbstractLoggingInterceptorTests {
     @Inject
     InheritLogLevelClass inheritLogLevelClass;
 
-    @Test
-    public void shouldInheritLogLevelFromClass() {
+    @Test void shouldInheritLogLevelFromClass() {
         givenLogLevel(DEBUG);
 
         inheritLogLevelClass.foo();
@@ -224,6 +215,7 @@ public class LogLevelTest extends AbstractLoggingInterceptorTests {
     // ----------------------------------------------------------------------------------
 
     @Logged
+    @Dependent
     public static class InheritLogLevelFromEnclosingClassClass {
         @Logged
         public void foo() {}
@@ -232,8 +224,7 @@ public class LogLevelTest extends AbstractLoggingInterceptorTests {
     @Inject
     InheritLogLevelFromEnclosingClassClass inheritLogLevelFromEnclosingClassClass;
 
-    @Test
-    public void shouldInheritLogLevelFromEnclosingClass() {
+    @Test void shouldInheritLogLevelFromEnclosingClass() {
         givenLogLevel(DEBUG);
 
         inheritLogLevelFromEnclosingClassClass.foo();

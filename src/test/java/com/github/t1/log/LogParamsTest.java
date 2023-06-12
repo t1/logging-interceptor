@@ -1,19 +1,19 @@
 package com.github.t1.log;
 
+import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
 import lombok.Value;
-import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
+import static mock.logging.MockLoggerProvider.array;
+import static mock.logging.MockMDC.givenMdc;
 import static org.mockito.Mockito.verify;
-import static org.slf4j.impl.StaticMDCBinder.givenMdc;
 
-@RunWith(Arquillian.class)
-public class LogParamsTest extends AbstractLoggingInterceptorTests {
+class LogParamsTest extends AbstractLoggingInterceptorTests {
     // ----------------------------------------------------------------------------------
 
     @SuppressWarnings("unused")
+    @Dependent
     public static class BooleanParamClass {
         @Logged
         public void foo(boolean i) {}
@@ -22,16 +22,16 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     @Inject
     BooleanParamClass booleanParamClass;
 
-    @Test
-    public void shouldLogBooleanParam() {
+    @Test void shouldLogBooleanParam() {
         booleanParamClass.foo(true);
 
-        verify(log).debug("foo {}", true);
+        verify(log).debug("foo {}", array(true));
     }
 
     // ----------------------------------------------------------------------------------
 
     @SuppressWarnings("unused")
+    @Dependent
     public static class IntParamClass {
         @Logged
         public void foo(int i) {}
@@ -40,16 +40,16 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     @Inject
     IntParamClass intParamClass;
 
-    @Test
-    public void shouldLogIntParam() {
+    @Test void shouldLogIntParam() {
         intParamClass.foo(3);
 
-        verify(log).debug("foo {}", 3);
+        verify(log).debug("foo {}", array(3));
     }
 
     // ----------------------------------------------------------------------------------
 
     @SuppressWarnings("unused")
+    @Dependent
     public static class IntegerParamClass {
         @Logged
         public void foo(Integer i) {}
@@ -58,16 +58,16 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     @Inject
     IntegerParamClass integerParamClass;
 
-    @Test
-    public void shouldLogIntegerParam() {
+    @Test void shouldLogIntegerParam() {
         integerParamClass.foo(3);
 
-        verify(log).debug("foo {}", 3);
+        verify(log).debug("foo {}", array(3));
     }
 
     // ----------------------------------------------------------------------------------
 
     @SuppressWarnings("unused")
+    @Dependent
     public static class StringParamClass {
         @Logged
         public void foo(String i) {}
@@ -76,15 +76,15 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     @Inject
     StringParamClass stringParamClass;
 
-    @Test
-    public void shouldLogStringParam() {
+    @Test void shouldLogStringParam() {
         stringParamClass.foo("bar");
 
-        verify(log).debug("foo {}", "bar");
+        verify(log).debug("foo {}", array("bar"));
     }
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class DontLogClass {
         @Logged
         @SuppressWarnings("unused")
@@ -94,15 +94,15 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     @Inject
     DontLogClass dontLogClass;
 
-    @Test
-    public void shouldNotLogArgumentsAnnotatedAsDontLog() {
+    @Test void shouldNotLogArgumentsAnnotatedAsDontLog() {
         dontLogClass.foo("foo", "bar");
 
-        verify(log).debug("foo {}", "bar");
+        verify(log).debug("foo {}", array("bar"));
     }
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class TwoParamsClass {
         @Logged
         @SuppressWarnings("unused")
@@ -112,15 +112,15 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     @Inject
     TwoParamsClass twoParamsClass;
 
-    @Test
-    public void shouldLogTwoParameters() {
+    @Test void shouldLogTwoParameters() {
         twoParamsClass.foo("foo", "bar");
 
-        verify(log).debug("foo {} {}", "foo", "bar");
+        verify(log).debug("foo {} {}", array("foo", "bar"));
     }
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class ParamsWithIndexClass {
         @Logged("one={0}, two={1}")
         @SuppressWarnings("unused")
@@ -154,53 +154,46 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     @Inject
     ParamsWithIndexClass paramsWithIndex;
 
-    @Test
-    public void shouldLogArgumentsWithIndex() {
+    @Test void shouldLogArgumentsWithIndex() {
         paramsWithIndex.withIndex("foo", "bar");
 
-        verify(log).debug("one={}, two={}", "foo", "bar");
+        verify(log).debug("one={}, two={}", array("foo", "bar"));
     }
 
-    @Test
-    public void shouldLogArgumentsWithInvertedIndex() {
+    @Test void shouldLogArgumentsWithInvertedIndex() {
         paramsWithIndex.withInvertedIndex("foo", "bar");
 
-        verify(log).debug("two={}, one={}", "bar", "foo");
+        verify(log).debug("two={}, one={}", array("bar", "foo"));
     }
 
-    @Test
-    public void shouldLogArgumentsWithRepeatedIndex() {
+    @Test void shouldLogArgumentsWithRepeatedIndex() {
         paramsWithIndex.withRepeatedIndex("foo", "bar");
 
-        verify(log).debug("one={}, again={}", "foo", "foo");
+        verify(log).debug("one={}, again={}", array("foo", "foo"));
     }
 
-    @Test
-    public void shouldFailToLogArgumentsWithInvalidIndex() {
+    @Test void shouldFailToLogArgumentsWithInvalidIndex() {
         paramsWithIndex.withInvalidIndex("foo", "bar");
 
-        verify(log).debug("one={}", "invalid log parameter index: 2");
+        verify(log).debug("one={}", array("invalid log parameter index: 2"));
     }
 
-    @Test
-    public void shouldFailToLogArgumentsWithNegativeIndex() {
+    @Test void shouldFailToLogArgumentsWithNegativeIndex() {
         paramsWithIndex.withNegativeIndex("foo");
 
-        verify(log).debug("one={}", "invalid log parameter index: -1");
+        verify(log).debug("one={}", array("invalid log parameter index: -1"));
     }
 
-    @Test
-    public void shouldLogMixedParameters() {
+    @Test void shouldLogMixedParameters() {
         paramsWithIndex.withMixedIndex("foo", "bar");
 
-        verify(log).debug("one={}, two={}", "foo", "bar");
+        verify(log).debug("one={}, two={}", array("foo", "bar"));
     }
 
-    @Test
-    public void shouldLogMixedParameters2() {
+    @Test void shouldLogMixedParameters2() {
         paramsWithIndex.withMixedIndex2("foo", "bar");
 
-        verify(log).debug("one={}, again={}, two={}", "foo", "foo", "bar");
+        verify(log).debug("one={}, again={}, two={}", array("foo", "foo", "bar"));
     }
 
     // ----------------------------------------------------------------------------------
@@ -216,6 +209,7 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     }
 
     @SuppressWarnings("unused")
+    @Dependent
     public static class ParamsWithNameClass {
         @Logged("one={invalid}")
         public void withInvalidName(String one) {}
@@ -239,52 +233,47 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     @Inject
     ParamsWithNameClass paramsWithName;
 
-    @Test
-    public void shouldNotLogArgumentsWithInvalidNameWhenNotAnMdc() {
+    @Test void shouldNotLogArgumentsWithInvalidNameWhenNotAnMdc() {
         paramsWithName.withInvalidName("foo");
 
         verify(log).debug("one={}",
-            "unset mdc log parameter reference (and not a parameter name): invalid");
+                array("unset mdc log parameter reference (and not a parameter name): invalid"));
     }
 
-    @Test
-    public void shouldLogArgumentsWithValidName() {
+    @Test void shouldLogArgumentsWithValidName() {
         paramsWithName.withValidName("foo");
 
-        verify(log).debug("one={}", "foo");
+        verify(log).debug("one={}", array("foo"));
     }
 
-    @Test
-    public void shouldLogWithProperty() {
+    @Test void shouldLogWithProperty() {
         paramsWithName.withProperty(new Pojo("foo", "bar"));
 
-        verify(log).debug(".one={}", "foo");
+        verify(log).debug(".one={}", array("foo"));
     }
 
-    @Test
-    public void shouldLogIndexedWithProperty() {
+    @Test void shouldLogIndexedWithProperty() {
         paramsWithName.indexedWithProperty(new Pojo("foo", "bar"));
 
-        verify(log).debug("0.one={}", "foo");
+        verify(log).debug("0.one={}", array("foo"));
     }
 
-    @Test
-    public void shouldLogNamedWithProperty() {
+    @Test void shouldLogNamedWithProperty() {
         paramsWithName.namedWithProperty(new Pojo("foo", "bar"));
 
-        verify(log).debug("p.one={}", "foo");
+        verify(log).debug("p.one={}", array("foo"));
     }
 
-    @Test
-    public void shouldLogWrappedProperty() {
+    @Test void shouldLogWrappedProperty() {
         paramsWithName.wrappedWithProperty(new Wrapper(new Pojo("foo", "bar")));
 
-        verify(log).debug("wrapper.pojo.two={}", "bar");
+        verify(log).debug("wrapper.pojo.two={}", array("bar"));
     }
 
     // ----------------------------------------------------------------------------------
 
     @SuppressWarnings("unused")
+    @Dependent
     public static class ParamsWithMdcNameClass {
         @Logged("one={one} mdc={mdc-key}")
         public void withMdcName(String one) {}
@@ -296,22 +285,20 @@ public class LogParamsTest extends AbstractLoggingInterceptorTests {
     @Inject
     ParamsWithMdcNameClass paramsWithMdcName;
 
-    @Test
-    public void shouldLogArgumentsWithNameAndMdcName() {
+    @Test void shouldLogArgumentsWithNameAndMdcName() {
         givenMdc("mdc-key", "mdc-value");
 
         paramsWithMdcName.withMdcName("foo");
 
-        verify(log).debug("one={} mdc={}", "foo", "mdc-value");
+        verify(log).debug("one={} mdc={}", array("foo", "mdc-value"));
     }
 
-    @Test
-    public void shouldNotLogMdcParameterWithExpression() {
+    @Test void shouldNotLogMdcParameterWithExpression() {
         givenMdc("mdc-key", "mdc-value");
 
         paramsWithMdcName.withMdcNameAndExpression();
 
         verify(log).debug("mdc={}",
-            "invalid log parameter expression [invalid] for reference [mdc-key]");
+                array("invalid log parameter expression [invalid] for reference [mdc-key]"));
     }
 }

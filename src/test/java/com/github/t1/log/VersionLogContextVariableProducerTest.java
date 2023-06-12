@@ -1,24 +1,29 @@
 package com.github.t1.log;
 
-import org.junit.*;
-import org.junit.runner.RunWith;
-import org.mockito.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.internal.stubbing.InvocationContainerImpl;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.slf4j.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.regex.Pattern;
 
-import static java.util.Arrays.*;
-import static org.junit.Assert.*;
+import static java.util.Arrays.asList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-import static org.mockito.internal.util.MockUtil.*;
+import static org.mockito.Mockito.when;
+import static org.mockito.internal.util.MockUtil.getMockHandler;
 
-@RunWith(MockitoJUnitRunner.class)
-public class VersionLogContextVariableProducerTest {
+@ExtendWith(MockitoExtension.class)
+class VersionLogContextVariableProducerTest {
     private final Logger log = LoggerFactory.getLogger(VersionLogContextVariableProducer.class);
 
     private static URL url(String string) {
@@ -29,8 +34,8 @@ public class VersionLogContextVariableProducerTest {
         }
     }
 
-    @After
-    public void printLogs() {
+    @AfterEach
+    void printLogs() {
         ((InvocationContainerImpl) getMockHandler(log).getInvocationContainer()).getInvocations().forEach(System.out::println);
     }
 
@@ -52,8 +57,7 @@ public class VersionLogContextVariableProducerTest {
         return url("file:src/test/resources/" + app + ".war/META-INF/MANIFEST.MF");
     }
 
-    @Test
-    public void shouldFindApplicationName() throws IOException {
+    @Test void shouldFindApplicationName() throws IOException {
         givenManifestsAt(testFileManifestUrl("spec-version"));
 
         producer.scan();
@@ -61,8 +65,7 @@ public class VersionLogContextVariableProducerTest {
         assertEquals("spec-version", producer.app().value());
     }
 
-    @Test
-    public void shouldFindVersion() throws IOException {
+    @Test void shouldFindVersion() throws IOException {
         givenManifestsAt(testFileManifestUrl("spec-version"));
 
         producer.scan();
@@ -70,8 +73,7 @@ public class VersionLogContextVariableProducerTest {
         assertEquals("1.2.3", producer.version().value());
     }
 
-    @Test
-    public void shouldIgnoreMissingManifest() throws IOException {
+    @Test void shouldIgnoreMissingManifest() throws IOException {
         givenManifestsAt(url("file:does/not/exist.war/META-INF/MANIFEST.MF"));
 
         producer.scan();
@@ -80,8 +82,7 @@ public class VersionLogContextVariableProducerTest {
         assertNull(producer.version());
     }
 
-    @Test
-    public void shouldIgnoreNonMatchingManifest() throws IOException {
+    @Test void shouldIgnoreNonMatchingManifest() throws IOException {
         givenManifestsAt(url("mailto:no@where.com"));
 
         producer.scan();
@@ -90,8 +91,7 @@ public class VersionLogContextVariableProducerTest {
         assertNull(producer.version());
     }
 
-    @Test
-    public void shouldIgnoreEmptyManifest() throws IOException {
+    @Test void shouldIgnoreEmptyManifest() throws IOException {
         givenManifestsAt(testFileManifestUrl("empty-manifest"));
 
         producer.scan();
@@ -100,8 +100,7 @@ public class VersionLogContextVariableProducerTest {
         assertNull(producer.version());
     }
 
-    @Test
-    public void shouldFindSpecVersionManifest() throws IOException {
+    @Test void shouldFindSpecVersionManifest() throws IOException {
         givenManifestsAt(testFileManifestUrl("impl-version"));
 
         producer.scan();

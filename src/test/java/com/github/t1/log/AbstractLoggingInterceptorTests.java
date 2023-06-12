@@ -1,18 +1,24 @@
 package com.github.t1.log;
 
-import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.StringAsset;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.*;
+import mock.logging.MockMDC;
+import org.jboss.weld.junit5.auto.AddBeanClasses;
+import org.jboss.weld.junit5.auto.AddEnabledInterceptors;
+import org.jboss.weld.junit5.auto.AddPackages;
+import org.jboss.weld.junit5.auto.EnableAutoWeld;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.ArgumentCaptor;
-import org.slf4j.*;
-import org.slf4j.impl.StaticMDCBinder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static com.github.t1.log.LogLevel.*;
+import static com.github.t1.log.LogLevel.DEBUG;
 import static org.mockito.Mockito.*;
 
-public abstract class AbstractLoggingInterceptorTests {
+@EnableAutoWeld
+@AddEnabledInterceptors(LoggingInterceptor.class)
+@AddPackages(LoggingInterceptor.class)
+@AddBeanClasses(Converters.class)
+abstract class AbstractLoggingInterceptorTests {
     static final Object[] NO_ARGS = new Object[0];
 
     String captureMessage() {
@@ -24,34 +30,21 @@ public abstract class AbstractLoggingInterceptorTests {
         return messageCaptor.getValue();
     }
 
-    private static final String BEANS_XML = "" //
-            + "<beans>\n" //
-            + "</beans>" //
-            ;
-
-    @Deployment
-    public static JavaArchive loggingInterceptorDeployment() {
-        return ShrinkWrap.create(JavaArchive.class) //
-                .addPackage(LoggingInterceptor.class.getPackage()) //
-                .addAsManifestResource(new StringAsset(BEANS_XML), "beans.xml") //
-                ;
-    }
-
     protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    @Before
-    @After
-    public void resetMdc() {
-        StaticMDCBinder.reset();
+    @BeforeEach
+    @AfterEach
+    void resetMdc() {
+        MockMDC.reset();
     }
 
-    @Before
-    public void initLogLevelDebug() {
+    @BeforeEach
+    void initLogLevelDebug() {
         givenLogLevel(DEBUG);
     }
 
-    @After
-    public void clearLogPointCache() {
+    @AfterEach
+    void clearLogPointCache() {
         LoggingInterceptor.CACHE.clear();
     }
 

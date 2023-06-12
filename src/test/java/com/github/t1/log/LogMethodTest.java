@@ -1,28 +1,23 @@
 package com.github.t1.log;
 
+import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
-import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import static com.github.t1.log.LogLevel.INFO;
+import static mock.logging.MockLoggerProvider.array;
+import static mock.logging.MockMDC.verifyMdc;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.BDDAssertions.then;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.slf4j.impl.StaticMDCBinder.verifyMdc;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.*;
 
 @SuppressWarnings("WeakerAccess")
-@RunWith(Arquillian.class)
-public class LogMethodTest extends AbstractLoggingInterceptorTests {
+class LogMethodTest extends AbstractLoggingInterceptorTests {
     // ----------------------------------------------------------------------------------
 
-    @Test
-    public void shouldLogWithMocks() {
+    @Test void shouldLogWithMocks() {
         log.info("info-log-message");
 
         verify(log).info("info-log-message");
@@ -31,6 +26,7 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
     // ----------------------------------------------------------------------------------
 
     @Logged(level = INFO)
+    @Dependent
     public static class SimpleClass {
         public void foo() {}
     }
@@ -38,8 +34,7 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
     @Inject
     SimpleClass simpleClass;
 
-    @Test
-    public void shouldLogUsingInterceptor() {
+    @Test void shouldLogUsingInterceptor() {
         givenLogLevel(INFO);
 
         simpleClass.foo();
@@ -47,8 +42,7 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
         verify(log).info("foo", NO_ARGS);
     }
 
-    @Test
-    public void shouldCacheLogPoint() {
+    @Test void shouldCacheLogPoint() {
         givenLogLevel(INFO);
         assertTrue(LoggingInterceptor.CACHE.isEmpty());
 
@@ -69,6 +63,7 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class CamelCaseClass {
         @Logged public void camelCaseMethod() {}
     }
@@ -76,8 +71,7 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
     @Inject
     CamelCaseClass camelCaseClass;
 
-    @Test
-    public void shouldConvertCamelCaseToSpaces() {
+    @Test void shouldConvertCamelCaseToSpaces() {
         camelCaseClass.camelCaseMethod();
 
         verify(log).debug("camel case method", NO_ARGS);
@@ -85,6 +79,7 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class LogMessageClass {
         @Logged("log message") public void foo() {}
 
@@ -94,15 +89,13 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
     @Inject
     LogMessageClass logMessageClass;
 
-    @Test
-    public void shouldLogExplicitMessage() {
+    @Test void shouldLogExplicitMessage() {
         logMessageClass.foo();
 
         verify(log).debug("log message", NO_ARGS);
     }
 
-    @Test
-    public void shouldNotLogEmptyMessage() {
+    @Test void shouldNotLogEmptyMessage() {
         logMessageClass.empty();
 
         verify(log, atLeast(0)).isDebugEnabled();
@@ -111,6 +104,7 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class ReturnVoidClass {
         @Logged public void foo() {}
     }
@@ -118,8 +112,7 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
     @Inject
     ReturnVoidClass returnVoidClass;
 
-    @Test
-    public void shouldNotLogVoidReturnValue() {
+    @Test void shouldNotLogVoidReturnValue() {
         returnVoidClass.foo();
 
         verify(log, atLeast(0)).isDebugEnabled();
@@ -129,6 +122,7 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class ReturnValueClass {
         @Logged public String foo() {
             return "bar";
@@ -138,8 +132,7 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
     @Inject
     ReturnValueClass returnValueClass;
 
-    @Test
-    public void shouldLogReturnValue() {
+    @Test void shouldLogReturnValue() {
         returnValueClass.foo();
 
         String message = captureMessage();
@@ -149,6 +142,7 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class ReturnFormatClass {
         @Logged(returnFormat = "my-{returnValue} in: {time}")
         public String foo(String result) {return result;}
@@ -159,8 +153,7 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
     @Inject
     ReturnFormatClass returnFormatClass;
 
-    @Test
-    public void shouldLogReturnFormat() {
+    @Test void shouldLogReturnFormat() {
         returnFormatClass.foo("bar");
 
         String message = captureMessage();
@@ -168,8 +161,7 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
         assertThat(message).startsWith("my-bar in: ");
     }
 
-    @Test
-    public void shouldSetReturnTimeMdc() {
+    @Test void shouldSetReturnTimeMdc() {
         returnFormatClass.foo("bar");
 
         String[] messageWords = captureMessage().split(" ");
@@ -177,8 +169,7 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
         verifyMdc("time", time);
     }
 
-    @Test
-    public void shouldFormatNullReturnValue() {
+    @Test void shouldFormatNullReturnValue() {
         returnFormatClass.foo(null);
 
         String message = captureMessage();
@@ -186,12 +177,11 @@ public class LogMethodTest extends AbstractLoggingInterceptorTests {
         assertThat(message).startsWith("my-null in: ");
     }
 
-    @Test
-    public void shouldNotLogEmptyReturnFormat() {
+    @Test void shouldNotLogEmptyReturnFormat() {
         var baz = returnFormatClass.bar("baz");
 
         then(baz).isEqualTo("baz");
-        verify(log).debug("bar {}", "baz");
+        verify(log).debug("bar {}", array("baz"));
         verify(log, atLeast(0)).isDebugEnabled();
         verifyNoMoreInteractions(log);
     }

@@ -1,17 +1,19 @@
 package com.github.t1.log;
 
+import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
 import lombok.Value;
-import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.jboss.weld.junit5.auto.AddBeanClasses;
+import org.junit.jupiter.api.Test;
 
+import static com.github.t1.log.LogConverterTest.PojoConverter;
+import static mock.logging.MockLoggerProvider.array;
+import static mock.logging.MockMDC.verifyMdc;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
-import static org.slf4j.impl.StaticMDCBinder.mdc;
 
-@RunWith(Arquillian.class)
-public class LogConverterTest extends AbstractLoggingInterceptorTests {
+@AddBeanClasses(PojoConverter.class)
+class LogConverterTest extends AbstractLoggingInterceptorTests {
     // ----------------------------------------------------------------------------------
 
     @Value
@@ -22,6 +24,7 @@ public class LogConverterTest extends AbstractLoggingInterceptorTests {
     private static final Pojo POJO = new Pojo("foo", "bar");
 
     public static class PojoConverter implements Converter {
+        @SuppressWarnings("unused")
         public String convert(Pojo pojo) {
             return pojo.one + "#" + pojo.two;
         }
@@ -29,6 +32,7 @@ public class LogConverterTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class PojoParamClass {
         @SuppressWarnings("unused")
         @Logged
@@ -38,14 +42,14 @@ public class LogConverterTest extends AbstractLoggingInterceptorTests {
     @Inject
     PojoParamClass pojoParam;
 
-    @Test
-    public void shouldConvertParameter() {
+    @Test void shouldConvertParameter() {
         pojoParam.pojoParamMethod(POJO);
 
-        verify(log).debug("pojo param method {}", "foo#bar");
+        verify(log).debug("pojo param method {}", array("foo#bar"));
     }
 
     // ----------------------------------------------------------------------------------
+    @Dependent
     public static class PojoReturnClass {
         @Logged
         public Pojo foo() {
@@ -56,11 +60,11 @@ public class LogConverterTest extends AbstractLoggingInterceptorTests {
     @Inject
     PojoReturnClass pojoReturn;
 
-    @Test
-    public void shouldConvertReturnValue() {
+    @Test void shouldConvertReturnValue() {
         pojoReturn.foo();
 
-        verify(log).debug("foo"); // consume for better mockito error messages
+        //noinspection RedundantArrayCreation
+        verify(log).debug("foo", new Object[0]); // consume for better mockito error messages
 
         String message = captureMessage();
 
@@ -68,6 +72,7 @@ public class LogConverterTest extends AbstractLoggingInterceptorTests {
     }
 
     // ----------------------------------------------------------------------------------
+    @Dependent
     public static class PojoLogContextClass {
         @SuppressWarnings("unused")
         @Logged
@@ -77,10 +82,9 @@ public class LogConverterTest extends AbstractLoggingInterceptorTests {
     @Inject
     PojoLogContextClass pojoLogContext;
 
-    @Test
-    public void shouldConvertLogContextParameter() {
+    @Test void shouldConvertLogContextParameter() {
         pojoLogContext.foo(POJO);
 
-        verify(mdc()).put("var", "foo#bar");
+        verifyMdc("var", "foo#bar");
     }
 }

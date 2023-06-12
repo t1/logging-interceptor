@@ -1,19 +1,18 @@
 package com.github.t1.log;
 
-import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
+import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
+import org.junit.jupiter.api.Test;
 
-import static com.github.t1.log.LogLevel.*;
+import static com.github.t1.log.LogLevel.INFO;
+import static mock.logging.MockMDC.mdc;
+import static mock.logging.MockMDC.verifyMdc;
 import static org.mockito.Mockito.*;
-import static org.slf4j.impl.StaticMDCBinder.*;
 
-@RunWith(Arquillian.class)
-public class LogIndentTest extends AbstractLoggingInterceptorTests {
+class LogIndentTest extends AbstractLoggingInterceptorTests {
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class SimpleClass {
         @Logged
         public void foo() {}
@@ -22,15 +21,13 @@ public class LogIndentTest extends AbstractLoggingInterceptorTests {
     @Inject
     SimpleClass simpleClass;
 
-    @Test
-    public void shouldIndentFromNull() {
+    @Test void shouldIndentFromNull() {
         simpleClass.foo();
 
         verifyMdc("indent", "");
     }
 
-    @Test
-    public void shouldIndentFrom0() {
+    @Test void shouldIndentFrom0() {
         when(mdc().get("indent")).thenReturn("");
 
         simpleClass.foo();
@@ -39,8 +36,7 @@ public class LogIndentTest extends AbstractLoggingInterceptorTests {
         verify(mdc()).put("indent", "");
     }
 
-    @Test
-    public void shouldIndentFrom1() {
+    @Test void shouldIndentFrom1() {
         when(mdc().get("indent")).thenReturn("  ");
 
         simpleClass.foo();
@@ -49,8 +45,7 @@ public class LogIndentTest extends AbstractLoggingInterceptorTests {
         verify(mdc()).put("indent", "  ");
     }
 
-    @Test
-    public void shouldNotIndentWhenDisabled() {
+    @Test void shouldNotIndentWhenDisabled() {
         givenLogLevel(INFO);
         when(mdc().get("indent")).thenReturn("  ");
 

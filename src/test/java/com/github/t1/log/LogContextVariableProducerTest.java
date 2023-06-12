@@ -1,16 +1,14 @@
 package com.github.t1.log;
 
-import static org.slf4j.impl.StaticMDCBinder.*;
-
+import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
+import org.junit.jupiter.api.Test;
 
-import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import static mock.logging.MockMDC.verifyMdc;
 
-@RunWith(Arquillian.class)
-public class LogContextVariableProducerTest extends AbstractLoggingInterceptorTests {
+class LogContextVariableProducerTest extends AbstractLoggingInterceptorTests {
+    @Dependent
     public static class SimpleClass {
         @Logged
         public void simple() {}
@@ -22,8 +20,7 @@ public class LogContextVariableProducerTest extends AbstractLoggingInterceptorTe
     @Produces
     LogContextVariable fooBarVariable = new LogContextVariable("fooVar", "barVar");
 
-    @Test
-    public void shouldAddLogContextVariable() {
+    @Test void shouldAddLogContextVariable() {
         simple.simple();
 
         verifyMdc("fooVar", "barVar");
@@ -32,8 +29,7 @@ public class LogContextVariableProducerTest extends AbstractLoggingInterceptorTe
     @Produces
     LogContextVariable nullVariable = null;
 
-    @Test
-    public void shouldSkipNullLogContextVariable() {
+    @Test void shouldSkipNullLogContextVariable() {
         simple.simple();
 
         // verify not possible... just check that there's no exception

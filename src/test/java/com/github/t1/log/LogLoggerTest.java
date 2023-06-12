@@ -1,17 +1,16 @@
 package com.github.t1.log;
 
-import static com.github.t1.log.LogLevel.*;
-import static org.mockito.Mockito.*;
-
+import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.slf4j.*;
+import static com.github.t1.log.LogLevel.DEBUG;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
-@RunWith(Arquillian.class)
-public class LogLoggerTest extends AbstractLoggingInterceptorTests {
+class LogLoggerTest extends AbstractLoggingInterceptorTests {
     private Logger logger(Class<?> type) {
         Logger logger = LoggerFactory.getLogger(type);
         givenLogLevel(DEBUG, logger);
@@ -23,8 +22,7 @@ public class LogLoggerTest extends AbstractLoggingInterceptorTests {
     @Inject
     ImplicitLoggerClass implicitLoggerClass;
 
-    @Test
-    public void shouldUseImplicitLoggerClass() {
+    @Test void shouldUseImplicitLoggerClass() {
         Logger logger = logger(ImplicitLoggerClass.class);
 
         implicitLoggerClass.foo();
@@ -34,6 +32,7 @@ public class LogLoggerTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class ExplicitLoggerClass {
         @Logged(logger = Integer.class)
         public void foo() {}
@@ -42,8 +41,7 @@ public class LogLoggerTest extends AbstractLoggingInterceptorTests {
     @Inject
     ExplicitLoggerClass explicitLoggerClass;
 
-    @Test
-    public void shouldUseExplicitLoggerClass() {
+    @Test void shouldUseExplicitLoggerClass() {
         Logger logger = logger(Integer.class);
 
         explicitLoggerClass.foo();
@@ -53,6 +51,7 @@ public class LogLoggerTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class ExplicitSelfLoggerClass {
         @Logged(logger = ExplicitSelfLoggerClass.class)
         public void foo() {}
@@ -61,8 +60,7 @@ public class LogLoggerTest extends AbstractLoggingInterceptorTests {
     @Inject
     ExplicitSelfLoggerClass explicitSelfLogger;
 
-    @Test
-    public void shouldNotUnwrapUseExplicitLocalLoggerClass() {
+    @Test void shouldNotUnwrapUseExplicitLocalLoggerClass() {
         Logger logger = logger(ExplicitSelfLoggerClass.class);
 
         explicitSelfLogger.foo();
@@ -72,6 +70,7 @@ public class LogLoggerTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class Nested {
         @Logged
         public void implicit() {}
@@ -83,8 +82,7 @@ public class LogLoggerTest extends AbstractLoggingInterceptorTests {
     @Inject
     Nested nested;
 
-    @Test
-    public void shouldNotUnwrapUseExplicitNestedLoggerClass() {
+    @Test void shouldNotUnwrapUseExplicitNestedLoggerClass() {
         Logger logger = logger(Nested.class);
 
         nested.explicit();
@@ -92,8 +90,7 @@ public class LogLoggerTest extends AbstractLoggingInterceptorTests {
         verify(logger).debug("explicit", NO_ARGS);
     }
 
-    @Test
-    public void shouldDefaultToContainerOfNestedLoggerClass() {
+    @Test void shouldDefaultToContainerOfNestedLoggerClass() {
         Logger logger = logger(LogLoggerTest.class);
 
         nested.implicit();
@@ -103,7 +100,9 @@ public class LogLoggerTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class Outer {
+        @Dependent
         public static class Inner {
             @Logged
             public void foo() {}
@@ -113,8 +112,7 @@ public class LogLoggerTest extends AbstractLoggingInterceptorTests {
     @Inject
     Outer.Inner inner;
 
-    @Test
-    public void shouldDefaultToDoubleContainerLoggerClass() {
+    @Test void shouldDefaultToDoubleContainerLoggerClass() {
         Logger logger = logger(LogLoggerTest.class);
 
         inner.foo();
@@ -124,6 +122,7 @@ public class LogLoggerTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class DollarLoggerClass {
         @Logged(logger = Dollar$Type.class)
         public void foo() {}
@@ -132,8 +131,7 @@ public class LogLoggerTest extends AbstractLoggingInterceptorTests {
     @Inject
     DollarLoggerClass dollarLoggerClass;
 
-    @Test
-    public void shouldNotUnwrapUseExplicitDollarLoggerClass() {
+    @Test void shouldNotUnwrapUseExplicitDollarLoggerClass() {
         Logger logger = logger(Dollar$Type.class);
 
         dollarLoggerClass.foo();
@@ -143,6 +141,7 @@ public class LogLoggerTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class StringLoggerNameClass {
         @Logged(loggerString = "some.logger")
         public void foo() {}
@@ -151,8 +150,7 @@ public class LogLoggerTest extends AbstractLoggingInterceptorTests {
     @Inject
     StringLoggerNameClass stringLoggerNameClass;
 
-    @Test
-    public void shouldUseStringLoggerName() {
+    @Test void shouldUseStringLoggerName() {
         Logger logger = LoggerFactory.getLogger("some.logger");
         givenLogLevel(DEBUG, logger);
 
@@ -163,11 +161,13 @@ public class LogLoggerTest extends AbstractLoggingInterceptorTests {
 
     // ----------------------------------------------------------------------------------
 
+    @Dependent
     public static class SuperNonLoggedClass {
         public void foo() {}
     }
 
     @Logged
+    @Dependent
     public static class SubLoggedClass extends SuperNonLoggedClass {
         public void bar() {}
     }
@@ -175,8 +175,7 @@ public class LogLoggerTest extends AbstractLoggingInterceptorTests {
     @Inject
     SubLoggedClass subLoggedClass;
 
-    @Test
-    public void shouldLogInheritedMethod() {
+    @Test void shouldLogInheritedMethod() {
         Logger logger = logger(LogLoggerTest.class);
         givenLogLevel(DEBUG, logger);
 
