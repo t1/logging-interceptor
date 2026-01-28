@@ -1,5 +1,6 @@
 # CDI logging-interceptor
 
+[![Build Status](https://github.com/t1/logging-interceptor/actions/workflows/maven.yml/badge.svg)](https://github.com/t1/logging-interceptor/actions/workflows/maven.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/com.github.t1/logging-interceptor.svg)](https://central.sonatype.com/artifact/com.github.t1/logging-interceptor)
 
 CDI interceptor for logging to slf4j.
