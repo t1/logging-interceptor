@@ -1,5 +1,7 @@
 package com.github.t1.log;
 
+import jakarta.enterprise.context.Dependent;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.Enumeration;
@@ -7,9 +9,10 @@ import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Dependent
 public class ManifestFinder {
     private static final Pattern MAIN_MANIFEST =
-        Pattern.compile("vfs:/content/(?<path>.*)\\.(?<type>war|jar|ear)/META-INF/MANIFEST.MF");
+            Pattern.compile("vfs:/content/(?<path>.*)\\.(?<type>war|jar|ear)/META-INF/MANIFEST.MF");
 
     public Iterable<URL> manifests() throws IOException {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
