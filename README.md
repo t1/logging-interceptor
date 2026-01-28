@@ -1,5 +1,7 @@
 # CDI logging-interceptor
 
+[![Maven Central](https://img.shields.io/maven-central/v/com.github.t1/logging-interceptor.svg)](https://central.sonatype.com/artifact/com.github.t1/logging-interceptor)
+
 CDI interceptor for logging to slf4j.
 
 Logging is the standard example for writing interceptors. Yet, I didn't find a good one, so I wrote my own (and it was a
